@@ -57,6 +57,9 @@ with sync_playwright() as p:
     stars_of = lambda ds: pg.evaluate(f"(document.getElementById('plot-{ds}').data.find(t => t.marker && t.marker.symbol === 'asterisk') || {{x: []}}).x.length")
     check(stars_of("NC_2D") >= 1, f"multi view stars significant groups in 2D cells: {stars_of('NC_2D')}")
     check(stars_of("JCI_tissue") >= 1, f"multi view stars tissue groups vs MM: {stars_of('JCI_tissue')}")
+    pg.hover("#tab-NC_2D th[data-hl-groups] >> nth=1")   # the KO column header
+    pg.wait_for_function("document.getElementById('plot-NC_2D').data.some(t => Array.isArray(t.marker?.opacity) && t.marker.opacity.includes(0.15))")
+    check(True, "hovering a group header in the multi-gene table dims the other groups")
     pg.hover("#tab-NC_2D .hl >> nth=0")
     pg.wait_for_function("document.getElementById('plot-NC_2D').data.some(t => Array.isArray(t.marker?.opacity) && t.marker.opacity.includes(0.15))")
     check(True, "hovering a change entry dims the other points")

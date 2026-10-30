@@ -453,7 +453,7 @@ function changesCell(d, de, n) {
 
 function tableMulti(d, data) {
   const vsWT = d.contrasts.every((c) => c.endsWith("_vs_WT"));
-  const head = `<tr><th scope="col">Gene</th>${d.groups.map((grp) => `<th scope="col">${groupCell(grp)}</th>`).join("")}
+  const head = `<tr><th scope="col">Gene</th>${d.groups.map((grp) => `<th scope="col" data-hl-groups="${grp}">${groupCell(grp)}</th>`).join("")}
     <th scope="col" class="left">Significant changes${vsWT ? " vs WT" : ""}</th></tr>`;
   const rows = data.map((g, n) => {
     const cells = d.groups.map((grp, gi) => {
