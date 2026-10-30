@@ -148,10 +148,11 @@ with sync_playwright() as p:
     pg.fill("#filter", ""); pg.uncheck("#sigonly")
     pg.fill("#alpha", "0.01"); pg.wait_for_timeout(300)
     check("higher in KO" in pg.inner_text("#summary"), "threshold change keeps summary")
+    picked_name = pg.locator("#picked b").first.inner_text()
     pg.select_option("#contrast", "JCI_tissue__LMmut_vs_MM")
     pg.wait_for_function("document.querySelector('#summary').innerText.includes('Tissue')")
     check("20,462 genes tested" in pg.inner_text("#summary"), "switching comparison reloads")
-    check("MED12" in pg.inner_text("#picked"), "picked gene persists across comparisons")
+    check(picked_name in pg.inner_text("#picked"), f"picked gene ({picked_name}) persists across comparisons")
     pg.click("#picked [data-clear]")
     check(pg.locator("#picked").is_hidden(), "clear hides the picked strip")
 
