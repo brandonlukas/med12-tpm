@@ -247,7 +247,9 @@ code { font-family: var(--mono); font-size: .92em; }
 
 /* the study-design drawing and the three study notes under it */
 .design { display: grid; gap: 12px; margin: 0; }
-.design img { display: block; width: min(100%, 640px); height: auto; }
+.design-svg { display: block; width: min(100%, 760px); height: auto; }
+@media (max-width: 640px) { .design-svg { min-width: 600px; } }   /* labels stay legible; the figure scrolls sideways */
+.design-svg text { font-family: var(--sans); }
 .design figcaption { color: var(--text); font-size: 14px; max-width: 72ch; }
 .design figcaption b { color: var(--ink); }
 .studies { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }

@@ -7,4 +7,3 @@ null/
 .nextflow.log*
 samplesheet.abs.csv
 __pycache__/
-illustration/design_check.png

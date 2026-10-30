@@ -88,7 +88,7 @@ with sync_playwright() as p:
     pg.wait_for_selector("#samples .sample-block")
     check(pg.locator("#samples circle").count() == 40, f"sample figure draws 40 dots: {pg.locator('#samples circle').count()}")
     check(pg.locator("#samples line").count() == 10, "tissue pairs joined by 10 lines")
-    check(pg.evaluate("document.querySelector('.design img')?.naturalWidth > 0"), "study-design drawing loads")
+    check(pg.locator(".design svg circle").count() >= 30, "study-design drawing is inline")
     check(pg.locator('a[href="https://doi.org/10.1172/jci.insight.171305"]').count() >= 1, "tissue paper linked")
     check(pg.locator('a[href="https://doi.org/10.1038/s41467-023-39684-y"]').count() >= 1, "cell paper linked")
     check(pg.locator('a[href="https://doi.org/10.1126/science.1208930"]').count() >= 1, "Makinen 2011 linked")
