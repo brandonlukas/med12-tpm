@@ -33,6 +33,26 @@ const yTop = (ymax) => Math.max(ymax * 1.05, toY(FLOOR_TPM));
 const jitter = (k) => ((Math.abs(Math.sin(k * 12.9898) * 43758.5453) % 1) - 0.5);
 const mean = (v) => v.reduce((a, b) => a + b, 0) / v.length;
 const status = (msg, html = false) => { const el = $("status"); el[html ? "innerHTML" : "textContent"] = msg; el.hidden = !msg; };
+// the groups a comparison is about; the pooled LM vs MM involves every group
+const pairFor = (d, c) => (c in CONTRAST_GROUPS ? CONTRAST_GROUPS[c] : c.split("_vs_")) || d.groups;
+
+// Linked highlighting: hovering a table row, or one "KO ↓" entry, lights up the points it
+// refers to and dims the rest. hl[dataset] records what each trace (or each point) stands for.
+const hl = {};
+function highlight(dsId, groups, gene) {
+  const el = $(`plot-${dsId}`), h = hl[dsId];
+  if (!el?.data || !h) return;
+  const key = `${groups ? groups.join(",") : ""}|${gene ?? ""}`;
+  if (h.key === key) return;
+  h.key = key;
+  if (!groups && gene == null) { Plotly.restyle(el, { opacity: 1, "marker.opacity": 1 }); return; }
+  const on = (g, n) => (!groups || groups.includes(g)) && (gene == null || n === gene);
+  if (h.mode === "one") {
+    Plotly.restyle(el, { opacity: h.traces.map((g) => (g === null ? 0.3 : on(g, null) ? 1 : 0.15)) });
+  } else {
+    Plotly.restyle(el, { "marker.opacity": h.points.map((pts) => pts.map((p) => (on(p.g, p.n) ? 1 : 0.15))) });
+  }
+}
 
 async function init() {
   if (typeof Plotly === "undefined") { status("The plotting library did not load. Reload the page."); return; }
@@ -73,6 +93,15 @@ async function init() {
     </section>`).join("");
   // Plotly sizes a plot when it is created; redraw when the panel's width changes
   new ResizeObserver(() => document.querySelectorAll(".plot").forEach((el) => el.data && Plotly.Plots.resize(el))).observe($("panels"));
+  for (const d of Data.meta.datasets) {
+    const tab = $(`tab-${d.id}`);
+    tab.addEventListener("mouseover", (e) => {
+      const t = e.target.closest("[data-hl-groups],[data-hl-gene]");
+      if (!t) { highlight(d.id, null, null); return; }
+      highlight(d.id, t.dataset.hlGroups ? t.dataset.hlGroups.split(",") : null, t.dataset.hlGene != null ? +t.dataset.hlGene : null);
+    });
+    tab.addEventListener("mouseleave", () => highlight(d.id, null, null));
+  }
 
   window.addEventListener("hashchange", fromHash);
   fromHash();
@@ -166,17 +195,19 @@ function plotOne(d, g) {
   const y = tpm.map(toY);
   const xi = Object.fromEntries(d.groups.map((grp, k) => [grp, k]));
   const xs = d.samples.map((s, k) => xi[s.group] + jitter(k) * 0.32);
-  const traces = [];
+  const traces = [], what = [];   // what[i]: the group a trace shows, or null for a pairing line
   // tissue: one grey line per patient, MM -> LM
   const pts = {};
   d.samples.forEach((s, k) => { if (s.patient) (pts[s.patient] ||= []).push(k); });
   for (const ks of Object.values(pts)) {
     if (ks.length !== 2) continue;
+    what.push(null);
     traces.push({ x: ks.map((k) => xs[k]), y: ks.map((k) => y[k]), mode: "lines",
       line: { color: "#dde0e7", width: 1 }, hoverinfo: "skip", showlegend: false });
   }
   for (const grp of d.groups) {
     const ks = d.samples.map((_, k) => k).filter((k) => d.samples[k].group === grp);
+    what.push(grp);
     traces.push({
       x: ks.map((k) => xs[k]), y: ks.map((k) => y[k]), mode: "markers", showlegend: false,
       marker: { color: COLORS[grp], size: 10, line: { color: "#fff", width: 1.5 } },
@@ -186,6 +217,7 @@ function plotOne(d, g) {
   }
   const ymax = yTop(Math.max(0, ...y.filter((v) => v != null)));
   const { shapes, annotations, top } = brackets(d, g.de[d.id], xi, ymax);
+  hl[d.id] = { mode: "one", traces: what };
   Plotly.react(`plot-${d.id}`, traces, {
     ...BASE_LAYOUT, shapes, annotations, margin: { l: 56, r: 10, t: 10, b: 50 },
     xaxis: { ...AXIS, tickvals: d.groups.map((_, k) => k), ticktext: d.groups.map(groupTick),
@@ -236,15 +268,16 @@ function tableOne(d, g) {
   const tpm = g.tpm[d.id], de = g.de[d.id], name = encodeURIComponent(Data.genes[selected[0]][1]);
   const expr = d.groups.map((grp, gi) => {
     const v = d.samples.map((s, k) => (s.group === grp ? tpm[k] : null)).filter((x) => x != null);
-    return `<tr><td>${groupCell(grp)}</td><td>${fmtTPM(mean(v))}</td><td>${ordinal(g.pct[d.id][gi])}</td></tr>`;
+    return `<tr data-hl-groups="${grp}"><td>${groupCell(grp)}</td><td>${fmtTPM(mean(v))}</td><td>${ordinal(g.pct[d.id][gi])}</td></tr>`;
   });
   const diffs = d.contrasts.map((c) => {
     const [, lfc, padj] = de[c] || [];
     const label = `<a href="de.html#c=${d.id}__${c}&gene=${name}" title="See the whole comparison">${esc(contrastLabel(c))}</a>`;
-    if (padj == null) return `<tr><td>${label}</td><td colspan="2" class="dim">not tested</td></tr>`;
+    const row = `<tr data-hl-groups="${pairFor(d, c).join(",")}">`;
+    if (padj == null) return `${row}<td>${label}</td><td colspan="2" class="dim">not tested</td></tr>`;
     // no direction colour here: on this page orange and blue already mean sample groups
     const cls = padj < 0.05 ? "sig" : "";
-    return `<tr><td>${label}</td><td class="${cls}">${fmt(lfc)}</td><td class="${cls}">${fmtP(padj)}</td></tr>`;
+    return `${row}<td>${label}</td><td class="${cls}">${fmt(lfc)}</td><td class="${cls}">${fmtP(padj)}</td></tr>`;
   });
   $(`tab-${d.id}`).innerHTML = `
     <table><caption>Expression by group</caption>
@@ -258,8 +291,9 @@ function tableOne(d, g) {
 // several genes: genes on x, groups side by side within each gene
 function plotMulti(d, data) {
   const G = d.groups.length, slot = 0.74 / G;
+  const points = [];   // per trace, what each point stands for: { g: group, n: gene index }
   const traces = d.groups.map((grp, gi) => {
-    const x = [], y = [], text = [];
+    const x = [], y = [], text = [], pts = [];
     data.forEach((g, n) => {
       d.samples.forEach((s, k) => {
         if (s.group !== grp) return;
@@ -267,31 +301,41 @@ function plotMulti(d, data) {
         x.push(n + (gi - (G - 1) / 2) * slot + jitter(k + 31 * n) * slot * 0.5);
         y.push(toY(v));
         text.push(`${esc(Data.genes[selected[n]][1])} · ${sampleLabel(s.sample)}<br>TPM ${fmtTPM(v)}`);
+        pts.push({ g: grp, n });
       });
     });
+    points.push(pts);
     return { x, y, text, mode: "markers", name: groupLabel(grp), hovertemplate: "%{text}<extra></extra>",
       marker: { color: COLORS[grp], size: 8, line: { color: "#fff", width: 1 } } };
   });
   const shapes = selected.slice(1).map((_, n) => ({ type: "line", xref: "x", yref: "paper", x0: n + 0.5, x1: n + 0.5,
     y0: 0, y1: 1, line: { color: RULE, width: 1 } }));
-  // one star above a group where it differs from the reference group (padj < 0.05); a single
-  // glyph so that neighbouring groups never collide. Comparisons that are not against the
-  // reference stay in the table below
-  const ref = d.groups[0], annotations = [];
+  // one star above a group where it differs from the reference group (padj < 0.05), drawn as a
+  // stroked marker so that it reads as a mark, not a speck. Comparisons that are not against
+  // the reference stay in the table below
+  const base = yTop(Math.max(0, ...traces.flatMap((t) => t.y.filter((v) => v != null))));
+  const ref = d.groups[0], star = { x: [], y: [], text: [], pts: [] };
   data.forEach((g, n) => {
     for (const c of d.contrasts) {
-      const pair = c in CONTRAST_GROUPS ? CONTRAST_GROUPS[c] : c.split("_vs_");
-      const padj = g.de[d.id][c]?.[2];
-      if (!pair || pair[1] !== ref || !(pair[0] in Object.fromEntries(d.groups.map((x) => [x, 1]))) || padj == null || padj >= 0.05) continue;
+      const pair = pairFor(d, c), padj = g.de[d.id][c]?.[2];
+      if (pair.length !== 2 || pair[1] !== ref || !d.groups.includes(pair[0]) || padj == null || padj >= 0.05) continue;
       const gi = d.groups.indexOf(pair[0]);
       const ys = d.samples.map((s, k) => (s.group === pair[0] ? toY(g.tpm[d.id][k]) : null)).filter((v) => v != null);
-      annotations.push({ x: n + (gi - (G - 1) / 2) * slot, y: Math.max(...ys), yanchor: "bottom", yshift: 4, showarrow: false,
-        text: "*", font: { size: 16, color: INK }, hovertext: `${contrastLabel(c)}<br>p<sub>adj</sub> ${fmtP(padj)}` });
+      star.x.push(n + (gi - (G - 1) / 2) * slot);
+      star.y.push(Math.max(...ys) + 0.055 * base);
+      star.text.push(`${esc(Data.genes[selected[n]][1])}, ${contrastLabel(c)}<br>p<sub>adj</sub> ${fmtP(padj)}`);
+      star.pts.push({ g: pair[0], n });
     }
   });
-  const top = yTop(Math.max(0, ...traces.flatMap((t) => t.y.filter((v) => v != null)))) * (annotations.length ? 1.08 : 1);
+  if (star.x.length) {
+    points.push(star.pts);
+    traces.push({ x: star.x, y: star.y, text: star.text, mode: "markers", showlegend: false, hovertemplate: "%{text}<extra></extra>",
+      marker: { symbol: "asterisk", size: 11, color: INK, line: { color: INK, width: 2 } } });
+  }
+  hl[d.id] = { mode: "multi", points };
+  const top = base * (star.x.length ? 1.08 : 1);
   Plotly.react(`plot-${d.id}`, traces, {
-    ...BASE_LAYOUT, shapes, annotations, margin: { l: 56, r: 10, t: 34, b: 44 },
+    ...BASE_LAYOUT, shapes, margin: { l: 56, r: 10, t: 34, b: 44 },
     legend: { orientation: "h", x: 0, y: 1.02, yanchor: "bottom", font: { size: 13 }, itemclick: false, itemdoubleclick: false },
     xaxis: { ...AXIS, tickvals: selected.map((_, n) => n), ticktext: selected.map((i) => esc(Data.genes[i][1])),
       range: [-0.5, selected.length - 0.5], tickangle: "auto", showgrid: false, ticks: "" },
@@ -300,10 +344,10 @@ function plotMulti(d, data) {
 }
 
 // which comparisons call the gene significant, as short labels with the direction
-function changesCell(d, de) {
+function changesCell(d, de, n) {
   if (!de || !Object.keys(de).length) return `<span class="dim">not tested</span>`;
   const hits = d.contrasts.filter((c) => de[c] && de[c][2] < 0.05)
-    .map((c) => `${esc(contrastShort(c))} ${de[c][1] > 0 ? "↑" : "↓"}`);
+    .map((c) => `<span class="hl" data-hl-gene="${n}" data-hl-groups="${pairFor(d, c).join(",")}" title="padj ${fmtP(de[c][2])}">${esc(contrastShort(c))} ${de[c][1] > 0 ? "↑" : "↓"}</span>`);
   return hits.length ? hits.join(", ") : `<span class="dim">none</span>`;
 }
 
@@ -317,7 +361,7 @@ function tableMulti(d, data) {
       return `<td>${fmtTPM(mean(v))} <span class="dim small">${ordinal(g.pct[d.id][gi])}</span></td>`;
     });
     const name = Data.genes[selected[n]][1];
-    return `<tr><td><a href="${genesLink([name])}" title="Show only this gene">${esc(name)}</a></td>${cells.join("")}<td class="left">${changesCell(d, g.de[d.id])}</td></tr>`;
+    return `<tr data-hl-gene="${n}"><td><a href="${genesLink([name])}" title="Show only this gene">${esc(name)}</a></td>${cells.join("")}<td class="left">${changesCell(d, g.de[d.id], n)}</td></tr>`;
   });
   $(`tab-${d.id}`).innerHTML = `<div class="scroll"><table><caption>Mean TPM, with its percentile among protein-coding genes; changes at p<sub>adj</sub> &lt; 0.05</caption>
     <thead>${head}</thead><tbody>${rows.join("")}</tbody></table></div>`;

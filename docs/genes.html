@@ -6,7 +6,7 @@
 <title>Genes · MED12 RNA-seq Explorer</title>
 <meta name="description" content="Expression of any gene in three public MED12 RNA-seq datasets: leiomyoma with matched myometrium, and MED12-edited cells in 2D and 3D culture.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=d22eac75">
 <script src="vendor/plotly-basic-2.35.2.min.js"></script>
 </head>
 <body>
@@ -67,6 +67,7 @@
         * p<sub>adj</sub> &lt; 0.05, ** &lt; 0.01, *** &lt; 0.001, ns not significant. "Not tested" means too few counts.</li>
       <li>With several genes, a star above a group marks p<sub>adj</sub> &lt; 0.05 against the reference group (MM or
         WT); hover it for the exact value. Comparisons that are not against the reference are in the table only.</li>
+      <li>Hovering a row in a table, or one of its entries, lights up the points it refers to.</li>
       <li>Values are comparable within a dataset, not between datasets. The spheroid WT group has 2 replicates.</li>
     </ul>
   </details>
@@ -78,7 +79,7 @@
     <a href="https://github.com/brandonlukas/med12-tpm">Code and downloads on GitHub</a>
   </div>
 </footer>
-<script src="common.js"></script>
-<script src="app.js"></script>
+<script src="common.js?v=d22eac75"></script>
+<script src="app.js?v=d22eac75"></script>
 </body>
 </html>

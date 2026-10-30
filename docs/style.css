@@ -159,6 +159,9 @@ td.sig.up { color: var(--up); }
 td.sig.down { color: var(--down); }
 th.left, td.left { text-align: left; }
 td a { text-decoration: none; }
+tr[data-hl-groups]:hover, tr[data-hl-gene]:hover { background: var(--panel); }
+.hl { border-bottom: 1px dotted var(--control); cursor: default; }
+.hl:hover { border-bottom-color: var(--ink); }
 td a:hover { text-decoration: underline; }
 .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
 .tables { display: grid; gap: 18px; align-content: start; }

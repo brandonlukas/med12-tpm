@@ -36,6 +36,7 @@ The [methods page](https://brandonlukas.github.io/med12-tpm/methods.html) docume
 - `deseq2.R`: DESeq2 within each dataset
 - `build_site_data.py`: data for the site (`docs/data/`)
 - `illustration/vector.py`: generates the overview's illustration (smooth vector SVG, gradient shading) into `docs/index.html`
+- `stamp.py`: stamps the pages' stylesheet and script links with a content hash; run it before committing a change to `docs/`
 - `tests/site_test.py`: scripted browser checks of the site (Playwright); `tests/screenshots.py` renders pages to PNG
 - `docs/`: the site, served by GitHub Pages: `index.html` + `overview.js` (Overview), `genes.html` + `app.js`
   (Genes), `de.html` + `de.js` (Comparisons), `methods.html`, `common.js`, `style.css`; Plotly 2.35.2 is vendored in `docs/vendor/`
