@@ -1,0 +1,9 @@
+fastq
+work
+results
+deliverables
+null/
+.nextflow/
+.nextflow.log*
+samplesheet.abs.csv
+__pycache__/

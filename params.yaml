@@ -1,0 +1,26 @@
+# nf-core/rnaseq parameters: Salmon-only quantification to get gene-level TPM.
+# Skips STAR alignment and all BAM-based QC (RSeQC, Qualimap, dupRadar, etc.).
+input: samplesheet.abs.csv          # written by run_rnaseq.sh (absolute fastq paths)
+outdir: results
+
+# Reference: GENCODE v44 comprehensive annotation (~62k genes) on GRCh38 primary
+# assembly, downloaded by fetch_reference.sh. Same GENCODE release as the 10x
+# 2024-A reference, but unfiltered (standard for bulk). The Salmon index is
+# built on the first run and saved to results/genome/index/salmon; to reuse it
+# later, copy it somewhere permanent and set salmon_index to that path.
+fasta: /home/brandon/data/reference_genomes/gencode_v44/GRCh38.primary_assembly.genome.fa.gz
+gtf: /home/brandon/data/reference_genomes/gencode_v44/gencode.v44.primary_assembly.annotation.gtf.gz
+gencode: true
+igenomes_ignore: true
+save_reference: true
+
+# Quantification
+skip_alignment: true
+pseudo_aligner: salmon
+trimmer: fastp                      # faster than the trimgalore default
+
+# Skip outputs we don't need
+skip_bigwig: true
+skip_stringtie: true
+skip_biotype_qc: true
+skip_deseq2_qc: true
