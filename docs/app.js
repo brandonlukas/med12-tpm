@@ -172,6 +172,7 @@ function wireDrag() {
   let drag = null;
   const end = () => {
     if (!drag) return;
+    if (drag.frame) cancelAnimationFrame(drag.frame);
     drag.ghost?.remove();
     document.body.classList.remove("dragging-chip");
     drag.chip.classList.remove("placeholder");
@@ -180,11 +181,26 @@ function wireDrag() {
   box.addEventListener("pointerdown", (e) => {
     const chip = e.target.closest(".chip");
     if (!chip || e.target.closest("button") || (e.pointerType === "mouse" && e.button !== 0)) return;
-    drag = { chip, id: e.pointerId, x0: e.clientX, y0: e.clientY, moved: false };
+    e.preventDefault();   // no text selection starts under the drag
+    drag = { chip, id: e.pointerId, x0: e.clientX, y0: e.clientY, moved: false, x: e.clientX, y: e.clientY, frame: 0 };
     chip.setPointerCapture(e.pointerId);
   });
+  // the work for a move happens once per screen frame, however many pointer events arrive
+  const step = () => {
+    drag.frame = 0;
+    const { x, y } = drag;
+    drag.ghost.style.transform = `translate(${x - drag.dx}px, ${y - drag.dy}px)`;
+    // the placeholder moves among the other chips: before the first chip in the pointer's row whose
+    // midpoint is right of the pointer, else after the last chip in that row
+    const others = [...box.querySelectorAll(".chip:not(.placeholder)")].map((c) => ({ c, r: c.getBoundingClientRect() }));
+    const row = others.filter(({ r }) => y >= r.top - 4 && y <= r.bottom + 4);
+    const before = row.find(({ r }) => x < r.left + r.width / 2)?.c;
+    if (before) { if (before !== drag.chip.nextElementSibling) box.insertBefore(drag.chip, before); }
+    else if (row.length && row.at(-1).c !== drag.chip.previousElementSibling) row.at(-1).c.after(drag.chip);
+  };
   box.addEventListener("pointermove", (e) => {
     if (!drag || e.pointerId !== drag.id) return;
+    drag.x = e.clientX; drag.y = e.clientY;
     if (!drag.moved) {
       if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 5) return;   // a click, not a drag
       drag.moved = true;
@@ -196,14 +212,7 @@ function wireDrag() {
       document.body.classList.add("dragging-chip");
       drag.chip.classList.add("placeholder");
     }
-    drag.ghost.style.transform = `translate(${e.clientX - drag.dx}px, ${e.clientY - drag.dy}px)`;
-    // the placeholder moves among the other chips: before the first chip in the pointer's row whose
-    // midpoint is right of the pointer, else after the last chip in that row
-    const others = [...box.querySelectorAll(".chip:not(.placeholder)")];
-    const inRow = (c) => { const r = c.getBoundingClientRect(); return e.clientY >= r.top - 4 && e.clientY <= r.bottom + 4; };
-    const before = others.find((c) => inRow(c) && e.clientX < c.getBoundingClientRect().left + c.getBoundingClientRect().width / 2);
-    if (before) { if (before !== drag.chip.nextElementSibling) box.insertBefore(drag.chip, before); }
-    else { const row = others.filter(inRow); if (row.length && row.at(-1) !== drag.chip.previousElementSibling) row.at(-1).after(drag.chip); }
+    if (!drag.frame) drag.frame = requestAnimationFrame(step);
   });
   const finish = (e) => {
     if (!drag || e.pointerId !== drag.id) return;

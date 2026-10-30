@@ -94,6 +94,9 @@ input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
 .chip.placeholder { opacity: .35; outline: 1px dashed var(--accent); outline-offset: -1px; background: transparent; }
 .chip.ghost { position: fixed; left: 0; top: 0; z-index: 50; margin: 0; pointer-events: none; box-shadow: 0 6px 18px rgba(28,30,38,.18); transform-origin: top left; }
 body.dragging-chip, body.dragging-chip * { cursor: grabbing !important; user-select: none; }
+body.dragging-chip .plot { pointer-events: none; }   /* the plots ignore the pointer while a chip is in flight */
+.chipbox { user-select: none; }
+.chipbox input { user-select: text; }
 .chip button { all: unset; cursor: pointer; color: var(--muted); font-size: 17px; line-height: 1; padding: 1px 6px 3px; border-radius: 3px; }
 .chip button:hover { color: var(--ink); background: #fff; }
 .chip button:focus-visible { outline: 2px solid var(--accent); }
