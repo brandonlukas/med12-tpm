@@ -18,6 +18,11 @@ INK, MUTED, RULE = "#1c1e26", "#5c6170", "#e4e6ec"
 W, H, L, R, T, B = 320, 290, 46, 12, 12, 44
 
 
+def num(v):
+    """A coordinate with a true minus sign, as elsewhere on the site."""
+    return f"{v:.1f}".replace("-", "\u2212")
+
+
 def sample_label(s):
     m = re.match(r"tissue_(\d+)_(LM|MM)$", s)
     if m: return f"Patient {m.group(1)}, {m.group(2)}"
@@ -46,8 +51,8 @@ def panel(ds):
     for p in pts:
         out.append(f'<circle cx="{X(p["pc1"]):.1f}" cy="{Y(p["pc2"]):.1f}" r="5.5" fill="{COLORS[p["group"]]}" stroke="#fff" stroke-width="1.2" '
                    f'data-label="{sample_label(p["sample"])}" data-group="{LABEL.get(p["group"], p["group"])}" data-color="{COLORS[p["group"]]}" '
-                   f'data-pc="PC1 {p["pc1"]:.1f} · PC2 {p["pc2"]:.1f}" data-patient="{patient(p)}" tabindex="0" '
-                   f'aria-label="{sample_label(p["sample"])}, {LABEL.get(p["group"], p["group"])}, PC1 {p["pc1"]:.1f}, PC2 {p["pc2"]:.1f}"/>')
+                   f'data-pc="PC1 {num(p["pc1"])} · PC2 {num(p["pc2"])}" data-patient="{patient(p)}" tabindex="0" '
+                   f'aria-label="{sample_label(p["sample"])}, {LABEL.get(p["group"], p["group"])}, PC1 {num(p["pc1"])}, PC2 {num(p["pc2"])}"/>')
     out.append(f'<text x="{L + pw / 2:.0f}" y="{H - 14}" text-anchor="middle" font-size="12" fill="{MUTED}">PC1 · {ve[0]:.0f}% of variation</text>')
     out.append(f'<text transform="translate(14 {T + ph / 2:.0f}) rotate(-90)" text-anchor="middle" font-size="12" fill="{MUTED}">PC2 · {ve[1]:.0f}%</text>')
     legend = " ".join(f'<span data-group="{LABEL.get(g, g)}"><span class="swatch" style="background:{COLORS[g]}"></span>{LABEL.get(g, g)}</span>' for g in ORDER[ds])
