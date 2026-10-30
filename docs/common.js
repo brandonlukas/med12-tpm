@@ -23,10 +23,21 @@ const BASE_LAYOUT = {
 const AXIS = { gridcolor: GRID, zeroline: false, ticks: "outside", tickcolor: "#c3c7d3", linecolor: RULE, fixedrange: true };
 
 const SHORT_DS = { JCI_tissue: "Tissue", NC_2D: "2D cells", NC_3D_spheroid: "3D spheroids" };
-const DATASET_NOTE = {
-  JCI_tissue: "10 patients: leiomyoma (LM) and matched myometrium (MM); six LM carry MED12 G44D. Zuberi et al. 2023.",
-  NC_2D: "MED12-edited cells in culture: wild-type, knock-out, two G44 mutant clones; 3 replicates each. Buyukcelebi et al. 2023.",
-  NC_3D_spheroid: "The same cells grown as spheroids: wild-type (2 replicates), Mut1 and Mut2 (3 each). Buyukcelebi et al. 2023.",
+const PAPERS = {
+  zuberi: { short: "Zuberi et al., JCI Insight 2023", url: "https://doi.org/10.1172/jci.insight.171305",
+    title: "MED12 mutation activates the tryptophan/kynurenine/AHR pathway to promote growth of uterine leiomyomas" },
+  buyukcelebi: { short: "Buyukcelebi et al., Nat Commun 2023", url: "https://doi.org/10.1038/s41467-023-39684-y",
+    title: "Engineered MED12 mutations drive leiomyoma-like transcriptional and metabolic programs by altering the 3D genome compartmentalization" },
+  makinen: { short: "Mäkinen et al., Science 2011", url: "https://doi.org/10.1126/science.1208930",
+    title: "MED12, the mediator complex subunit 12 gene, is mutated at high frequency in uterine leiomyomas" },
+};
+const DATASET_PAPER = { JCI_tissue: "zuberi", NC_2D: "buyukcelebi", NC_3D_spheroid: "buyukcelebi" };
+const GEO = { JCI_tissue: "GSE204969", NC_2D: "GSE226014", NC_3D_spheroid: "GSE226016" };
+const geoLink = (acc) => `https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=${acc}`;
+const DATASET_TEXT = {
+  JCI_tissue: "10 patients: leiomyoma (LM) and matched myometrium (MM); six LM carry MED12 G44D.",
+  NC_2D: "MED12-edited myometrial cells in culture: wild-type, knock-out, two codon-44 mutant clones; 3 replicates each.",
+  NC_3D_spheroid: "The same cells grown as spheroids: wild-type (2 replicates), Mut1 and Mut2 (3 each).",
 };
 const GROUP_LABEL = { MM: "MM", LM_wtMED12: "LM, MED12 WT", LM_mutMED12: "LM, MED12 mut" };
 const GROUP_TICK = { LM_wtMED12: "LM<br>MED12 WT", LM_mutMED12: "LM<br>MED12 mut" };
@@ -60,6 +71,9 @@ const contrastSides = (c) => CONTRAST_SIDES[c] || c.split("_vs_");
 const contrastShort = (c) => CONTRAST_SHORT[c] || c.replace("_vs_", " vs ");
 const contrastOption = (ds, c) => `${SHORT_DS[ds] || ds} · ${contrastLabel(c)}`;
 const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
+const paperLink = (key) => `<a href="${PAPERS[key].url}" title="${esc(PAPERS[key].title)}">${esc(PAPERS[key].short)}</a>`;
+// one line per dataset: what it is, then the paper (linked) and the GEO series
+const datasetNote = (id) => `${esc(DATASET_TEXT[id] || "")} ${paperLink(DATASET_PAPER[id])} · <a href="${geoLink(GEO[id])}">${GEO[id]}</a>`;
 const genesLink = (names) => `genes.html#genes=${names.map(encodeURIComponent).join(",")}`;
 const shortId = (id) => id.split(".")[0];
 

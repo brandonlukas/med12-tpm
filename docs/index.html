@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MED12 RNA-seq Explorer</title>
-<meta name="description" content="Three public RNA-seq studies of MED12-mutant uterine fibroids, reprocessed together: patient tumours with matched myometrium, and MED12-edited cells in 2D and 3D culture. Look up any gene.">
+<meta name="description" content="Three public RNA-seq studies of MED12-mutant uterine fibroids, reprocessed together: patient tumours with matched myometrium, and MED12-edited myometrial cells in 2D and 3D culture. Look up any gene.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
 <script>
@@ -42,24 +42,92 @@
     <p class="glance" id="glance">40 samples · 3 datasets · 9 comparisons · 62,298 GENCODE v44 genes</p>
   </section>
 
+  <figure class="design" aria-labelledby="design-cap">
+    <div class="design-grid">
+      <article class="node">
+        <svg class="picto" viewBox="0 0 120 80" aria-hidden="true">
+          <rect x="8" y="12" width="104" height="56" rx="12" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="80" cy="40" r="15" fill="#D55E00" stroke="#fff" stroke-width="2"/>
+          <circle cx="38" cy="42" r="2" fill="currentColor" opacity=".5"/><circle cx="52" cy="30" r="2" fill="currentColor" opacity=".5"/>
+          <circle cx="30" cy="27" r="2" fill="currentColor" opacity=".5"/><circle cx="48" cy="54" r="2" fill="currentColor" opacity=".5"/>
+          <circle cx="24" cy="55" r="2" fill="currentColor" opacity=".5"/>
+        </svg>
+        <h3>Patients</h3>
+        <p>Ten women; from each, a leiomyoma and the myometrium next to it. Six tumours carry the MED12 G44D
+          mutation, four are MED12 wild-type.</p>
+        <p class="cite"><a href="https://doi.org/10.1172/jci.insight.171305" title="MED12 mutation activates the tryptophan/kynurenine/AHR pathway to promote growth of uterine leiomyomas">Zuberi et al., JCI Insight 2023</a>
+          · <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE204969">GSE204969</a></p>
+      </article>
+
+      <svg class="link" viewBox="0 0 132 80" aria-hidden="true">
+        <defs><marker id="ah1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+        <line x1="6" y1="46" x2="122" y2="46" stroke="currentColor" stroke-width="1.3" marker-end="url(#ah1)"/>
+        <text x="64" y="32" text-anchor="middle">G44D in 6 of 10 tumours</text>
+      </svg>
+      <p class="link-v"><span aria-hidden="true">↓</span> G44D in 6 of 10 tumours</p>
+
+      <article class="node hub">
+        <svg class="picto" viewBox="0 0 120 80" aria-hidden="true">
+          <line x1="6" y1="40" x2="114" y2="40" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="12" y="33" width="9" height="14" fill="#fff" stroke="currentColor" stroke-width="1.3"/>
+          <rect x="30" y="27" width="22" height="26" fill="#eef0f8" stroke="#2b3a8c" stroke-width="1.5"/>
+          <rect x="62" y="33" width="9" height="14" fill="#fff" stroke="currentColor" stroke-width="1.3"/>
+          <rect x="80" y="33" width="9" height="14" fill="#fff" stroke="currentColor" stroke-width="1.3"/>
+          <rect x="98" y="33" width="9" height="14" fill="#fff" stroke="currentColor" stroke-width="1.3"/>
+          <line x1="43" y1="27" x2="43" y2="16" stroke="#D55E00" stroke-width="1.5"/>
+          <circle cx="43" cy="13" r="3.5" fill="#D55E00"/>
+          <text x="41" y="68" text-anchor="middle" font-size="10" fill="currentColor">exon 2</text>
+        </svg>
+        <h3><i>MED12</i> codon 44</h3>
+        <p>Mutated in about 70% of uterine fibroids, nearly always in exon 2 and most often at codon 44
+          (<a href="https://doi.org/10.1126/science.1208930" title="MED12, the mediator complex subunit 12 gene, is mutated at high frequency in uterine leiomyomas">Mäkinen et al., Science 2011</a>).
+          The tumours here carry G44D; the engineered cells carry G44N.</p>
+      </article>
+
+      <svg class="link" viewBox="0 0 132 80" aria-hidden="true">
+        <defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+        <line x1="126" y1="46" x2="10" y2="46" stroke="currentColor" stroke-width="1.3" marker-end="url(#ah2)"/>
+        <text x="66" y="32" text-anchor="middle">G44N in two clones</text>
+      </svg>
+      <p class="link-v"><span aria-hidden="true">↑</span> G44N in two clones</p>
+
+      <article class="node">
+        <svg class="picto" viewBox="0 0 120 80" aria-hidden="true">
+          <circle cx="34" cy="42" r="26" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="24" cy="36" r="3" fill="#8A8F9A"/><circle cx="40" cy="30" r="3" fill="#8A8F9A"/><circle cx="46" cy="48" r="3" fill="#8A8F9A"/>
+          <circle cx="30" cy="52" r="3" fill="#8A8F9A"/><circle cx="20" cy="46" r="3" fill="#8A8F9A"/>
+          <g fill="#8A8F9A" stroke="#fff" stroke-width="1.2">
+            <circle cx="88" cy="42" r="7"/><circle cx="76" cy="42" r="7"/><circle cx="100" cy="42" r="7"/>
+            <circle cx="82" cy="31" r="7"/><circle cx="94" cy="31" r="7"/><circle cx="82" cy="53" r="7"/><circle cx="94" cy="53" r="7"/>
+          </g>
+        </svg>
+        <h3>Engineered cells</h3>
+        <p>hTERT-immortalized myometrial smooth muscle cells edited by CRISPR: unedited, MED12 knocked out, or carrying
+          the codon-44 mutation (two clones). Grown in 2D, and as spheroids.</p>
+        <p class="cite"><a href="https://doi.org/10.1038/s41467-023-39684-y" title="Engineered MED12 mutations drive leiomyoma-like transcriptional and metabolic programs by altering the 3D genome compartmentalization">Buyukcelebi et al., Nat Commun 2023</a>
+          · <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226014">GSE226014</a>
+          · <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226016">GSE226016</a></p>
+      </article>
+    </div>
+    <p class="design-bar"><b>One pipeline for all 40 samples.</b> Raw reads from GEO, nf-core/rnaseq with Salmon on
+      GENCODE v44, TPM per gene, DESeq2 within each dataset.</p>
+    <figcaption id="design-cap">Two routes to one mutation: tumours that acquired it, and cells given it on purpose,
+      measured the same way. Side by side they show whether a gene's behaviour in the tumour is reproduced in the
+      model, and whether that depends on how the cells are grown.</figcaption>
+  </figure>
+
+  <section class="stack" aria-labelledby="h-try">
+    <h2 id="h-try">Try a gene</h2>
+    <p class="genesets" id="examples"><span>Examples</span></p>
+    <div class="minis" id="minis"></div>
+    <p class="status" id="try-link"></p>
+  </section>
+
   <section class="stack" aria-labelledby="h-samples">
     <h2 id="h-samples">The samples</h2>
     <div class="samples" id="samples"></div>
-    <p class="muted small">Each dot is one RNA-seq sample. Grey is each dataset's reference group; vermilion and pink
-      are the groups that carry a MED12 codon-44 mutation.</p>
-  </section>
-
-  <section class="stack" aria-labelledby="h-why">
-    <h2 id="h-why">Why these three studies</h2>
-    <div class="prose-block">
-      <p>About 70% of uterine fibroids (leiomyomas) carry a mutation in <i>MED12</i>, most often at codon 44
-        (Mäkinen et al., <i>Science</i> 2011). The tissue study shows what MED12-mutant and MED12 wild-type fibroids
-        look like next to the same patient's normal myometrium. The two cell studies ask the question the other way
-        round: put a codon-44 mutation into otherwise identical myometrial cells, or remove MED12 altogether, and see
-        what changes, first in ordinary 2D culture and then in spheroids, a 3D format closer to tissue.</p>
-      <p>Side by side, they let you ask whether a gene's behaviour in the tumour is reproduced in the model, and
-        whether that depends on how the cells are grown.</p>
-    </div>
+    <p class="muted small">Each dot is one RNA-seq sample; hover a group in a legend to pick it out. Grey is each
+      dataset's reference group; vermilion and pink are the groups that carry a MED12 codon-44 mutation.</p>
   </section>
 
   <section class="stack" aria-labelledby="h-use">
@@ -85,18 +153,19 @@
   <section class="stack" aria-labelledby="h-across">
     <h2 id="h-across">Reading across datasets</h2>
     <div class="prose-block">
-      <p>All 40 samples went through one pipeline (nf-core/rnaseq with Salmon, GENCODE v44), so values are directly
-        comparable within each dataset, and genes can be compared with each other because the unit is TPM.
-        Expression levels are not comparable between datasets: tissue and cultured cells differ in material, library
-        preparation and read length. To relate the studies, compare what changes (fold changes and significance),
-        not how much is expressed.</p>
+      <p>Because every sample went through the same pipeline, values are directly comparable within each dataset, and
+        genes can be compared with each other because the unit is TPM. Expression levels are not comparable between
+        datasets: tissue and cultured cells differ in material, library preparation and read length. To relate the
+        studies, compare what changes (fold changes and significance), not how much is expressed.</p>
     </div>
   </section>
 </main>
 
 <footer class="site-footer">
   <div class="wrap">
-    <span>Data: GEO GSE204969, GSE226014, GSE226016 · processed October 2026</span>
+    <span>Data: GEO <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE204969">GSE204969</a>,
+      <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226014">GSE226014</a>,
+      <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226016">GSE226016</a> · processed October 2026</span>
     <a href="https://github.com/brandonlukas/med12-tpm">Code and downloads on GitHub</a>
   </div>
 </footer>

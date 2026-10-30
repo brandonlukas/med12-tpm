@@ -67,7 +67,7 @@ async function init() {
 
   $("panels").innerHTML = Data.meta.datasets.map((d) => `
     <section class="panel" aria-labelledby="h-${d.id}">
-      <header><h2 id="h-${d.id}">${SHORT_DS[d.id] || d.label}</h2><p class="note">${DATASET_NOTE[d.id] || ""}</p></header>
+      <header><h2 id="h-${d.id}">${SHORT_DS[d.id] || d.label}</h2><p class="note">${datasetNote(d.id)}</p></header>
       <div class="plot" id="plot-${d.id}"></div>
       <div class="tables" id="tab-${d.id}"></div>
     </section>`).join("");
