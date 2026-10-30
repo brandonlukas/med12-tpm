@@ -45,10 +45,20 @@ function highlight(dsId, groups, gene) {
   const key = `${groups ? groups.join(",") : ""}|${gene ?? ""}`;
   if (h.key === key) return;
   h.key = key;
-  if (!groups && gene == null) { Plotly.restyle(el, { opacity: 1, "marker.opacity": 1 }); return; }
+  const clear = !groups && gene == null;
   const on = (g, n) => (!groups || groups.includes(g)) && (gene == null || n === gene);
   if (h.mode === "one") {
-    Plotly.restyle(el, { opacity: h.traces.map((g) => (g === null ? 0.3 : on(g, null) ? 1 : 0.15)) });
+    Plotly.restyle(el, { opacity: clear ? 1 : h.traces.map((g) => (g === null ? 0.3 : on(g, null) ? 1 : 0.15)) });
+    if (h.brackets.length) {
+      const lay = {};
+      h.brackets.forEach((pair, i) => {
+        const o = clear || pair.every((g) => on(g, null)) ? 1 : 0.2;
+        lay[`shapes[${i}].opacity`] = o; lay[`annotations[${i}].opacity`] = o;
+      });
+      Plotly.relayout(el, lay);
+    }
+  } else if (clear) {
+    Plotly.restyle(el, { "marker.opacity": 1 });
   } else {
     Plotly.restyle(el, { "marker.opacity": h.points.map((pts) => pts.map((p) => (on(p.g, p.n) ? 1 : 0.15))) });
   }
@@ -216,8 +226,8 @@ function plotOne(d, g) {
     });
   }
   const ymax = yTop(Math.max(0, ...y.filter((v) => v != null)));
-  const { shapes, annotations, top } = brackets(d, g.de[d.id], xi, ymax);
-  hl[d.id] = { mode: "one", traces: what };
+  const { shapes, annotations, items, top } = brackets(d, g.de[d.id], xi, ymax);
+  hl[d.id] = { mode: "one", traces: what, brackets: items.map((it) => it.pair) };
   Plotly.react(`plot-${d.id}`, traces, {
     ...BASE_LAYOUT, shapes, annotations, margin: { l: 56, r: 10, t: 10, b: 50 },
     xaxis: { ...AXIS, tickvals: d.groups.map((_, k) => k), ticktext: d.groups.map(groupTick),
@@ -235,7 +245,7 @@ function brackets(d, de, xi, ymax) {
     const padj = de[c]?.[2];
     if (!pair || padj == null || !(pair[0] in xi) || !(pair[1] in xi)) continue;
     const [lo, hi] = [xi[pair[0]], xi[pair[1]]].sort((a, b) => a - b);
-    items.push({ c, lo, hi, padj });
+    items.push({ c, pair, lo, hi, padj });
   }
   items.sort((a, b) => a.hi - a.lo - (b.hi - b.lo) || a.lo - b.lo);
   const levels = [];   // per level, the [lo, hi] spans already placed
@@ -257,7 +267,7 @@ function brackets(d, de, xi, ymax) {
       font: { size: sig ? 15 : 11, color: sig ? INK : MUTED }, yshift: sig ? -2 : 1,
       hovertext: `${contrastLabel(it.c)}<br>p<sub>adj</sub> ${fmtP(it.padj)}` });
   }
-  return { shapes, annotations, top: ymax * 1.02 + levels.length * step + 0.05 * ymax };
+  return { shapes, annotations, items, top: ymax * 1.02 + levels.length * step + 0.05 * ymax };
 }
 
 function groupCell(grp) {

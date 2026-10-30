@@ -38,9 +38,13 @@ with sync_playwright() as p:
     pg.hover("#tab-NC_2D tbody tr[data-hl-groups] >> nth=1")   # the KO row
     pg.wait_for_function("document.getElementById('plot-NC_2D').data.some(t => t.opacity === 0.15)")
     check(True, "hovering a group row dims the other groups")
+    check(pg.evaluate("document.getElementById('plot-NC_2D').layout.shapes.every(s => s.opacity === 0.2)"), "a group row lets every bracket recede")
+    pg.hover("#tab-NC_2D tbody tr[data-hl-groups] >> nth=4")   # the KO vs WT comparison row
+    pg.wait_for_function("document.getElementById('plot-NC_2D').layout.shapes.some(s => s.opacity === 1) && document.getElementById('plot-NC_2D').layout.shapes.some(s => s.opacity === 0.2)")
+    check(True, "a comparison row keeps only its own bracket lit")
     pg.hover("#gene-name")
     pg.wait_for_function("document.getElementById('plot-NC_2D').data.every(t => t.opacity === 1 || t.opacity === undefined)")
-    check(True, "moving away restores the groups")
+    check(pg.evaluate("document.getElementById('plot-NC_2D').layout.shapes.every(s => s.opacity === 1)"), "moving away restores the groups and brackets")
 
     pg.fill("#gene", "HMGA")
     pg.wait_for_selector("#suggest:not([hidden]) li")
