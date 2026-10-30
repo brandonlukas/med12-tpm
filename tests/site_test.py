@@ -92,7 +92,9 @@ with sync_playwright() as p:
     b1 = pg.locator("#chips .chip >> nth=1").bounding_box()
     pg.mouse.move(b1["x"] + 12, b1["y"] + b1["height"] / 2); pg.mouse.down()
     pg.mouse.move(b1["x"] - 80, b1["y"] + b1["height"] / 2, steps=6)
-    pg.wait_for_selector(".drag-shield")
+    pg.wait_for_selector(".drag-shield"); pg.wait_for_timeout(50)
+    gl = pg.evaluate("document.querySelector('.chip.ghost').getBoundingClientRect().left")
+    check(abs(gl - (b1["x"] - 80 - 12)) < 1, f"the ghost keeps the pointer's offset from the press ({gl:.1f} vs {b1['x'] - 92:.1f})")
     check(pg.evaluate("getComputedStyle(document.querySelector('.drag-shield')).cursor") == "grabbing"
           and pg.locator("#chips .chip >> nth=0").inner_text().startswith("HMGA2"), "mid-drag: grabbing hand over the whole page, placeholder moved")
     pg.keyboard.press("Escape"); pg.mouse.up()

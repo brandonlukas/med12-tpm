@@ -208,7 +208,7 @@ function wireDrag() {
       if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 5) return;   // a click, not a drag
       drag.moved = true;
       const r = drag.chip.getBoundingClientRect();
-      drag.dx = e.clientX - r.left; drag.dy = e.clientY - r.top;
+      drag.dx = drag.x0 - r.left; drag.dy = drag.y0 - r.top;   // the ghost stays where the chip was under the pointer at the press, no jump
       drag.ghost = drag.chip.cloneNode(true);
       drag.ghost.className = "chip ghost"; drag.ghost.style.width = `${r.width}px`;
       // the shield covers the page under the ghost: one element that keeps the cursor a grabbing
