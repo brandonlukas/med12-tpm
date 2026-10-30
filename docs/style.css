@@ -156,8 +156,7 @@ input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
 .panel h2 { font-size: 18px; }
 .panel .note { color: var(--muted); font-size: 13px; line-height: 1.45; }
 .plot { height: 330px; }
-/* Cursors say what a click does: an arrow where it does nothing (the Genes plots, legends, hover-only
-   headers), a hand on links, buttons and clickable points, a crosshair where dragging zooms, a grab
+/* Cursors say what a click does: an arrow where it does nothing (the Genes plots, legends), a hand on links, buttons and clickable points, a crosshair where dragging zooms, a grab
    hand on chips. The Genes plots have no drag behaviour, so their drag layers get the arrow. */
 .js-plotly-plot .plotly .legend .traces, .js-plotly-plot .plotly .legend .traces .legendtoggle { cursor: default !important; }
 .plot .drag { cursor: default !important; }
@@ -178,9 +177,6 @@ td.sig.down { color: var(--down); }
 th.left, td.left { text-align: left; }
 td a { text-decoration: none; }
 tr[data-hl-groups]:hover, tr[data-hl-gene]:hover { background: var(--panel); }
-th[data-hl-groups] { cursor: default; }
-th[data-hl-groups]:hover { color: var(--ink); }
-col.hl-col { background: var(--panel); }
 .hl { border-bottom: 1px dotted var(--control); cursor: default; }
 .hl:hover { border-bottom-color: var(--ink); }
 td a:hover { text-decoration: underline; }

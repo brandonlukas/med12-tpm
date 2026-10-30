@@ -199,7 +199,6 @@ function drawVolcano() {
   }, PLOT_CONFIG);
   el._home = { x: [...xr], y: [...yr] };   // copies: Plotly edits the range arrays it was given when the user zooms
   zoomReset(el, $("volcano-reset"), drawVolcano);
-  legendHover(el, (name) => dimOthers(el, name));
   pointCursor(el);
   el.removeAllListeners?.("plotly_click");
   el.on("plotly_click", (ev) => { const i = ev.points[0]?.customdata?.[0]; if (i != null) pick(i, false); });
@@ -366,7 +365,6 @@ async function drawAgree() {
   }, PLOT_CONFIG);
   el._home = { x: [-lim, lim], y: [-lim, lim] };
   zoomReset(el, $("agree-reset"), drawAgree);
-  legendHover(el, (name) => dimOthers(el, name));
   pointCursor(el);
   el.removeAllListeners?.("plotly_click");
   el.on("plotly_click", (ev) => { const i = ev.points[0]?.customdata; if (i != null) pick(i, true); });

@@ -169,21 +169,6 @@ function zoomReset(el, btn, redraw) {
   btn.addEventListener("click", () => { btn.hidden = true; redraw(); });
 }
 
-// Legend entries are not buttons here (clicking would hide a series and change what the plot
-// shows), so hovering one lights up its series instead. onGroup(name) highlights, onGroup(null)
-// clears; the caller decides what "highlight" means for its plot.
-function legendHover(el, onGroup) {
-  el.querySelectorAll(".legend .traces").forEach((item) => {
-    const name = item.querySelector(".legendtext")?.textContent;
-    item.addEventListener("mouseenter", () => onGroup(name));
-    item.addEventListener("mouseleave", () => onGroup(null));
-  });
-}
-// dim every trace except the named one (for plots whose traces are the categories)
-function dimOthers(el, name) {
-  Plotly.restyle(el, { opacity: name == null ? 1 : el.data.map((t) => (t.name === name ? 1 : t.showlegend === false ? 1 : 0.15)) });
-}
-
 // On a plot whose points can be clicked, the cursor becomes a hand only while it is over a point;
 // elsewhere it keeps the plot's own cursor (the crosshair that means "drag to zoom").
 function pointCursor(el) {

@@ -110,16 +110,12 @@ async function init() {
   if (!noPlots) new ResizeObserver(() => document.querySelectorAll(".plot").forEach((el) => el.data && Plotly.Plots.resize(el))).observe($("panels"));
   for (const d of Data.meta.datasets) {
     const tab = $(`tab-${d.id}`);
-    const uncolor = () => tab.querySelectorAll("col.hl-col").forEach((c) => c.classList.remove("hl-col"));
     tab.addEventListener("mouseover", (e) => {
-      uncolor();
-      const th = e.target.closest("th[data-hl-groups]");   // a group header also shades its column
-      if (th) th.closest("table").querySelectorAll("col")[th.cellIndex]?.classList.add("hl-col");
       const t = e.target.closest("[data-hl-groups],[data-hl-gene]");
       if (!t) { highlight(d.id, null, null); return; }
       highlight(d.id, t.dataset.hlGroups ? t.dataset.hlGroups.split(",") : null, t.dataset.hlGene != null ? +t.dataset.hlGene : null);
     });
-    tab.addEventListener("mouseleave", () => { uncolor(); highlight(d.id, null, null); });
+    tab.addEventListener("mouseleave", () => highlight(d.id, null, null));
   }
 
   window.addEventListener("hashchange", fromHash);
@@ -392,7 +388,7 @@ function tableOne(d, g) {
   const tpm = g.tpm[d.id], de = g.de[d.id], name = encodeURIComponent(Data.genes[selected[0]][1]);
   const expr = d.groups.map((grp, gi) => {
     const v = d.samples.map((s, k) => (s.group === grp ? tpm[k] : null)).filter((x) => x != null);
-    return `<tr data-hl-groups="${grp}"><td>${groupCell(grp)}</td><td>${fmtTPM(mean(v))}</td><td>${ordinal(g.pct[d.id][gi])}</td></tr>`;
+    return `<tr><td>${groupCell(grp)}</td><td>${fmtTPM(mean(v))}</td><td>${ordinal(g.pct[d.id][gi])}</td></tr>`;
   });
   const diffs = d.contrasts.map((c) => {
     const [, lfc, padj] = de[c] || [];
@@ -459,7 +455,6 @@ function plotMulti(d, data) {
   }
   hl[d.id] = { mode: "multi", points };
   const top = base * (star.x.length ? 1.08 : 1);
-  const byLabel = Object.fromEntries(d.groups.map((grp) => [groupLabel(grp), grp]));
   Plotly.react(`plot-${d.id}`, traces, {
     ...BASE_LAYOUT, dragmode: false, shapes, margin: { l: 56, r: 10, t: 34, b: 44 },
     legend: { orientation: "h", x: 0, y: 1.02, yanchor: "bottom", font: { size: 13 }, itemclick: false, itemdoubleclick: false },
@@ -467,7 +462,6 @@ function plotMulti(d, data) {
       range: [-0.5, selected.length - 0.5], tickangle: "auto", showgrid: false, ticks: "" },
     yaxis: tpmAxis(isLog(), top),
   }, PLOT_CONFIG);
-  legendHover($(`plot-${d.id}`), (name) => highlight(d.id, name ? [byLabel[name]] : null, null));
 }
 
 // which comparisons call the gene significant, as short labels with the direction
@@ -480,7 +474,7 @@ function changesCell(d, de, n) {
 
 function tableMulti(d, data) {
   const vsWT = d.contrasts.every((c) => c.endsWith("_vs_WT"));
-  const head = `<tr><th scope="col">Gene</th>${d.groups.map((grp) => `<th scope="col" data-hl-groups="${grp}">${groupCell(grp)}</th>`).join("")}
+  const head = `<tr><th scope="col">Gene</th>${d.groups.map((grp) => `<th scope="col">${groupCell(grp)}</th>`).join("")}
     <th scope="col" class="left">Significant changes${vsWT ? " vs WT" : ""}</th></tr>`;
   const rows = data.map((g, n) => {
     const cells = d.groups.map((grp, gi) => {
@@ -490,9 +484,8 @@ function tableMulti(d, data) {
     const name = Data.genes[selected[n]][1];
     return `<tr data-hl-gene="${n}"><td><a href="${genesLink([name])}" title="Show only this gene">${esc(name)}</a></td>${cells.join("")}<td class="left">${changesCell(d, g.de[d.id], n)}</td></tr>`;
   });
-  const cols = "<col>".repeat(d.groups.length + 2);   // gene, one per group, changes
   $(`tab-${d.id}`).innerHTML = `<div class="scroll"><table><caption>Mean TPM, with its percentile among protein-coding genes; changes at p<sub>adj</sub> &lt; 0.05</caption>
-    <colgroup>${cols}</colgroup><thead>${head}</thead><tbody>${rows.join("")}</tbody></table></div>`;
+    <thead>${head}</thead><tbody>${rows.join("")}</tbody></table></div>`;
 }
 
 // long format: one row per sample and gene, for the selected genes

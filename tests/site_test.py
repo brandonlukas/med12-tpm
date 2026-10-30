@@ -36,11 +36,7 @@ with sync_playwright() as p:
     check(pg.locator("#plot-JCI_tissue .scatterlayer .trace").count() >= 3, "tissue plot has traces")
     check(pg.evaluate("getComputedStyle(document.querySelector('#plot-NC_2D .nsewdrag')).cursor") == "default", "Genes plot: arrow cursor over the plot area")
     check("93rd" in pg.inner_text("#tab-JCI_tissue"), "percentile shown as ordinal")
-    pg.hover("#tab-NC_2D tbody tr[data-hl-groups] >> nth=1")   # the KO row
-    pg.wait_for_function("document.getElementById('plot-NC_2D').data.some(t => t.opacity === 0.15)")
-    check(True, "hovering a group row dims the other groups")
-    check(pg.evaluate("document.getElementById('plot-NC_2D').layout.shapes.every(s => s.opacity === 0.2)"), "a group row lets every bracket recede")
-    pg.hover("#tab-NC_2D tbody tr[data-hl-groups] >> nth=4")   # the KO vs WT comparison row
+    pg.hover("#tab-NC_2D tbody tr[data-hl-groups] >> nth=0")   # the KO vs WT comparison row
     pg.wait_for_function("document.getElementById('plot-NC_2D').layout.shapes.some(s => s.opacity === 1) && document.getElementById('plot-NC_2D').layout.shapes.some(s => s.opacity === 0.2)")
     check(True, "a comparison row keeps only its own bracket lit")
     pg.hover("#gene-name")
@@ -58,15 +54,7 @@ with sync_playwright() as p:
     stars_of = lambda ds: pg.evaluate(f"(document.getElementById('plot-{ds}').data.find(t => t.marker && t.marker.symbol === 'asterisk') || {{x: []}}).x.length")
     check(stars_of("NC_2D") >= 1, f"multi view stars significant groups in 2D cells: {stars_of('NC_2D')}")
     check(stars_of("JCI_tissue") >= 1, f"multi view stars tissue groups vs MM: {stars_of('JCI_tissue')}")
-    pg.hover("#plot-NC_2D .legend .traces >> nth=1")   # the legend entry for KO
-    pg.wait_for_function("document.getElementById('plot-NC_2D').data.some(t => Array.isArray(t.marker?.opacity) && t.marker.opacity.includes(0.15))")
-    check(pg.evaluate("getComputedStyle(document.querySelector('#plot-NC_2D .legend .traces .legendtoggle')).cursor") == "default", "legend entries: hover highlights, no hand cursor")
-    pg.hover("#gene-name")
-    pg.wait_for_function("document.getElementById('plot-NC_2D').data.every(t => !Array.isArray(t.marker?.opacity))")
-    pg.hover("#tab-NC_2D th[data-hl-groups] >> nth=1")   # the KO column header
-    check(pg.locator("#tab-NC_2D col.hl-col").count() == 1, "hovering a group header shades its column")
-    pg.wait_for_function("document.getElementById('plot-NC_2D').data.some(t => Array.isArray(t.marker?.opacity) && t.marker.opacity.includes(0.15))")
-    check(True, "hovering a group header in the multi-gene table dims the other groups")
+    check(pg.evaluate("getComputedStyle(document.querySelector('#plot-NC_2D .legend .traces .legendtoggle')).cursor") == "default", "legend entries: no hand cursor")
     pg.hover("#tab-NC_2D .hl >> nth=0")
     pg.wait_for_function("document.getElementById('plot-NC_2D').data.some(t => Array.isArray(t.marker?.opacity) && t.marker.opacity.includes(0.15))")
     check(True, "hovering a change entry dims the other points")
@@ -220,11 +208,6 @@ with sync_playwright() as p:
     check(pg.locator("#volcano-reset").is_visible(), "drag-zoom shows the Reset zoom button")
     pg.click("#volcano-reset"); pg.wait_for_timeout(400)
     check(pg.locator("#volcano-reset").is_hidden(), "Reset zoom hides the button again")
-    pg.hover("#volcano .legend .traces >> nth=0")
-    pg.wait_for_function("document.getElementById('volcano').data.some(t => t.opacity === 0.15)")
-    check(True, "volcano legend hover dims the other categories")
-    pg.hover("#h-table")
-    pg.wait_for_function("document.getElementById('volcano').data.every(t => t.opacity === 1 || t.opacity === undefined)")
     pg.click("#detable th[data-key='lfc']")
     first = pg.locator("#detable tbody tr td:nth-child(4)").all_inner_texts()[:3]
     vals = [float(v.replace("−", "-")) for v in first]
