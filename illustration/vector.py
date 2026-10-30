@@ -22,6 +22,7 @@ STONE_HI, STONE, STONE_LO, STONE_LINE = "#ece7df", "#d2cabd", "#b3a897", "#9e938
 PINK_HI, PINK, PINK_LO = "#f7e9e4", "#edd3cb", "#d4aba3"
 VERM_HI, VERM, VERM_LO, VERM_LINE = "#f3a872", "#d55e00", "#a84600", "#7e3400"
 PINK_C_HI, PINK_C, PINK_C_LO, PINK_C_LINE = "#e6b3cf", "#bf6a9b", "#8e4a73", "#5e2f4c"
+BLUE_HI, BLUE, BLUE_LO, BLUE_LINE = "#7cc0ea", "#0072b2", "#004b78", "#003757"
 KO_HI, KO, KO_LO, KO_LINE = "#7b7f8a", "#3a3d46", "#1c1e26", "#0b0c10"
 CELL = {"stone": (STONE_HI, STONE, STONE_LO, STONE_LINE), "verm": (VERM_HI, VERM, VERM_LO, VERM_LINE),
         "pink": (PINK_C_HI, PINK_C, PINK_C_LO, PINK_C_LINE), "ko": (KO_HI, KO, KO_LO, KO_LINE)}
@@ -124,6 +125,9 @@ def defs():
     <radialGradient id="gFibroid" cx="36%" cy="30%" r="75%">
       <stop offset="0" stop-color="{VERM_HI}"/><stop offset="0.5" stop-color="{VERM}"/><stop offset="1" stop-color="{VERM_LO}"/>
     </radialGradient>
+    <radialGradient id="gFibroidBlue" cx="36%" cy="30%" r="75%">
+      <stop offset="0" stop-color="{BLUE_HI}"/><stop offset="0.5" stop-color="{BLUE}"/><stop offset="1" stop-color="{BLUE_LO}"/>
+    </radialGradient>
     <radialGradient id="gSphereVerm" cx="36%" cy="32%" r="72%">
       <stop offset="0" stop-color="{VERM_HI}"/><stop offset="0.55" stop-color="{VERM}"/><stop offset="1" stop-color="{VERM_LO}"/>
     </radialGradient>
@@ -214,6 +218,11 @@ def uterus():
     parts.append(f'<g filter="url(#cast)"><circle cx="{fx}" cy="{fy}" r="{fr}" fill="url(#gFibroid)" stroke="{VERM_LO}" stroke-width="0.8"/></g>')
     parts.append(f'<path d="{spiral(fx - 1, fy + 1, 3, 15, 2.0)}" fill="none" stroke="{VERM_LINE}" stroke-opacity="0.22" stroke-width="1.1" stroke-linecap="round"/>')
     parts.append(f'<ellipse cx="{fx - 7}" cy="{fy - 8}" rx="6" ry="4" fill="#ffffff" fill-opacity="0.35" transform="rotate(-30 {fx - 7} {fy - 8})"/>')
+    # a second leiomyoma, MED12 wild-type, on the fundus
+    bx, by, br = 206, 80, 13
+    parts.append(f'<g filter="url(#cast)"><circle cx="{bx}" cy="{by}" r="{br}" fill="url(#gFibroidBlue)" stroke="{BLUE_LO}" stroke-width="0.8"/></g>')
+    parts.append(f'<path d="{spiral(bx - 0.5, by + 0.5, 2, 9.5, 1.8)}" fill="none" stroke="{BLUE_LINE}" stroke-opacity="0.25" stroke-width="1" stroke-linecap="round"/>')
+    parts.append(f'<ellipse cx="{bx - 4.5}" cy="{by - 5}" rx="4" ry="2.6" fill="#ffffff" fill-opacity="0.35" transform="rotate(-30 {bx - 4.5} {by - 5})"/>')
     return "\n      ".join(parts)
 
 
@@ -304,10 +313,12 @@ def labels():
         <path d="M154 204 L 118 246"/>
         <path d="M186 268 L 138 306"/>
         <path d="M236 192 L 326 200"/>
+        <path d="M196 74 L 158 48"/>
       </g>
-      <g fill="{INK}"><circle cx="154" cy="204" r="2.4"/><circle cx="186" cy="268" r="2.4"/><circle cx="236" cy="192" r="2.4"/></g>
+      <g fill="{INK}"><circle cx="154" cy="204" r="2.4"/><circle cx="186" cy="268" r="2.4"/><circle cx="236" cy="192" r="2.4"/><circle cx="196" cy="74" r="2.4"/></g>
       <g font-size="17" fill="{INK}">
         <text x="112" y="251" text-anchor="end">Leiomyoma</text>
+        <text x="152" y="46" text-anchor="end">Leiomyoma</text>
         <text x="134" y="311" text-anchor="end">Myometrium</text>
         <text x="332" y="205">Endometrium</text>
         <text x="524" y="272" text-anchor="middle">Myometrial cells</text>
@@ -315,6 +326,8 @@ def labels():
         <text x="880" y="44" text-anchor="middle">3D spheroids</text>
       </g>
       <g font-size="14" fill="#6b7080">
+        <text x="112" y="269" text-anchor="end">MED12 G44D</text>
+        <text x="152" y="64" text-anchor="end">MED12 wild-type</text>
         <text x="352" y="284" text-anchor="middle">derived from the myometrium</text>
         <text x="524" y="292" text-anchor="middle">hTERT-immortalized</text>
         <text x="568" y="198" text-anchor="middle">CRISPR editing</text>
@@ -326,7 +339,7 @@ def labels():
 def main():
     cell_grads, culture_parts = cultures()
     svg = f"""<svg class="design-svg" viewBox="0 0 1000 360" role="img" aria-labelledby="design-title" xmlns="http://www.w3.org/2000/svg">
-      <title id="design-title">Illustration: a frontal section of the uterus with a leiomyoma in the myometrial wall; myometrial cells taken from it and edited with CRISPR into four lines (unedited WT, MED12 knock-out, and two codon-44 mutant clones Mut1 and Mut2), grown as 2D cultures and, for WT, Mut1 and Mut2, as 3D spheroids.</title>{defs()}
+      <title id="design-title">Illustration: a frontal section of the uterus with two leiomyomas in the myometrial wall, one carrying MED12 G44D and one MED12 wild-type; myometrial cells taken from it and edited with CRISPR into four lines (unedited WT, MED12 knock-out, and two codon-44 mutant clones Mut1 and Mut2), grown as 2D cultures and, for WT, Mut1 and Mut2, as 3D spheroids.</title>{defs()}
   <defs>
     {cell_grads}
   </defs>
