@@ -108,6 +108,9 @@ with sync_playwright() as p:
     pg.fill("#gene", ""); pg.click("#gene"); pg.keyboard.press("Backspace")
     pg.wait_for_timeout(300)
     check("Add a gene to start" in pg.inner_text("#status"), "backspace on empty input removes last chip; empty state message")
+    pg.click("#status [data-try]")
+    pg.wait_for_function("document.querySelector('#gene-name')?.textContent === 'MED12'")
+    check(True, "the empty state's 'try MED12' loads the gene")
 
     # ---- Overview page
     pg.goto(BASE, wait_until="networkidle")
@@ -125,6 +128,14 @@ with sync_playwright() as p:
     pg.wait_for_url("**/genes.html#genes=CDK8")
     pg.wait_for_function("document.querySelector('#gene-name')?.textContent === 'CDK8'")
     check(True, "old explorer links on the overview URL redirect to genes.html")
+
+    # ---- Downloads page and the nav
+    pg.goto(BASE + "downloads.html", wait_until="networkidle")
+    check(pg.locator(".dl[href$='.xlsx']").count() == 2, "Downloads page offers the two workbooks")
+    check(pg.locator(".site-nav a").count() == 5 and pg.locator(".site-nav a[aria-current]").inner_text() == "Downloads", "nav has five entries with Downloads current")
+    for url in [BASE, BASE + "genes.html", BASE + "de.html", BASE + "methods.html"]:
+        pg.goto(url, wait_until="domcontentloaded")
+        check(pg.locator(".site-nav a[href='downloads.html']").count() == 1, f"Downloads in the nav of {url.split('/')[-1] or 'index.html'}")
 
     # ---- Comparisons page
     pg.goto(BASE + "de.html#c=NC_2D__KO_vs_WT", wait_until="networkidle")

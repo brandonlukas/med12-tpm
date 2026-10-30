@@ -219,7 +219,7 @@ def uterus():
     parts.append(f'<path d="{spiral(fx - 1, fy + 1, 3, 15, 2.0)}" fill="none" stroke="{ORANGE_LINE}" stroke-opacity="0.22" stroke-width="1.1" stroke-linecap="round"/>')
     parts.append(f'<ellipse cx="{fx - 7}" cy="{fy - 8}" rx="6" ry="4" fill="#ffffff" fill-opacity="0.35" transform="rotate(-30 {fx - 7} {fy - 8})"/>')
     # a second leiomyoma, MED12 wild-type, on the fundus
-    bx, by, br = 206, 80, 13
+    bx, by, br = 206, 89, 13
     parts.append(f'<g filter="url(#cast)"><circle cx="{bx}" cy="{by}" r="{br}" fill="url(#gFibroidBlue)" stroke="{BLUE_LO}" stroke-width="0.8"/></g>')
     parts.append(f'<path d="{spiral(bx - 0.5, by + 0.5, 2, 9.5, 1.8)}" fill="none" stroke="{BLUE_LINE}" stroke-opacity="0.25" stroke-width="1" stroke-linecap="round"/>')
     parts.append(f'<ellipse cx="{bx - 4.5}" cy="{by - 5}" rx="4" ry="2.6" fill="#ffffff" fill-opacity="0.35" transform="rotate(-30 {bx - 4.5} {by - 5})"/>')
@@ -313,16 +313,16 @@ def labels():
         <path d="M154 204 L 118 246"/>
         <path d="M186 268 L 138 306"/>
         <path d="M236 192 L 326 200"/>
-        <path d="M196 74 L 158 48"/>
+        <path d="M197 82 L 158 48"/>
       </g>
-      <g fill="{INK}"><circle cx="154" cy="204" r="2.4"/><circle cx="186" cy="268" r="2.4"/><circle cx="236" cy="192" r="2.4"/><circle cx="196" cy="74" r="2.4"/></g>
+      <g fill="{INK}"><circle cx="154" cy="204" r="2.4"/><circle cx="186" cy="268" r="2.4"/><circle cx="236" cy="192" r="2.4"/><circle cx="197" cy="82" r="2.4"/></g>
       <g font-size="17" fill="{INK}">
         <text x="112" y="251" text-anchor="end">Leiomyoma</text>
         <text x="152" y="46" text-anchor="end">Leiomyoma</text>
         <text x="134" y="311" text-anchor="end">Myometrium</text>
         <text x="332" y="205">Endometrium</text>
-        <text x="524" y="272" text-anchor="middle">Myometrial cells</text>
-        <text x="880" y="334" text-anchor="middle">2D culture</text>
+        <text x="524" y="272" text-anchor="middle">Immortalized myometrial cells</text>
+        <text x="880" y="334" text-anchor="middle">2D cells</text>
         <text x="880" y="44" text-anchor="middle">3D spheroids</text>
       </g>
       <g font-size="14" fill="#5c6170">
@@ -336,7 +336,7 @@ def labels():
 def main():
     cell_grads, culture_parts = cultures()
     svg = f"""<svg class="design-svg" viewBox="0 0 1000 360" role="img" aria-labelledby="design-title" xmlns="http://www.w3.org/2000/svg">
-      <title id="design-title">Illustration: a frontal section of the uterus with two leiomyomas in the myometrial wall, one carrying MED12 G44D and one MED12 wild-type; myometrial cells taken from it and edited with CRISPR into four lines (unedited WT, MED12 knock-out, and two codon-44 mutant clones Mut1 and Mut2), grown as 2D cultures and, for WT, Mut1 and Mut2, as 3D spheroids.</title>{defs()}
+      <title id="design-title">Illustration: a frontal section of the uterus with two leiomyomas in the myometrial wall, one carrying MED12 G44D and one MED12 wild-type; an immortalized myometrial cell line edited with CRISPR into four lines (unedited WT, MED12 knock-out, and two codon-44 mutant clones Mut1 and Mut2), grown as 2D cultures and, for WT, Mut1 and Mut2, as 3D spheroids.</title>{defs()}
   <defs>
     {cell_grads}
   </defs>

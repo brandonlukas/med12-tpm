@@ -6,7 +6,7 @@
 <title>Methods · MED12 RNA-seq Explorer</title>
 <meta name="description" content="How the three MED12 RNA-seq datasets were reprocessed: sources, what the values mean, DESeq2 designs, downloads, the nf-core/rnaseq pipeline and how to reproduce everything.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=14e86fed">
+<link rel="stylesheet" href="style.css?v=37dbc2f5">
 </head>
 <body>
 <header class="site-header">
@@ -16,6 +16,7 @@
       <a href="index.html">Overview</a>
       <a href="genes.html">Genes</a>
       <a href="de.html">Comparisons</a>
+      <a href="downloads.html">Downloads</a>
       <a href="methods.html" aria-current="page">Methods</a>
     </nav>
   </div>
@@ -45,8 +46,8 @@
 <h3>TPM</h3>
 <p>Transcripts per million at the gene level (from Salmon). TPM corrects for sequencing depth and for gene length, so
   it compares genes with each other within a sample, and samples with each other within a dataset. It does not
-  compare across the three datasets: tissue against cultured cells, different library preparations and read lengths,
-  and the 2D library is unstranded.</p>
+  compare across the three datasets: tissue versus cultured cells, different library preparations and read lengths,
+  and an unstranded 2D library.</p>
 <h3>Expression percentile</h3>
 <p>Where a gene's mean TPM in a group ranks among the 19,350 protein-coding genes with nonzero TPM in at least
   one sample. The 50th percentile is a typical gene; the 90th is in the top 10%.</p>
@@ -62,39 +63,21 @@
 <div class="scroll"><table>
   <tr><th>Dataset</th><th>Design</th><th>Comparisons</th></tr>
   <tr><td>Tissue</td><td><code>~ patient + tissue</code></td><td>LM vs MM, all 10 pairs</td></tr>
-  <tr><td>Tissue</td><td><code>~ patient + group</code>, group = MM, LM <i>MED12</i> WT, LM <i>MED12</i> mut</td>
+  <tr><td>Tissue</td><td><code>~ patient + group</code>, group = MM, LM WT, LM mut</td>
       <td>LM mut vs MM; LM WT vs MM; LM mut vs LM WT</td></tr>
   <tr><td>2D cells</td><td><code>~ group</code></td><td>KO, Mut1, Mut2, each vs WT</td></tr>
   <tr><td>3D spheroids</td><td><code>~ group</code></td><td>Mut1, Mut2, each vs WT</td></tr>
 </table></div>
-<p>The patient term pairs each leiomyoma with its own myometrium, the multi-gene analogue of a paired t-test.
+<p>The patient term pairs each leiomyoma with its own myometrium, the multi-gene analog of a paired t-test.
   Because every patient contributes a myometrium baseline, LM mut vs LM WT asks whether the leiomyoma-versus-myometrium
-  change differs between <i>MED12</i>-mutant and wild-type tumours, although the two kinds of tumour come from different
+  change differs between <i>MED12</i>-mutant and wild-type tumors, although the two kinds of tumor come from different
   patients.</p>
 <p>Caveats: the tissue comparisons by genotype use 6 mutant and 4 wild-type patients; the spheroid WT group has
   2 replicates. No batch information (preparation or sequencing run) is recorded in GEO or SRA for any dataset.
   DESeq2 1.50.2, apeglm 1.32.0, R 4.5.2.</p>
 
 <h2>Downloads</h2>
-<p>All files are attached to the <a href="https://github.com/brandonlukas/med12-tpm/releases/tag/v1.0">v1.0 release</a>,
-  including <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/MED12_RNAseq_gene_TPM.xlsx">one Excel workbook</a>
-  with the sample table and the TPM of all three datasets.</p>
-<div class="scroll"><table>
-  <tr><th>Dataset</th><th>Gene TPM</th><th>DESeq2 results, one table per comparison</th></tr>
-  <tr><td>Tissue</td><td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue_gene_TPM.csv.gz">CSV</a></td>
-      <td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LM_vs_MM.csv.gz">LM vs MM</a> ·
-          <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LMmut_vs_MM.csv.gz">LM mut vs MM</a> ·
-          <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LMwt_vs_MM.csv.gz">LM WT vs MM</a> ·
-          <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LMmut_vs_LMwt.csv.gz">LM mut vs LM WT</a></td></tr>
-  <tr><td>2D cells</td><td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D_gene_TPM.csv.gz">CSV</a></td>
-      <td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D__KO_vs_WT.csv.gz">KO vs WT</a> ·
-          <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D__Mut1_vs_WT.csv.gz">Mut1 vs WT</a> ·
-          <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D__Mut2_vs_WT.csv.gz">Mut2 vs WT</a></td></tr>
-  <tr><td>3D spheroids</td><td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_3D_spheroid_gene_TPM.csv.gz">CSV</a></td>
-      <td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_3D_spheroid__Mut1_vs_WT.csv.gz">Mut1 vs WT</a> ·
-          <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_3D_spheroid__Mut2_vs_WT.csv.gz">Mut2 vs WT</a></td></tr>
-</table></div>
-<p>The Comparisons page can also download any filtered table, and the Genes page the TPM of the genes shown.</p>
+<p>Every table, as two Excel workbooks or as CSV files, is on the <a href="downloads.html">Downloads page</a>.</p>
 
 <h2>Processing</h2>
 <h3>Reads</h3>
@@ -115,9 +98,9 @@
 </ul>
 <div class="scroll"><table>
   <tr><th>Dataset</th><th>Mapping rate</th><th>Library strandedness (Salmon)</th></tr>
-  <tr><td>Tissue</td><td>60.5 – 80.2%</td><td>reverse (SR)</td></tr>
-  <tr><td>2D cells</td><td>93.2 – 95.6%</td><td>unstranded (IU)</td></tr>
-  <tr><td>3D spheroids</td><td>86.9 – 93.5%</td><td>reverse (ISR)</td></tr>
+  <tr><td>Tissue</td><td>60.5–80.2%</td><td>reverse (SR)</td></tr>
+  <tr><td>2D cells</td><td>93.2–95.6%</td><td>unstranded (IU)</td></tr>
+  <tr><td>3D spheroids</td><td>86.9–93.5%</td><td>reverse (ISR)</td></tr>
 </table></div>
 <p>Strandedness was the same for every sample within a dataset.</p>
 <details class="notes">
@@ -152,7 +135,7 @@ python3 build_site_data.py      # data for this site</code></pre>
 <footer class="site-footer">
   <div class="wrap">
     <span>Data: GEO GSE204969, GSE226014, GSE226016 · processed October 2026</span>
-    <a href="https://github.com/brandonlukas/med12-tpm">Code and downloads on GitHub</a>
+    <a href="https://github.com/brandonlukas/med12-tpm">Code on GitHub</a>
   </div>
 </footer>
 </body>

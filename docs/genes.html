@@ -6,7 +6,7 @@
 <title>Genes · MED12 RNA-seq Explorer</title>
 <meta name="description" content="Expression of any gene in three public MED12 RNA-seq datasets: leiomyoma with matched myometrium, and MED12-edited cells in 2D and 3D culture.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=14e86fed">
+<link rel="stylesheet" href="style.css?v=37dbc2f5">
 <script src="vendor/plotly-basic-2.35.2.min.js"></script>
 </head>
 <body>
@@ -17,14 +17,15 @@
       <a href="index.html">Overview</a>
       <a href="genes.html" aria-current="page">Genes</a>
       <a href="de.html">Comparisons</a>
+      <a href="downloads.html">Downloads</a>
       <a href="methods.html">Methods</a>
     </nav>
   </div>
 </header>
 
 <main class="wrap">
-  <p class="lede">A gene's expression in every sample of the three datasets, with the DESeq2 result for each comparison.
-    Add more genes to compare them with each other.</p>
+  <p class="lede">A gene's expression in every sample of the three datasets, with the fold change and p-value for each
+    comparison. Add more genes to compare them with each other.</p>
 
   <section class="controls" aria-label="Choose genes">
     <div class="field search grow">
@@ -45,11 +46,11 @@
     <div class="title"><h2 id="gene-name"></h2><span class="meta" id="gene-meta"></span></div>
     <div class="actions">
       <div class="segmented" role="radiogroup" aria-label="Scale">
-        <button type="button" role="radio" data-scale="log" aria-checked="true">Log scale</button>
+        <button type="button" role="radio" data-scale="log" aria-checked="true">Log</button>
         <button type="button" role="radio" data-scale="lin" aria-checked="false">Linear</button>
       </div>
       <button type="button" class="btn" id="copy">Copy link</button>
-      <button type="button" class="btn" id="csv">Download CSV</button>
+      <button type="button" class="btn" id="csv" title="Every sample's TPM for the genes shown, as CSV">Download TPM of these genes</button>
     </div>
   </div>
 
@@ -58,7 +59,7 @@
   <details class="notes">
     <summary>How to read these plots</summary>
     <ul>
-      <li>Each point is one sample. In the tissue panel a grey line joins each patient's myometrium and leiomyoma.</li>
+      <li>Each point is one sample. In the tissue panel a gray line joins each patient's myometrium and leiomyoma.</li>
       <li>The y axis is TPM on a log scale, with the ticks in TPM. It always reaches at least 10 TPM, so a gene that is
         barely expressed looks that way.</li>
       <li>Percentile: where the group's mean TPM ranks among all protein-coding genes in that group. The 50th is a
@@ -69,7 +70,7 @@
       <li>With several genes, a star above a group marks p<sub>adj</sub> &lt; 0.05 against the reference group (MM or
         WT); hover it for the exact value. Comparisons that are not against the reference are in the table only.</li>
       <li>Hovering a row in a table, or one of its entries, lights up the points it refers to.</li>
-      <li>Values are comparable within a dataset, not between datasets. The spheroid WT group has 2 replicates.</li>
+      <li>Values are comparable within a dataset, not between datasets.</li>
     </ul>
   </details>
 </main>
@@ -77,10 +78,10 @@
 <footer class="site-footer">
   <div class="wrap">
     <span>Data: GEO GSE204969, GSE226014, GSE226016 · processed October 2026</span>
-    <a href="https://github.com/brandonlukas/med12-tpm">Code and downloads on GitHub</a>
+    <a href="https://github.com/brandonlukas/med12-tpm">Code on GitHub</a>
   </div>
 </footer>
-<script src="common.js?v=14e86fed"></script>
-<script src="app.js?v=14e86fed"></script>
+<script src="common.js?v=37dbc2f5"></script>
+<script src="app.js?v=37dbc2f5"></script>
 </body>
 </html>

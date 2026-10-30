@@ -3,11 +3,12 @@
 Three public MED12 RNA-seq datasets reprocessed from raw reads the same way, with an
 interactive site: **https://brandonlukas.github.io/med12-tpm/**
 
-- **Overview**: a gene search, an illustration of where the samples come from, and why the studies belong together
+- **Overview**: a gene search, an illustration of where the samples come from, and why the datasets belong together
 - **Genes**: TPM of any gene (or several side by side) in every sample, with DESeq2 results
 - **Comparisons**: volcano plot, ranked table and gene lookup for every DESeq2 comparison,
   and agreement between any two comparisons
-- **Methods**: how everything was processed, with downloads
+- **Downloads**: two Excel workbooks (gene TPM; DESeq2 results, one sheet per comparison) and the individual CSV tables
+- **Methods**: how everything was processed
 
 | Dataset | Paper | GEO | Samples | Reads |
 |---|---|---|---|---|
@@ -34,6 +35,7 @@ The [methods page](https://brandonlukas.github.io/med12-tpm/methods.html) docume
 - `run_rnaseq.sh`: launches nf-core/rnaseq 3.27.0
 - `split_tpm.py`: per-dataset TPM tables and an Excel workbook
 - `deseq2.R`: DESeq2 within each dataset
+- `excel_deseq2.py`: one Excel workbook of all DESeq2 comparisons, with a README sheet
 - `build_site_data.py`: data for the site (`docs/data/`)
 - `illustration/vector.py`: generates the overview's illustration (smooth vector SVG, gradient shading) into `docs/index.html`
 - `stamp.py`: stamps the pages' stylesheet and script links with a content hash; run it before committing a change to `docs/`
@@ -53,6 +55,7 @@ Python with pandas and openpyxl; about 250 GB of free disk.
 ./run_rnaseq.sh                 # about 2 h on 44 cores, including the Salmon index
 python3 split_tpm.py            # deliverables/*_gene_TPM.csv, .xlsx
 Rscript deseq2.R                # deliverables/de/*.csv
+python3 excel_deseq2.py         # deliverables/MED12_RNAseq_DESeq2.xlsx
 python3 build_site_data.py      # docs/data/
 ```
 

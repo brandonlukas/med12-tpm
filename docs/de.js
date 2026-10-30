@@ -105,7 +105,7 @@ function refresh() {
   const rows = state.rows, [num] = sides(state.c);
   const up = rows.filter((r) => isSig(r) && r.lfc > 0).length, down = rows.filter((r) => isSig(r) && r.lfc < 0).length;
   $("summary").innerHTML = `<b>${esc(fullLabel(state.c))}</b> <span>${rows.nTested.toLocaleString()} genes tested</span>
-    <span class="up">▲ ${up.toLocaleString()} higher in ${esc(num)}</span> <span class="down">▼ ${down.toLocaleString()} lower in ${esc(num)}</span>`;
+    <span class="up">↑ ${up.toLocaleString()} higher in ${esc(num)}</span> <span class="down">↓ ${down.toLocaleString()} lower in ${esc(num)}</span>`;
   drawVolcano();
   drawTable();
 }
@@ -165,7 +165,7 @@ function drawVolcano() {
 
   // labels: the extremes first (capped genes by fold change, then the largest fold changes on
   // each side), then the most significant; the picked gene gets its own label
-  const sig = rows.filter((r) => isSig(r) && r.i !== state.pick);
+  const sig = rows.filter((r) => isSig(r) && r.i !== state.pick && !/^ENSG\d+/.test(r.name));
   const seen = new Set(), cands = [];
   for (const r of [
     ...sig.filter(capped).sort((a, b) => Math.abs(b.lfc) - Math.abs(a.lfc)).slice(0, 4),
@@ -182,6 +182,8 @@ function drawVolcano() {
     traces.push(ring(p.lfc, yOf(p)));
     annotations.push(ringLabel(p.name, p.lfc, yOf(p)));
   }
+  if (above.length) annotations.push({ xref: "paper", yref: "paper", x: 0, y: 1, xanchor: "left", yanchor: "top", showarrow: false,
+    text: "▲ beyond the axis", font: { size: 11.5, color: MUTED } });
   const t = lfcMin(), a = nlog(alpha());
   const guide = { color: "#b4b8c4", width: 1, dash: "dot" };
   const shapes = [

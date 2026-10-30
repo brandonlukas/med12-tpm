@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Downloads · MED12 RNA-seq Explorer</title>
+<meta name="description" content="Every table behind the MED12 RNA-seq Explorer: gene TPM and DESeq2 results as Excel workbooks or CSV files.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css?v=37dbc2f5">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <h1><a href="index.html">MED12 RNA-seq Explorer</a></h1>
+    <nav class="site-nav" aria-label="Site">
+      <a href="index.html">Overview</a>
+      <a href="genes.html">Genes</a>
+      <a href="de.html">Comparisons</a>
+      <a href="downloads.html" aria-current="page">Downloads</a>
+      <a href="methods.html">Methods</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="lede">Every table behind the site, as two Excel workbooks or as individual CSV files. All values come from
+    one processing run (October 2026); the <a href="methods.html">Methods page</a> explains how they were made.</p>
+
+  <section class="stack" aria-labelledby="h-wb">
+    <h2 id="h-wb">Workbooks</h2>
+    <div class="dl-grid">
+      <a class="dl" href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/MED12_RNAseq_gene_TPM.xlsx">
+        <span class="dl-title">Gene TPM <span class="dim">Excel · 12 MB</span></span>
+        <span>One sheet per dataset, one row per gene (62,298), one column per sample, plus a sample sheet with the
+          GEO and SRA accessions and the corrected genotypes.</span>
+      </a>
+      <a class="dl" href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/MED12_RNAseq_DESeq2.xlsx">
+        <span class="dl-title">Differential expression <span class="dim">Excel · 11 MB</span></span>
+        <span>One sheet per comparison (9), every tested gene sorted by p-value, with a README sheet that explains the
+          columns and each comparison's design.</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="stack" aria-labelledby="h-csv">
+    <h2 id="h-csv">Individual tables</h2>
+    <p class="dim">Gzipped CSV, the same values as the workbooks.</p>
+    <div class="scroll"><table class="prose-table">
+      <tr><th>Dataset</th><th>Gene TPM</th><th>Comparisons, one table each</th></tr>
+      <tr><td>Tissue</td><td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue_gene_TPM.csv.gz">CSV</a></td>
+          <td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LM_vs_MM.csv.gz">LM vs MM</a> ·
+              <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LMmut_vs_MM.csv.gz">LM mut vs MM</a> ·
+              <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LMwt_vs_MM.csv.gz">LM WT vs MM</a> ·
+              <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LMmut_vs_LMwt.csv.gz">LM mut vs LM WT</a></td></tr>
+      <tr><td>2D cells</td><td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D_gene_TPM.csv.gz">CSV</a></td>
+          <td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D__KO_vs_WT.csv.gz">KO vs WT</a> ·
+              <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D__Mut1_vs_WT.csv.gz">Mut1 vs WT</a> ·
+              <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D__Mut2_vs_WT.csv.gz">Mut2 vs WT</a></td></tr>
+      <tr><td>3D spheroids</td><td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_3D_spheroid_gene_TPM.csv.gz">CSV</a></td>
+          <td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_3D_spheroid__Mut1_vs_WT.csv.gz">Mut1 vs WT</a> ·
+              <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_3D_spheroid__Mut2_vs_WT.csv.gz">Mut2 vs WT</a></td></tr>
+    </table></div>
+    <p>Sample table with GSM and SRR accessions: <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/sample_info.csv">sample_info.csv</a>.</p>
+  </section>
+
+  <section class="stack" aria-labelledby="h-cols">
+    <h2 id="h-cols">Columns</h2>
+    <ul class="cols">
+      <li><b>gene_id, gene_name</b>: Ensembl ID and symbol (GENCODE v44).</li>
+      <li><b>TPM tables</b>: one column per sample, named as in the sample table; values compare genes within a sample and
+        samples within a dataset, not across datasets.</li>
+      <li><b>baseMean</b>: mean normalized count over all samples in the dataset.</li>
+      <li><b>log2FC_shrunk</b>: log<sub>2</sub> fold change, first group relative to the second, with noisy estimates from
+        low-count genes pulled toward zero. This is the value the site shows. <b>log2FoldChange</b> is the raw estimate,
+        <b>lfcSE</b> its standard error.</li>
+      <li><b>pvalue, padj</b>: the p-value and the p-value adjusted for the number of genes tested. padj is empty for genes
+        left out of the adjustment because their counts were low.</li>
+    </ul>
+  </section>
+
+  <p class="dim">The Genes page can also download the TPM of the genes it shows, and the Comparisons page its table as
+    filtered. The code that produced everything is on <a href="https://github.com/brandonlukas/med12-tpm">GitHub</a>.</p>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>Data: GEO GSE204969, GSE226014, GSE226016 · processed October 2026</span>
+    <a href="https://github.com/brandonlukas/med12-tpm">Code on GitHub</a>
+  </div>
+</footer>
+</body>
+</html>

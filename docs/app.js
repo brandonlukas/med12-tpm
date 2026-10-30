@@ -78,6 +78,8 @@ async function init() {
   });
   $("status").addEventListener("click", (e) => {
     if (e.target.closest("[data-undo]") && undoSel) { const u = undoSel; undoSel = null; setGenes(u); }
+    const t = e.target.closest("[data-try]")?.dataset.try;
+    if (t) setGenes([Data.lookup(t)[0]]);
   });
 
   attachSearch($("gene"), $("suggest"), (i) => { $("gene").value = ""; addGene(i); },
@@ -98,7 +100,7 @@ async function init() {
   $("csv").addEventListener("click", downloadCSV);
 
   $("panels").innerHTML = Data.meta.datasets.map((d) => `
-    <section class="panel" aria-labelledby="h-${d.id}">
+    <section class="panel" aria-labeledby="h-${d.id}">
       <header><h2 id="h-${d.id}">${SHORT_DS[d.id] || d.label}</h2><p class="note">${datasetNote(d.id)}</p></header>
       <div class="plot" id="plot-${d.id}"></div>
       <div class="tables" id="tab-${d.id}"></div>
@@ -175,7 +177,7 @@ async function render() {
   const id = ++renderId;
   if (!selected.length) {
     $("gene-head").hidden = true;
-    status("Add a gene to start.");
+    status(`Add a gene to start, or try <button type="button" class="linklike" data-try="MED12">MED12</button>.`, true);
     for (const d of Data.meta.datasets) { if (!noPlots) Plotly.purge(`plot-${d.id}`); $(`tab-${d.id}`).innerHTML = ""; }
     lastMode = null;
     return;
@@ -219,14 +221,14 @@ function plotOne(d, g) {
   const xi = Object.fromEntries(d.groups.map((grp, k) => [grp, k]));
   const xs = d.samples.map((s, k) => xi[s.group] + jitter(k) * 0.32);
   const traces = [], what = [];   // what[i]: the group a trace shows, or null for a pairing line
-  // tissue: one grey line per patient, MM -> LM
+  // tissue: one gray line per patient, MM -> LM
   const pts = {};
   d.samples.forEach((s, k) => { if (s.patient) (pts[s.patient] ||= []).push(k); });
   for (const ks of Object.values(pts)) {
     if (ks.length !== 2) continue;
     what.push(null);
     traces.push({ x: ks.map((k) => xs[k]), y: ks.map((k) => y[k]), mode: "lines",
-      line: { color: "#dde0e7", width: 1 }, hoverinfo: "skip", showlegend: false });
+      line: { color: "#cfd3dc", width: 1 }, hoverinfo: "skip", showlegend: false });
   }
   for (const grp of d.groups) {
     const ks = d.samples.map((_, k) => k).filter((k) => d.samples[k].group === grp);
@@ -298,7 +300,7 @@ function tableOne(d, g) {
     const label = `<a href="de.html#c=${d.id}__${c}&gene=${name}" title="See the whole comparison">${esc(contrastLabel(c))}</a>`;
     const row = `<tr data-hl-groups="${pairFor(d, c).join(",")}">`;
     if (padj == null) return `${row}<td>${label}</td><td colspan="2" class="dim">not tested</td></tr>`;
-    // no direction colour here: on this page orange and blue already mean sample groups
+    // no direction color here: on this page orange and blue already mean sample groups
     const cls = padj < 0.05 ? "sig" : "";
     return `${row}<td>${label}</td><td class="${cls}">${fmt(lfc)}</td><td class="${cls}">${fmtP(padj)}</td></tr>`;
   });
@@ -306,7 +308,7 @@ function tableOne(d, g) {
     <table><caption>Expression by group</caption>
       <thead><tr><th scope="col">Group</th><th scope="col">Mean TPM</th><th scope="col">Percentile</th></tr></thead>
       <tbody>${expr.join("")}</tbody></table>
-    <table><caption>Differences (DESeq2)</caption>
+    <table><caption>Differences</caption>
       <thead><tr><th scope="col">Comparison</th><th scope="col">log₂FC</th><th scope="col">p<sub>adj</sub></th></tr></thead>
       <tbody>${diffs.join("")}</tbody></table>`;
 }
@@ -354,7 +356,7 @@ function plotMulti(d, data) {
   if (star.x.length) {
     points.push(star.pts);
     traces.push({ x: star.x, y: star.y, text: star.text, mode: "markers", showlegend: false, hovertemplate: "%{text}<extra></extra>",
-      marker: { symbol: "asterisk", size: 11, color: INK, line: { color: INK, width: 2 } } });
+      marker: { symbol: "asterisk", size: 11, color: INK, line: { color: INK, width: 1.6 } } });
   }
   hl[d.id] = { mode: "multi", points };
   const top = base * (star.x.length ? 1.08 : 1);
