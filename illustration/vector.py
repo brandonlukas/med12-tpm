@@ -328,7 +328,7 @@ def labels():
       <g font-size="14" fill="#5c6170">
         <text x="112" y="269" text-anchor="end"><tspan font-style="italic">MED12</tspan> G44D</text>
         <text x="152" y="64" text-anchor="end"><tspan font-style="italic">MED12</tspan> wild-type</text>
-        <text x="568" y="198" text-anchor="middle">CRISPR editing</text>
+        <text x="556" y="191">CRISPR editing</text>
         {line_labels}
       </g>"""
 
