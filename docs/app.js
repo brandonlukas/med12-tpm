@@ -242,7 +242,7 @@ function tableOne(d, g) {
     const [, lfc, padj] = de[c] || [];
     const label = `<a href="de.html#c=${d.id}__${c}&gene=${name}" title="See the whole comparison">${esc(contrastLabel(c))}</a>`;
     if (padj == null) return `<tr><td>${label}</td><td colspan="2" class="dim">not tested</td></tr>`;
-    // no direction colour here: on this page vermilion and blue already mean sample groups
+    // no direction colour here: on this page orange and blue already mean sample groups
     const cls = padj < 0.05 ? "sig" : "";
     return `<tr><td>${label}</td><td class="${cls}">${fmt(lfc)}</td><td class="${cls}">${fmtP(padj)}</td></tr>`;
   });

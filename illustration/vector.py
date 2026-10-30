@@ -17,14 +17,14 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 PAGE = HERE.parent / "docs" / "index.html"
 
-# palette: stone tones for tissue (context), the site's vermilion for the focus, pale blue glass
+# palette: stone tones for tissue (context), the site's orange for the focus, pale blue glass
 STONE_HI, STONE, STONE_LO, STONE_LINE = "#ece7df", "#d2cabd", "#b3a897", "#9e9382"
 PINK_HI, PINK, PINK_LO = "#f7e9e4", "#edd3cb", "#d4aba3"
-VERM_HI, VERM, VERM_LO, VERM_LINE = "#f3a872", "#d55e00", "#a84600", "#7e3400"
+ORANGE_HI, ORANGE, ORANGE_LO, ORANGE_LINE = "#f3a872", "#d55e00", "#a84600", "#7e3400"
 PINK_C_HI, PINK_C, PINK_C_LO, PINK_C_LINE = "#e6b3cf", "#bf6a9b", "#8e4a73", "#5e2f4c"
 BLUE_HI, BLUE, BLUE_LO, BLUE_LINE = "#7cc0ea", "#0072b2", "#004b78", "#003757"
 KO_HI, KO, KO_LO, KO_LINE = "#7b7f8a", "#3a3d46", "#1c1e26", "#0b0c10"
-CELL = {"stone": (STONE_HI, STONE, STONE_LO, STONE_LINE), "verm": (VERM_HI, VERM, VERM_LO, VERM_LINE),
+CELL = {"stone": (STONE_HI, STONE, STONE_LO, STONE_LINE), "verm": (ORANGE_HI, ORANGE, ORANGE_LO, ORANGE_LINE),
         "pink": (PINK_C_HI, PINK_C, PINK_C_LO, PINK_C_LINE), "ko": (KO_HI, KO, KO_LO, KO_LINE)}
 GLASS, GLASS_LINE, MEDIUM_HI, MEDIUM = "#eef3f7", "#b5c4cf", "#e3eef5", "#c7dbe8"
 INK, ARROW = "#1c1e26", "#4a4f5a"
@@ -123,13 +123,13 @@ def defs():
       <stop offset="0" stop-color="{PINK_HI}"/><stop offset="1" stop-color="{PINK}"/>
     </linearGradient>
     <radialGradient id="gFibroid" cx="36%" cy="30%" r="75%">
-      <stop offset="0" stop-color="{VERM_HI}"/><stop offset="0.5" stop-color="{VERM}"/><stop offset="1" stop-color="{VERM_LO}"/>
+      <stop offset="0" stop-color="{ORANGE_HI}"/><stop offset="0.5" stop-color="{ORANGE}"/><stop offset="1" stop-color="{ORANGE_LO}"/>
     </radialGradient>
     <radialGradient id="gFibroidBlue" cx="36%" cy="30%" r="75%">
       <stop offset="0" stop-color="{BLUE_HI}"/><stop offset="0.5" stop-color="{BLUE}"/><stop offset="1" stop-color="{BLUE_LO}"/>
     </radialGradient>
     <radialGradient id="gSphereVerm" cx="36%" cy="32%" r="72%">
-      <stop offset="0" stop-color="{VERM_HI}"/><stop offset="0.55" stop-color="{VERM}"/><stop offset="1" stop-color="{VERM_LO}"/>
+      <stop offset="0" stop-color="{ORANGE_HI}"/><stop offset="0.55" stop-color="{ORANGE}"/><stop offset="1" stop-color="{ORANGE_LO}"/>
     </radialGradient>
     <radialGradient id="gSpherePink" cx="36%" cy="32%" r="72%">
       <stop offset="0" stop-color="{PINK_C_HI}"/><stop offset="0.55" stop-color="{PINK_C}"/><stop offset="1" stop-color="{PINK_C_LO}"/>
@@ -215,8 +215,8 @@ def uterus():
     parts.append(f'<rect x="217.6" y="242" width="4.8" height="60" rx="2.4" fill="{PINK}" stroke="{PINK_LO}" stroke-width="0.6"/>')
     # the leiomyoma: the focus, saturated, seated in the wall with a cast shadow and a whorled surface
     fx, fy, fr = 168, 190, 20
-    parts.append(f'<g filter="url(#cast)"><circle cx="{fx}" cy="{fy}" r="{fr}" fill="url(#gFibroid)" stroke="{VERM_LO}" stroke-width="0.8"/></g>')
-    parts.append(f'<path d="{spiral(fx - 1, fy + 1, 3, 15, 2.0)}" fill="none" stroke="{VERM_LINE}" stroke-opacity="0.22" stroke-width="1.1" stroke-linecap="round"/>')
+    parts.append(f'<g filter="url(#cast)"><circle cx="{fx}" cy="{fy}" r="{fr}" fill="url(#gFibroid)" stroke="{ORANGE_LO}" stroke-width="0.8"/></g>')
+    parts.append(f'<path d="{spiral(fx - 1, fy + 1, 3, 15, 2.0)}" fill="none" stroke="{ORANGE_LINE}" stroke-opacity="0.22" stroke-width="1.1" stroke-linecap="round"/>')
     parts.append(f'<ellipse cx="{fx - 7}" cy="{fy - 8}" rx="6" ry="4" fill="#ffffff" fill-opacity="0.35" transform="rotate(-30 {fx - 7} {fy - 8})"/>')
     # a second leiomyoma, MED12 wild-type, on the fundus
     bx, by, br = 206, 80, 13
@@ -328,10 +328,7 @@ def labels():
       <g font-size="14" fill="#6b7080">
         <text x="112" y="269" text-anchor="end">MED12 G44D</text>
         <text x="152" y="64" text-anchor="end">MED12 wild-type</text>
-        <text x="352" y="284" text-anchor="middle">derived from the myometrium</text>
-        <text x="524" y="292" text-anchor="middle">hTERT-immortalized</text>
         <text x="568" y="198" text-anchor="middle">CRISPR editing</text>
-        <text x="669" y="182" text-anchor="middle">four lines</text>
         {line_labels}
       </g>"""
 

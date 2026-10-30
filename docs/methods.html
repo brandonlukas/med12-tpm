@@ -31,7 +31,7 @@
   <tr><td>Tissue</td><td><a href="https://doi.org/10.1172/jci.insight.171305">Zuberi et al., JCI Insight 2023</a></td><td><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE204969">GSE204969</a></td>
       <td>10 patients, leiomyoma (LM) and matched myometrium (MM); 6 LM MED12 G44D mutant, 4 LM wild-type</td><td>single-end 75 bp</td></tr>
   <tr><td>2D cells</td><td><a href="https://doi.org/10.1038/s41467-023-39684-y">Buyukcelebi et al., Nat Commun 2023</a></td><td><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226014">GSE226014</a></td>
-      <td>WT, MED12 knock-out, two MED12 G44 mutant clones (Mut1, Mut2); 3 replicates each</td><td>paired-end 2×75 bp</td></tr>
+      <td>hTERT-immortalized myometrial smooth muscle cells: unedited (WT), MED12 knock-out (KO), two MED12 G44N mutant clones (Mut1, Mut2); 3 replicates each</td><td>paired-end 2×75 bp</td></tr>
   <tr><td>3D spheroids</td><td><a href="https://doi.org/10.1038/s41467-023-39684-y">Buyukcelebi et al., Nat Commun 2023</a></td><td><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226016">GSE226016</a></td>
       <td>WT (2 replicates), Mut1 and Mut2 (3 each)</td><td>paired-end 2×151 bp</td></tr>
 </table></div>
@@ -46,18 +46,17 @@
 <p>Transcripts per million, from Salmon, at the gene level. TPM corrects for sequencing depth and for gene length, so
   it compares genes with each other within a sample, and samples with each other within a dataset. It does not
   compare across the three datasets: tissue against cultured cells, different library preparations and read lengths,
-  and the 2D library is unstranded. The Genes page plots TPM on a log scale by default (log<sub>2</sub> of TPM + 1,
-  with the ticks labelled in TPM) and never lets the axis top fall below 10 TPM.</p>
+  and the 2D library is unstranded.</p>
 <h3>Expression percentile</h3>
 <p>Where a gene's mean TPM in a group ranks among the 19,350 protein-coding genes with nonzero TPM in at least
   one sample (GENCODE <code>gene_type</code>). The 50th percentile is a typical gene; the 90th is in the top 10%.</p>
 <h3>log<sub>2</sub>FC and p<sub>adj</sub></h3>
 <p>From DESeq2, fitted separately in each dataset. log<sub>2</sub>FC is the first group relative to the second, so a
-  positive value means higher in the first group. The site shows fold changes shrunken with apeglm, which pulls
-  noisy estimates from low-count genes toward zero; the downloadable tables keep both the shrunken
-  (<code>log2FC_shrunk</code>) and the unshrunken (<code>log2FoldChange</code>) values. p<sub>adj</sub> is the
-  Benjamini–Hochberg adjusted p-value from a Wald test. A gene was tested only if it had at least 10 counts in at
-  least as many samples as the smallest group.</p>
+  positive value means higher in the first group. The site shows fold changes with noisy estimates from low-count
+  genes pulled toward zero (shrinkage with apeglm); the downloadable tables keep both the shrunken
+  (<code>log2FC_shrunk</code>) and the raw (<code>log2FoldChange</code>) values. p<sub>adj</sub> is the p-value
+  adjusted for the number of genes tested (Benjamini–Hochberg). A gene was tested only if it had at least 10 counts
+  in at least as many samples as the smallest group.</p>
 
 <h2>Differential expression design</h2>
 <div class="scroll"><table>

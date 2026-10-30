@@ -197,7 +197,7 @@ const ringLabel = (name, x, y) => ({ x, y, text: `<b>${esc(name)}</b>`, showarro
 
 const COLS = [
   { key: "rank", label: "Rank" }, { key: "name", label: "Gene" },
-  { key: "base", label: "Mean count", title: "DESeq2 baseMean: mean normalized count over all samples" },
+  { key: "base", label: "Mean count", title: "Average normalized count over all samples in the dataset" },
   { key: "lfc", label: "log₂FC" }, { key: "padj", label: "p<sub>adj</sub>" },
 ];
 

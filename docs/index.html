@@ -26,21 +26,21 @@
 </header>
 
 <main class="wrap">
-  <section class="intro">
-    <p class="lede big">A gene-level view of three public RNA-seq studies of MED12-mutant uterine fibroids, reprocessed
-      together: tumours with each patient's own myometrium, and myometrial cells engineered to carry a mutation at the
-      same codon of <i>MED12</i>, grown in 2D and as 3D spheroids.</p>
-    <form class="field search lookup" id="lookup" autocomplete="off">
-      <label for="q">Look up a gene</label>
-      <div class="row">
-        <input id="q" type="search" spellcheck="false" placeholder="e.g. MED12, HMGA2, PGR">
-        <button type="submit" class="btn primary">Show</button>
-      </div>
-      <ul id="suggest" class="suggest" role="listbox" hidden></ul>
-      <p id="lookup-msg" class="status" hidden></p>
-    </form>
-    <p class="glance" id="glance">40 samples · 3 datasets · 9 comparisons · 62,298 GENCODE v44 genes</p>
-  </section>
+  <p class="lede big">Gene expression across three public RNA-seq studies of MED12-mutant uterine fibroids: tumours
+    with each patient's own myometrium, and myometrial cells engineered to carry a <i>MED12</i> codon-44 mutation,
+    grown in 2D and as spheroids.</p>
+
+  <form class="field search lookup" id="lookup" autocomplete="off">
+    <label for="q">Look up a gene</label>
+    <div class="row">
+      <input id="q" type="search" spellcheck="false" placeholder="Gene symbol">
+      <button type="submit" class="btn primary">Show</button>
+    </div>
+    <ul id="suggest" class="suggest" role="listbox" hidden></ul>
+    <p class="examples">Try <a href="genes.html#genes=MED12">MED12</a>, <a href="genes.html#genes=HMGA2">HMGA2</a>,
+      <a href="genes.html#genes=PGR">PGR</a>, or <a href="genes.html#genes=MED12,MED12L,MED13,MED13L,CCNC,CDK8,CDK19">the Mediator kinase module</a> side by side.</p>
+    <p id="lookup-msg" class="status" hidden></p>
+  </form>
 
   <figure class="design">
     <div class="scroll">
@@ -205,89 +205,33 @@
       <g font-size="14" fill="#6b7080">
         <text x="112" y="269" text-anchor="end">MED12 G44D</text>
         <text x="152" y="64" text-anchor="end">MED12 wild-type</text>
-        <text x="352" y="284" text-anchor="middle">derived from the myometrium</text>
-        <text x="524" y="292" text-anchor="middle">hTERT-immortalized</text>
         <text x="568" y="198" text-anchor="middle">CRISPR editing</text>
-        <text x="669" y="182" text-anchor="middle">four lines</text>
         <text x="610" y="243" text-anchor="middle">WT</text><text x="650" y="243" text-anchor="middle">KO</text><text x="690" y="243" text-anchor="middle">Mut1</text><text x="730" y="243" text-anchor="middle">Mut2</text>
       </g>
     </svg>
     <!-- design:end -->
     </div>
-<figcaption id="design-cap"><b>Where the samples come from.</b> Leiomyomas in the myometrial wall of the uterus,
-      each sampled with the myometrium next to it from 10 patients: 6 tumours carry the MED12 G44D mutation (vermilion),
-      4 are MED12 wild-type (blue). Myometrial cells (hTERT-immortalized) were edited with CRISPR into four lines: left
-      unedited (WT), MED12 knocked out (KO), or given a MED12 codon-44 mutation (two independent clones, Mut1 and Mut2).
-      Each line was grown separately in 2D; WT, Mut1 and Mut2 also as 3D spheroids. Colours are those used for the
-      groups throughout the site.</figcaption>
+    <figcaption id="design-cap">From each of 10 patients, a leiomyoma and the myometrium next to it; 6 of the tumours
+      carry MED12 G44D, 4 are wild-type. The four cell lines were each grown in 2D, and WT, Mut1 and Mut2 also as
+      spheroids. The colours are the ones used for these groups throughout the site.</figcaption>
   </figure>
 
-  <div class="studies">
-    <article class="node">
-      <h3>Patients</h3>
-      <p>Ten women; from each, a leiomyoma and the myometrium next to it. Six tumours carry the MED12 G44D
-        mutation, four are MED12 wild-type.</p>
-      <p class="cite"><a href="https://doi.org/10.1172/jci.insight.171305" title="MED12 mutation activates the tryptophan/kynurenine/AHR pathway to promote growth of uterine leiomyomas">Zuberi et al., JCI Insight 2023</a>
-        · <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE204969">GSE204969</a></p>
-    </article>
-    <article class="node">
-      <h3><i>MED12</i> codon 44</h3>
-      <p>Mutated in about 70% of uterine fibroids, nearly always in exon 2 and most often at codon 44
-        (<a href="https://doi.org/10.1126/science.1208930" title="MED12, the mediator complex subunit 12 gene, is mutated at high frequency in uterine leiomyomas">Mäkinen et al., Science 2011</a>).
-        The tumours here carry G44D; the engineered cells carry G44N.</p>
-    </article>
-    <article class="node">
-      <h3>Engineered cells</h3>
-      <p>hTERT-immortalized myometrial smooth muscle cells edited by CRISPR: unedited, MED12 knocked out, or carrying
-        the codon-44 mutation (two clones). Grown in 2D, and as spheroids.</p>
-      <p class="cite"><a href="https://doi.org/10.1038/s41467-023-39684-y" title="Engineered MED12 mutations drive leiomyoma-like transcriptional and metabolic programs by altering the 3D genome compartmentalization">Buyukcelebi et al., Nat Commun 2023</a>
-        · <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226014">GSE226014</a>
-        · <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226016">GSE226016</a></p>
-    </article>
-  </div>
-
-  <section class="stack" aria-labelledby="h-try">
-    <h2 id="h-try">Try a gene</h2>
-    <p class="genesets" id="examples"><span>Examples</span></p>
-    <div class="minis" id="minis"></div>
-    <p class="status" id="try-link"></p>
-  </section>
-
-  <section class="stack" aria-labelledby="h-samples">
-    <h2 id="h-samples">The samples</h2>
-    <div class="samples" id="samples"></div>
-    <p class="muted small">Each dot is one RNA-seq sample; hover a group in a legend to pick it out. Grey is each
-      dataset's reference group; vermilion and pink are the groups that carry a MED12 codon-44 mutation.</p>
-  </section>
-
-  <section class="stack" aria-labelledby="h-use">
-    <h2 id="h-use">What you can do here</h2>
-    <dl class="uses">
-      <div>
-        <dt><a href="genes.html">Genes</a></dt>
-        <dd>Type a gene and see its expression in every sample of all three datasets, with the DESeq2 result for
-          each comparison. Add genes to compare them with each other.</dd>
-      </div>
-      <div>
-        <dt><a href="de.html">Comparisons</a></dt>
-        <dd>Browse which genes change in each comparison, see where a gene of yours ranks, and check whether two
-          comparisons agree.</dd>
-      </div>
-      <div>
-        <dt><a href="methods.html">Methods</a></dt>
-        <dd>How the data were processed, what the values mean, the DESeq2 designs, and downloads of every table.</dd>
-      </div>
-    </dl>
-  </section>
-
-  <section class="stack" aria-labelledby="h-across">
-    <h2 id="h-across">Reading across datasets</h2>
-    <div class="prose-block">
-      <p>Because every sample went through the same pipeline, values are directly comparable within each dataset, and
-        genes can be compared with each other because the unit is TPM. Expression levels are not comparable between
-        datasets: tissue and cultured cells differ in material, library preparation and read length. To relate the
-        studies, compare what changes (fold changes and significance), not how much is expressed.</p>
-    </div>
+  <section class="prose-block" aria-labelledby="h-why">
+    <h2 id="h-why">Why these three studies</h2>
+    <p>About 70% of uterine fibroids carry a mutation in <i>MED12</i>, most often at codon 44
+      (<a href="https://doi.org/10.1126/science.1208930">Mäkinen et al., Science 2011</a>). The tissue study
+      (<a href="https://doi.org/10.1172/jci.insight.171305">Zuberi et al., JCI Insight 2023</a>;
+      <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE204969">GSE204969</a>) shows what those tumours
+      look like, mutant and wild-type, against normal myometrium. The cell study
+      (<a href="https://doi.org/10.1038/s41467-023-39684-y">Buyukcelebi et al., Nat Commun 2023</a>;
+      <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226014">GSE226014</a>,
+      <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226016">GSE226016</a>) asks the question the
+      other way round: put a codon-44 mutation (G44N) into myometrial cells, or remove MED12 altogether, and see what
+      changes, in 2D and then in spheroids. Side by side, they show whether a gene's behaviour in the tumour is
+      reproduced in the model, and whether that depends on how the cells are grown.</p>
+    <p>All 40 samples went through one pipeline, so values are comparable within each dataset and genes can be compared
+      with each other (the unit is TPM). Between datasets they are not: tissue and cultured cells differ in material
+      and library preparation. Across the studies, compare what changes, not how much is expressed.</p>
   </section>
 </main>
 

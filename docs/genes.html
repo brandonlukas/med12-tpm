@@ -23,8 +23,8 @@
 </header>
 
 <main class="wrap">
-  <p class="lede">Look up a gene's expression in three public MED12 RNA-seq datasets: leiomyoma with matched
-    myometrium, and MED12-edited cells in 2D and 3D culture. Add more genes to compare them.</p>
+  <p class="lede">A gene's expression in every sample of the three datasets, with the DESeq2 result for each comparison.
+    Add more genes to compare them with each other.</p>
 
   <section class="controls" aria-label="Choose genes">
     <div class="field search grow">
@@ -57,21 +57,15 @@
   <details class="notes">
     <summary>How to read these plots</summary>
     <ul>
-      <li>Each point is one sample. In the tissue panel, a grey line joins each patient's myometrium and leiomyoma.</li>
-      <li>The y axis is in TPM. On the log scale the spacing is logarithmic, which spreads out low values; the ticks
-        still read in TPM. The axis always reaches at least 10 TPM, so a gene that is barely expressed looks that way
-        instead of being stretched to fill the plot.</li>
-      <li>Mean TPM is the average over the samples in a group. The percentile says where that mean ranks among all
-        protein-coding genes in the same group: the 50th is a typical gene, the 90th is in the top 10%.</li>
-      <li>TPM compares genes within a sample and samples within a dataset. The three datasets differ in material and
-        library preparation, so values should not be compared across panels.</li>
-      <li>log<sub>2</sub>FC and p<sub>adj</sub> come from DESeq2, fitted within each dataset. log<sub>2</sub>FC is the
-        first group relative to the second, shrunken with apeglm so that noisy low-count genes are pulled toward zero.
-        p<sub>adj</sub> is the Benjamini–Hochberg adjusted p-value.</li>
-      <li>Brackets: * p<sub>adj</sub> &lt; 0.05, ** &lt; 0.01, *** &lt; 0.001, ns not significant. Hover a label for the
-        exact value. "LM vs MM, all 10 pairs" pools both LM groups, so it has no bracket of its own.</li>
-      <li>"Not tested" means the gene had too few counts in that dataset for DESeq2 to test.</li>
-      <li>The spheroid wild-type group has only 2 replicates.</li>
+      <li>Each point is one sample. In the tissue panel a grey line joins each patient's myometrium and leiomyoma.</li>
+      <li>The y axis is TPM on a log scale, with the ticks in TPM. It always reaches at least 10 TPM, so a gene that is
+        barely expressed looks that way.</li>
+      <li>Percentile: where the group's mean TPM ranks among all protein-coding genes in that group. The 50th is a
+        typical gene, the 90th is in the top 10%.</li>
+      <li>log<sub>2</sub>FC and p<sub>adj</sub> are DESeq2 results within each dataset. log<sub>2</sub>FC is the first
+        group relative to the second; estimates from genes with few counts are pulled toward zero. Brackets:
+        * p<sub>adj</sub> &lt; 0.05, ** &lt; 0.01, *** &lt; 0.001, ns not significant. "Not tested" means too few counts.</li>
+      <li>Values are comparable within a dataset, not between datasets. The spheroid WT group has 2 replicates.</li>
     </ul>
   </details>
 </main>
