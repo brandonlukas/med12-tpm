@@ -81,6 +81,13 @@ with sync_playwright() as p:
     check(pg.text_content("#gene-name") == "5 genes", "gene set loads 5 genes")
     check("not tested" in pg.inner_text("#panels") or True, "page still renders with gene set")
 
+    check(pg.locator("#clear").is_visible(), "Clear appears with several genes")
+    pg.click("#clear")
+    pg.wait_for_function("document.querySelector('#status').textContent.includes('Cleared 5 genes')")
+    check(pg.locator("#gene-head").is_hidden() and pg.locator("#clear").is_hidden(), "Clear empties the selection and hides itself")
+    pg.click("#status [data-undo]")
+    pg.wait_for_function("document.querySelector('#gene-name')?.textContent === '5 genes'")
+    check(True, "Undo after Clear restores the genes")
     pg.fill("#gene", "NOTAGENE"); pg.keyboard.press("Enter")
     pg.wait_for_timeout(200)
     check("No gene called" in pg.inner_text("#status"), "unknown gene gives a message")

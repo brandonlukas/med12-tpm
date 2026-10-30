@@ -88,8 +88,9 @@ async function init() {
   $("chipbox").addEventListener("click", (e) => {
     const i = e.target.closest("[data-remove]")?.dataset.remove;
     if (i != null) setGenes(selected.filter((g) => g !== +i));
-    else $("gene").focus();
+    else if (!e.target.closest("#clear")) $("gene").focus();
   });
+  $("clear").addEventListener("click", clearGenes);
 
   document.querySelectorAll("[data-scale]").forEach((b) => b.addEventListener("click", () => setScale(b.dataset.scale)));
   setScale(scale, false);
@@ -151,8 +152,18 @@ async function applySet(name) {
   }
 }
 
+// Clear every gene at once; the status line offers to undo that.
+async function clearGenes() {
+  const before = selected.slice();
+  await setGenes([]);
+  undoSel = before;
+  status(`Cleared ${before.length} genes. <button type="button" class="linklike" data-undo>Undo</button>`, true);
+  $("gene").focus();
+}
+
 function setGenes(idx, updateHash = true) {
   selected = [...new Set(idx)].slice(0, MAX_GENES);
+  $("clear").hidden = selected.length < 2;
   $("chips").innerHTML = selected.map((i) =>
     `<span class="chip">${esc(Data.genes[i][1])}<button type="button" data-remove="${i}" aria-label="Remove ${esc(Data.genes[i][1])}">×</button></span>`).join("");
   $("gene").placeholder = selected.length ? "Add another gene" : "Type a gene symbol, e.g. MED12";

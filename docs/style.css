@@ -83,6 +83,9 @@ input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
 }
 .chipbox:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .chipbox input { flex: 1 1 150px; min-width: 150px; min-height: 0; border: 0; padding: 4px 2px; background: transparent; }
+.chip-clear { all: unset; cursor: pointer; margin-left: auto; color: var(--muted); font-size: 13px; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+.chip-clear:hover { color: var(--ink); background: var(--panel); }
+.chip-clear:focus-visible { outline: 2px solid var(--accent); }
 .chipbox input:focus-visible { box-shadow: none; }
 .chip { display: inline-flex; align-items: center; gap: 2px; background: var(--accent-soft); color: var(--ink); border-radius: 4px; padding: 3px 3px 3px 9px; font-size: 14px; line-height: 1.4; font-weight: 500; }
 .chip button { all: unset; cursor: pointer; color: var(--muted); font-size: 17px; line-height: 1; padding: 1px 6px 3px; border-radius: 3px; }
