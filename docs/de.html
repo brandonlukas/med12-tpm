@@ -6,7 +6,7 @@
 <title>Comparisons · MED12 RNA-seq Explorer</title>
 <meta name="description" content="DESeq2 results for every comparison in three public MED12 RNA-seq datasets: volcano plots, ranked tables and agreement between comparisons.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=cfedbe32">
+<link rel="stylesheet" href="style.css?v=14e86fed">
 <script src="vendor/plotly-gl2d-2.35.2.min.js"></script>
 </head>
 <body>
@@ -34,9 +34,10 @@
     <div class="field">
       <span class="label" id="thr-label">Call a gene significant when</span>
       <div class="thresholds" aria-labelledby="thr-label">
-        <label for="alpha">p<sub>adj</sub> &lt;</label> <input id="alpha" type="number" value="0.05" min="0" max="1" step="0.01">
+        <label for="alpha">p<sub>adj</sub> &lt;</label> <input id="alpha" type="number" value="0.05" min="0" max="1" step="any">
         <span>and</span>
-        <label for="lfcmin">|log<sub>2</sub>FC| ≥</label> <input id="lfcmin" type="number" value="1" min="0" step="0.5">
+        <label for="lfcmin">|log<sub>2</sub>FC| ≥</label> <input id="lfcmin" type="number" value="1" min="0" step="any">
+        <button type="button" class="linklike" id="thr-reset" hidden>Reset</button>
       </div>
     </div>
     <div class="field search" style="flex: 1 1 220px; max-width: 340px">
@@ -107,7 +108,7 @@
     <a href="https://github.com/brandonlukas/med12-tpm">Code and downloads on GitHub</a>
   </div>
 </footer>
-<script src="common.js?v=cfedbe32"></script>
-<script src="de.js?v=cfedbe32"></script>
+<script src="common.js?v=14e86fed"></script>
+<script src="de.js?v=14e86fed"></script>
 </body>
 </html>

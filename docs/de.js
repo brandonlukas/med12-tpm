@@ -8,8 +8,15 @@ const cache = new Map();
 const state = { c: null, rows: [], sort: { key: "rank", dir: 1 }, page: 0, pick: null };
 let noPlots = false; // the plotting library did not load; the table still works
 
-const alpha = () => +$("alpha").value || 0.05;
-const lfcMin = () => +$("lfcmin").value || 0;
+const DEFAULTS = { alpha: 0.05, lfcmin: 1 };
+// an empty or unreadable field falls back to its default; any number, including 0, is taken as typed
+const num = (id) => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : DEFAULTS[id]; };
+const alpha = () => num("alpha");
+const lfcMin = () => num("lfcmin");
+function resetThresholds() {
+  $("alpha").value = DEFAULTS.alpha; $("lfcmin").value = DEFAULTS.lfcmin;
+  refresh(); drawAgree();
+}
 const isSig = (r) => r.padj != null && r.padj < alpha() && Math.abs(r.lfc) >= lfcMin();
 const dsOf = (c) => c.split("__")[0];
 const conOf = (c) => c.split("__")[1];
@@ -47,6 +54,7 @@ async function init() {
 
   $("contrast").addEventListener("change", showContrast);
   for (const id of ["alpha", "lfcmin"]) $(id).addEventListener("input", () => { refresh(); drawAgree(); });
+  $("thr-reset").addEventListener("click", resetThresholds);
   $("filter").addEventListener("input", () => { state.page = 0; drawTable(); });
   $("sigonly").addEventListener("change", () => { state.page = 0; drawTable(); });
   $("prev").addEventListener("click", () => { state.page--; drawTable(); });
@@ -93,6 +101,7 @@ function setHash() {
 }
 
 function refresh() {
+  $("thr-reset").hidden = alpha() === DEFAULTS.alpha && lfcMin() === DEFAULTS.lfcmin;
   const rows = state.rows, [num] = sides(state.c);
   const up = rows.filter((r) => isSig(r) && r.lfc > 0).length, down = rows.filter((r) => isSig(r) && r.lfc < 0).length;
   $("summary").innerHTML = `<b>${esc(fullLabel(state.c))}</b> <span>${rows.nTested.toLocaleString()} genes tested</span>
@@ -232,7 +241,10 @@ function drawTable() {
       <td class="${sig ? "sig" : ""}">${fmtP(r.padj)}</td></tr>`;
   }).join("");
   $("detable").innerHTML = head + `<tbody>${body}</tbody>`;
-  $("count").textContent = `${rows.length.toLocaleString()} genes`;
+  const nSig = state.rows.filter(isSig).length;
+  $("count").textContent = $("sigonly").checked
+    ? `${rows.length.toLocaleString()} significant genes`
+    : `${rows.length.toLocaleString()} genes · ${nSig.toLocaleString()} significant`;
   $("page").textContent = `Page ${state.page + 1} of ${pages}`;
   $("prev").disabled = state.page === 0;
   $("next").disabled = state.page >= pages - 1;
