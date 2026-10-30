@@ -4,17 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MED12 RNA-seq Explorer</title>
-<meta name="description" content="Expression of any gene in three public MED12 RNA-seq datasets: leiomyoma with matched myometrium, and MED12-edited cells in 2D and 3D culture.">
+<meta name="description" content="Three public RNA-seq studies of MED12-mutant uterine fibroids, reprocessed together: patient tumours with matched myometrium, and MED12-edited cells in 2D and 3D culture. Look up any gene.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
-<script src="vendor/plotly-basic-2.35.2.min.js"></script>
+<script>
+  // links made before the overview existed pointed the explorer's gene hash at this page
+  if (/(^|[#&])genes?=/.test(location.hash)) location.replace("genes.html" + location.hash);
+</script>
 </head>
 <body>
 <header class="site-header">
   <div class="wrap">
     <h1><a href="index.html">MED12 RNA-seq Explorer</a></h1>
     <nav class="site-nav" aria-label="Site">
-      <a href="index.html" aria-current="page">Genes</a>
+      <a href="index.html" aria-current="page">Overview</a>
+      <a href="genes.html">Genes</a>
       <a href="de.html">Comparisons</a>
       <a href="methods.html">Methods</a>
     </nav>
@@ -22,57 +26,72 @@
 </header>
 
 <main class="wrap">
-  <p class="lede">Look up a gene's expression in three public MED12 RNA-seq datasets: leiomyoma with matched
-    myometrium, and MED12-edited cells in 2D and 3D culture. Add more genes to compare them.</p>
-
-  <section class="controls" aria-label="Choose genes">
-    <div class="field search grow">
-      <label for="gene">Genes</label>
-      <div class="chipbox" id="chipbox">
-        <span id="chips"></span>
-        <input id="gene" type="search" autocomplete="off" spellcheck="false" placeholder="Type a gene symbol, e.g. MED12">
+  <section class="intro">
+    <p class="lede big">A gene-level view of three public RNA-seq studies of MED12-mutant uterine fibroids, reprocessed
+      together: tumours with each patient's own myometrium, and myometrial cells engineered to carry a mutation at the
+      same codon of <i>MED12</i>, grown in 2D and as 3D spheroids.</p>
+    <form class="field search lookup" id="lookup" autocomplete="off">
+      <label for="q">Look up a gene</label>
+      <div class="row">
+        <input id="q" type="search" spellcheck="false" placeholder="e.g. MED12, HMGA2, PGR">
+        <button type="submit" class="btn primary">Show</button>
       </div>
       <ul id="suggest" class="suggest" role="listbox" hidden></ul>
+      <p id="lookup-msg" class="status" hidden></p>
+    </form>
+    <p class="glance" id="glance">40 samples · 3 datasets · 9 comparisons · 62,298 GENCODE v44 genes</p>
+  </section>
+
+  <section class="stack" aria-labelledby="h-samples">
+    <h2 id="h-samples">The samples</h2>
+    <div class="samples" id="samples"></div>
+    <p class="muted small">Each dot is one RNA-seq sample. Grey is each dataset's reference group; vermilion and pink
+      are the groups that carry a MED12 codon-44 mutation.</p>
+  </section>
+
+  <section class="stack" aria-labelledby="h-why">
+    <h2 id="h-why">Why these three studies</h2>
+    <div class="prose-block">
+      <p>About 70% of uterine fibroids (leiomyomas) carry a mutation in <i>MED12</i>, most often at codon 44
+        (Mäkinen et al., <i>Science</i> 2011). The tissue study shows what MED12-mutant and MED12 wild-type fibroids
+        look like next to the same patient's normal myometrium. The two cell studies ask the question the other way
+        round: put a codon-44 mutation into otherwise identical myometrial cells, or remove MED12 altogether, and see
+        what changes, first in ordinary 2D culture and then in spheroids, a 3D format closer to tissue.</p>
+      <p>Side by side, they let you ask whether a gene's behaviour in the tumour is reproduced in the model, and
+        whether that depends on how the cells are grown.</p>
     </div>
   </section>
-  <p class="genesets" id="genesets"><span>Gene sets</span></p>
 
-  <p id="status" class="status" aria-live="polite">Loading the gene list…</p>
-
-  <div class="gene-head" id="gene-head" hidden>
-    <div class="title"><h2 id="gene-name"></h2><span class="meta" id="gene-meta"></span></div>
-    <div class="actions">
-      <div class="segmented" role="radiogroup" aria-label="Scale">
-        <button type="button" role="radio" data-scale="log" aria-checked="true">Log scale</button>
-        <button type="button" role="radio" data-scale="lin" aria-checked="false">Linear</button>
+  <section class="stack" aria-labelledby="h-use">
+    <h2 id="h-use">What you can do here</h2>
+    <dl class="uses">
+      <div>
+        <dt><a href="genes.html">Genes</a></dt>
+        <dd>Type a gene and see its expression in every sample of all three datasets, with the DESeq2 result for
+          each comparison. Add genes to compare them with each other.</dd>
       </div>
-      <button type="button" class="btn" id="copy">Copy link</button>
-      <button type="button" class="btn" id="csv">Download CSV</button>
+      <div>
+        <dt><a href="de.html">Comparisons</a></dt>
+        <dd>Browse which genes change in each comparison, see where a gene of yours ranks, and check whether two
+          comparisons agree.</dd>
+      </div>
+      <div>
+        <dt><a href="methods.html">Methods</a></dt>
+        <dd>How the data were processed, what the values mean, the DESeq2 designs, and downloads of every table.</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="stack" aria-labelledby="h-across">
+    <h2 id="h-across">Reading across datasets</h2>
+    <div class="prose-block">
+      <p>All 40 samples went through one pipeline (nf-core/rnaseq with Salmon, GENCODE v44), so values are directly
+        comparable within each dataset, and genes can be compared with each other because the unit is TPM.
+        Expression levels are not comparable between datasets: tissue and cultured cells differ in material, library
+        preparation and read length. To relate the studies, compare what changes (fold changes and significance),
+        not how much is expressed.</p>
     </div>
-  </div>
-
-  <div class="panels" id="panels"></div>
-
-  <details class="notes">
-    <summary>How to read these plots</summary>
-    <ul>
-      <li>Each point is one sample. In the tissue panel, a grey line joins each patient's myometrium and leiomyoma.</li>
-      <li>The y axis is in TPM. On the log scale the spacing is logarithmic, which spreads out low values; the ticks
-        still read in TPM. The axis always reaches at least 10 TPM, so a gene that is barely expressed looks that way
-        instead of being stretched to fill the plot.</li>
-      <li>Mean TPM is the average over the samples in a group. The percentile says where that mean ranks among all
-        protein-coding genes in the same group: the 50th is a typical gene, the 90th is in the top 10%.</li>
-      <li>TPM compares genes within a sample and samples within a dataset. The three datasets differ in material and
-        library preparation, so values should not be compared across panels.</li>
-      <li>log<sub>2</sub>FC and p<sub>adj</sub> come from DESeq2, fitted within each dataset. log<sub>2</sub>FC is the
-        first group relative to the second, shrunken with apeglm so that noisy low-count genes are pulled toward zero.
-        p<sub>adj</sub> is the Benjamini–Hochberg adjusted p-value.</li>
-      <li>Brackets: * p<sub>adj</sub> &lt; 0.05, ** &lt; 0.01, *** &lt; 0.001, ns not significant. Hover a label for the
-        exact value. "LM vs MM, all 10 pairs" pools both LM groups, so it has no bracket of its own.</li>
-      <li>"Not tested" means the gene had too few counts in that dataset for DESeq2 to test.</li>
-      <li>The spheroid wild-type group has only 2 replicates.</li>
-    </ul>
-  </details>
+  </section>
 </main>
 
 <footer class="site-footer">
@@ -82,6 +101,6 @@
   </div>
 </footer>
 <script src="common.js"></script>
-<script src="app.js"></script>
+<script src="overview.js"></script>
 </body>
 </html>

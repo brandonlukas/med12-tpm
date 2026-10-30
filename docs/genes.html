@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Genes · MED12 RNA-seq Explorer</title>
+<meta name="description" content="Expression of any gene in three public MED12 RNA-seq datasets: leiomyoma with matched myometrium, and MED12-edited cells in 2D and 3D culture.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<script src="vendor/plotly-basic-2.35.2.min.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <h1><a href="index.html">MED12 RNA-seq Explorer</a></h1>
+    <nav class="site-nav" aria-label="Site">
+      <a href="index.html">Overview</a>
+      <a href="genes.html" aria-current="page">Genes</a>
+      <a href="de.html">Comparisons</a>
+      <a href="methods.html">Methods</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="lede">Look up a gene's expression in three public MED12 RNA-seq datasets: leiomyoma with matched
+    myometrium, and MED12-edited cells in 2D and 3D culture. Add more genes to compare them.</p>
+
+  <section class="controls" aria-label="Choose genes">
+    <div class="field search grow">
+      <label for="gene">Genes</label>
+      <div class="chipbox" id="chipbox">
+        <span id="chips"></span>
+        <input id="gene" type="search" autocomplete="off" spellcheck="false" placeholder="Type a gene symbol, e.g. MED12">
+      </div>
+      <ul id="suggest" class="suggest" role="listbox" hidden></ul>
+    </div>
+  </section>
+  <p class="genesets" id="genesets"><span>Gene sets</span></p>
+
+  <p id="status" class="status" aria-live="polite">Loading the gene list…</p>
+
+  <div class="gene-head" id="gene-head" hidden>
+    <div class="title"><h2 id="gene-name"></h2><span class="meta" id="gene-meta"></span></div>
+    <div class="actions">
+      <div class="segmented" role="radiogroup" aria-label="Scale">
+        <button type="button" role="radio" data-scale="log" aria-checked="true">Log scale</button>
+        <button type="button" role="radio" data-scale="lin" aria-checked="false">Linear</button>
+      </div>
+      <button type="button" class="btn" id="copy">Copy link</button>
+      <button type="button" class="btn" id="csv">Download CSV</button>
+    </div>
+  </div>
+
+  <div class="panels" id="panels"></div>
+
+  <details class="notes">
+    <summary>How to read these plots</summary>
+    <ul>
+      <li>Each point is one sample. In the tissue panel, a grey line joins each patient's myometrium and leiomyoma.</li>
+      <li>The y axis is in TPM. On the log scale the spacing is logarithmic, which spreads out low values; the ticks
+        still read in TPM. The axis always reaches at least 10 TPM, so a gene that is barely expressed looks that way
+        instead of being stretched to fill the plot.</li>
+      <li>Mean TPM is the average over the samples in a group. The percentile says where that mean ranks among all
+        protein-coding genes in the same group: the 50th is a typical gene, the 90th is in the top 10%.</li>
+      <li>TPM compares genes within a sample and samples within a dataset. The three datasets differ in material and
+        library preparation, so values should not be compared across panels.</li>
+      <li>log<sub>2</sub>FC and p<sub>adj</sub> come from DESeq2, fitted within each dataset. log<sub>2</sub>FC is the
+        first group relative to the second, shrunken with apeglm so that noisy low-count genes are pulled toward zero.
+        p<sub>adj</sub> is the Benjamini–Hochberg adjusted p-value.</li>
+      <li>Brackets: * p<sub>adj</sub> &lt; 0.05, ** &lt; 0.01, *** &lt; 0.001, ns not significant. Hover a label for the
+        exact value. "LM vs MM, all 10 pairs" pools both LM groups, so it has no bracket of its own.</li>
+      <li>"Not tested" means the gene had too few counts in that dataset for DESeq2 to test.</li>
+      <li>The spheroid wild-type group has only 2 replicates.</li>
+    </ul>
+  </details>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>Data: GEO GSE204969, GSE226014, GSE226016 · processed October 2026</span>
+    <a href="https://github.com/brandonlukas/med12-tpm">Code and downloads on GitHub</a>
+  </div>
+</footer>
+<script src="common.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

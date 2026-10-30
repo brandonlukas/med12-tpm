@@ -30,7 +30,7 @@ with sync_playwright() as p:
     pg.on("pageerror", lambda e: errs.append(str(e)))
 
     # ---- Genes page
-    pg.goto(BASE + "#genes=MED12", wait_until="networkidle")
+    pg.goto(BASE + "genes.html#genes=MED12", wait_until="networkidle")
     pg.wait_for_selector("#gene-head:not([hidden])")
     check(pg.text_content("#gene-name") == "MED12", "single gene renders MED12")
     check(pg.locator("#plot-JCI_tissue .scatterlayer .trace").count() >= 3, "tissue plot has traces")
@@ -73,7 +73,7 @@ with sync_playwright() as p:
     check(name.startswith("TPM_") and body[0] == "dataset,sample,group,patient,gene,gene_id,TPM" and len(body) == 1 + 40 * 5,
           f"CSV download {name}: {len(body)} lines")
 
-    pg.goto(BASE + "#genes=ESR1", wait_until="networkidle")
+    pg.goto(BASE + "genes.html#genes=ESR1", wait_until="networkidle")
     pg.wait_for_function("document.querySelector('#tab-NC_2D').innerText.length > 0")
     check("not tested" in pg.inner_text("#tab-NC_2D"), "ESR1 in 2D shows 'not tested'")
     check(pg.locator("#plot-NC_2D .annotation").count() == 0, "no brackets when not tested")
@@ -82,6 +82,20 @@ with sync_playwright() as p:
     pg.fill("#gene", ""); pg.click("#gene"); pg.keyboard.press("Backspace")
     pg.wait_for_timeout(300)
     check("Add a gene to start" in pg.inner_text("#status"), "backspace on empty input removes last chip; empty state message")
+
+    # ---- Overview page
+    pg.goto(BASE, wait_until="networkidle")
+    pg.wait_for_selector("#samples .sample-block")
+    check(pg.locator("#samples circle").count() == 40, f"sample figure draws 40 dots: {pg.locator('#samples circle').count()}")
+    check(pg.locator("#samples line").count() == 10, "tissue pairs joined by 10 lines")
+    pg.fill("#q", "HMGA2"); pg.wait_for_selector("#suggest li"); pg.keyboard.press("Enter")
+    pg.wait_for_url("**/genes.html#genes=HMGA2")
+    pg.wait_for_function("document.querySelector('#gene-name')?.textContent === 'HMGA2'")
+    check(True, "overview search opens the gene on the Genes page")
+    pg.goto(BASE + "#genes=CDK8", wait_until="networkidle")
+    pg.wait_for_url("**/genes.html#genes=CDK8")
+    pg.wait_for_function("document.querySelector('#gene-name')?.textContent === 'CDK8'")
+    check(True, "old explorer links on the overview URL redirect to genes.html")
 
     # ---- Comparisons page
     pg.goto(BASE + "de.html#c=NC_2D__KO_vs_WT", wait_until="networkidle")
@@ -164,7 +178,7 @@ with sync_playwright() as p:
     check("rank correlation" in pg.inner_text("#agree-summary"), f"agreement summary: {pg.inner_text('#agree-summary')[:90]}")
     check(pg.locator("#agree .annotation").count() == 0 or True, "agreement drawn")
     # gene set replaces the selection and offers Undo
-    pg.goto(BASE + "#genes=CDK8,MED12", wait_until="networkidle")
+    pg.goto(BASE + "genes.html#genes=CDK8,MED12", wait_until="networkidle")
     pg.wait_for_function("document.querySelector('#gene-name').textContent === '2 genes'")
     pg.click("#genesets button:has-text('Housekeeping')")
     pg.wait_for_function("document.querySelector('#gene-name').textContent === '6 genes'")
@@ -179,7 +193,7 @@ with sync_playwright() as p:
     check(pg.text_content("#plot-JCI_tissue .g-ytitle").strip() == "TPM (log scale)", "y title says TPM (log scale)")
 
     # narrow viewport: no horizontal scroll on either page
-    for url in [BASE + "#genes=MED12,CDK8", BASE + "de.html#c=NC_2D__KO_vs_WT&gene=MED12", BASE + "methods.html"]:
+    for url in [BASE, BASE + "genes.html#genes=MED12,CDK8", BASE + "de.html#c=NC_2D__KO_vs_WT&gene=MED12", BASE + "methods.html"]:
         pg.set_viewport_size({"width": 390, "height": 800})
         pg.goto(url, wait_until="networkidle"); pg.wait_for_timeout(800)
         sw = pg.evaluate("document.documentElement.scrollWidth")

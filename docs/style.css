@@ -220,3 +220,27 @@ table.sortable td:nth-child(2), table.sortable th:nth-child(2) { text-align: lef
 pre { margin: 0; background: var(--panel); padding: 12px 14px; border-radius: var(--radius); overflow-x: auto; font: 13px/1.5 var(--mono); color: var(--ink); max-width: 72ch; }
 .prose > pre { max-width: 72ch; }
 code { font-family: var(--mono); font-size: .92em; }
+
+/* Overview page */
+.intro { display: grid; gap: 18px; }
+.lede.big { font-size: 18px; line-height: 1.5; color: var(--text); max-width: 64ch; }
+.lookup { max-width: 520px; }
+.lookup .row { display: flex; gap: 8px; }
+.lookup .row input { flex: 1; min-width: 0; }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); padding: 8px 16px; }
+.btn.primary:hover { background: #22306f; }
+.glance { color: var(--muted); font-size: 14px; }
+.samples { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+@media (max-width: 920px) { .samples { grid-template-columns: 1fr; } }
+.sample-block { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.sample-block h3 { font: 400 18px/1.25 var(--serif); }
+.sample-block svg { display: block; max-width: 100%; height: auto; overflow: visible; }
+.sample-block .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+.sample-block .legend .swatch { margin-right: 5px; }
+.sample-block .about { font-size: 14px; color: var(--text); }
+.uses { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 0; }
+@media (max-width: 760px) { .uses { grid-template-columns: 1fr; } }
+.uses div { display: grid; gap: 6px; align-content: start; border-top: 2px solid var(--accent-line); padding-top: 10px; }
+.uses dt { font-weight: 600; font-size: 16px; }
+.uses dd { margin: 0; color: var(--text); }
+.prose-block { max-width: 72ch; display: grid; gap: 10px; }

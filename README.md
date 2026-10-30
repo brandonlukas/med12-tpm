@@ -3,6 +3,7 @@
 Three public MED12 RNA-seq datasets reprocessed from raw reads the same way, with an
 interactive site: **https://brandonlukas.github.io/med12-tpm/**
 
+- **Overview**: what the three studies are and how they relate, a sample figure, and a gene search
 - **Genes**: TPM of any gene (or several side by side) in every sample, with DESeq2 results
 - **Comparisons**: volcano plot, ranked table and gene lookup for every DESeq2 comparison,
   and agreement between any two comparisons
@@ -35,8 +36,8 @@ The [methods page](https://brandonlukas.github.io/med12-tpm/methods.html) docume
 - `deseq2.R`: DESeq2 within each dataset
 - `build_site_data.py`: data for the site (`docs/data/`)
 - `tests/site_test.py`: scripted browser checks of the site (Playwright); `tests/screenshots.py` renders pages to PNG
-- `docs/`: the site, served by GitHub Pages: `index.html` + `app.js` (Genes), `de.html` + `de.js`
-  (Comparisons), `methods.html`, `common.js`, `style.css`; Plotly 2.35.2 is vendored in `docs/vendor/`
+- `docs/`: the site, served by GitHub Pages: `index.html` + `overview.js` (Overview), `genes.html` + `app.js`
+  (Genes), `de.html` + `de.js` (Comparisons), `methods.html`, `common.js`, `style.css`; Plotly 2.35.2 is vendored in `docs/vendor/`
   so the site has no third-party dependency at load time
 
 ## Reproducing (Linux / WSL2)

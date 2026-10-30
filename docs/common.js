@@ -60,7 +60,7 @@ const contrastSides = (c) => CONTRAST_SIDES[c] || c.split("_vs_");
 const contrastShort = (c) => CONTRAST_SHORT[c] || c.replace("_vs_", " vs ");
 const contrastOption = (ds, c) => `${SHORT_DS[ds] || ds} · ${contrastLabel(c)}`;
 const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
-const genesLink = (names) => `index.html#genes=${names.map(encodeURIComponent).join(",")}`;
+const genesLink = (names) => `genes.html#genes=${names.map(encodeURIComponent).join(",")}`;
 const shortId = (id) => id.split(".")[0];
 
 function sampleLabel(s) {
