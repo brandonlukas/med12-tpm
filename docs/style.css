@@ -177,6 +177,7 @@ td a { text-decoration: none; }
 tr[data-hl-groups]:hover, tr[data-hl-gene]:hover { background: var(--panel); }
 th[data-hl-groups] { cursor: default; }
 th[data-hl-groups]:hover { color: var(--ink); }
+col.hl-col { background: var(--panel); }
 .hl { border-bottom: 1px dotted var(--control); cursor: default; }
 .hl:hover { border-bottom-color: var(--ink); }
 td a:hover { text-decoration: underline; }

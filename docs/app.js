@@ -110,12 +110,16 @@ async function init() {
   if (!noPlots) new ResizeObserver(() => document.querySelectorAll(".plot").forEach((el) => el.data && Plotly.Plots.resize(el))).observe($("panels"));
   for (const d of Data.meta.datasets) {
     const tab = $(`tab-${d.id}`);
+    const uncolor = () => tab.querySelectorAll("col.hl-col").forEach((c) => c.classList.remove("hl-col"));
     tab.addEventListener("mouseover", (e) => {
+      uncolor();
+      const th = e.target.closest("th[data-hl-groups]");   // a group header also shades its column
+      if (th) th.closest("table").querySelectorAll("col")[th.cellIndex]?.classList.add("hl-col");
       const t = e.target.closest("[data-hl-groups],[data-hl-gene]");
       if (!t) { highlight(d.id, null, null); return; }
       highlight(d.id, t.dataset.hlGroups ? t.dataset.hlGroups.split(",") : null, t.dataset.hlGene != null ? +t.dataset.hlGene : null);
     });
-    tab.addEventListener("mouseleave", () => highlight(d.id, null, null));
+    tab.addEventListener("mouseleave", () => { uncolor(); highlight(d.id, null, null); });
   }
 
   window.addEventListener("hashchange", fromHash);
@@ -465,8 +469,9 @@ function tableMulti(d, data) {
     const name = Data.genes[selected[n]][1];
     return `<tr data-hl-gene="${n}"><td><a href="${genesLink([name])}" title="Show only this gene">${esc(name)}</a></td>${cells.join("")}<td class="left">${changesCell(d, g.de[d.id], n)}</td></tr>`;
   });
+  const cols = "<col>".repeat(d.groups.length + 2);   // gene, one per group, changes
   $(`tab-${d.id}`).innerHTML = `<div class="scroll"><table><caption>Mean TPM, with its percentile among protein-coding genes; changes at p<sub>adj</sub> &lt; 0.05</caption>
-    <thead>${head}</thead><tbody>${rows.join("")}</tbody></table></div>`;
+    <colgroup>${cols}</colgroup><thead>${head}</thead><tbody>${rows.join("")}</tbody></table></div>`;
 }
 
 // long format: one row per sample and gene, for the selected genes

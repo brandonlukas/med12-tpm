@@ -64,6 +64,7 @@ with sync_playwright() as p:
     pg.hover("#gene-name")
     pg.wait_for_function("document.getElementById('plot-NC_2D').data.every(t => !Array.isArray(t.marker?.opacity))")
     pg.hover("#tab-NC_2D th[data-hl-groups] >> nth=1")   # the KO column header
+    check(pg.locator("#tab-NC_2D col.hl-col").count() == 1, "hovering a group header shades its column")
     pg.wait_for_function("document.getElementById('plot-NC_2D').data.some(t => Array.isArray(t.marker?.opacity) && t.marker.opacity.includes(0.15))")
     check(True, "hovering a group header in the multi-gene table dims the other groups")
     pg.hover("#tab-NC_2D .hl >> nth=0")
@@ -183,6 +184,10 @@ with sync_playwright() as p:
     check("higher in KO" in pg.inner_text("#summary"), "summary names the numerator group")
     check(pg.locator("#picked").is_hidden(), "no picked strip before a selection")
     check(pg.evaluate("getComputedStyle(document.querySelector('#volcano .nsewdrag')).cursor") == "crosshair", "volcano: crosshair where dragging zooms")
+    ring = pg.evaluate("""(() => { const el = document.getElementById('volcano'), fl = el._fullLayout, r = el.getBoundingClientRect();
+      return [r.left + fl.margin.l, r.top + fl.margin.t]; })()""")
+    pg.mouse.move(ring[0] + 20, ring[1] + 20); pg.wait_for_timeout(250)   # the top-left corner of the plot: no points there
+    check(pg.evaluate("getComputedStyle(document.querySelector('#volcano .nsewdrag')).cursor") == "crosshair", "volcano: still a crosshair away from any point")
 
     pg.fill("#find", "MED12")
     pg.wait_for_selector("#suggest:not([hidden]) li")
