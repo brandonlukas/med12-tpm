@@ -93,6 +93,7 @@ async function init() {
     else if (!e.target.closest("#clear")) $("gene").focus();
   });
   $("clear").addEventListener("click", clearGenes);
+  wireDrag();
 
   document.querySelectorAll("[data-scale]").forEach((b) => b.addEventListener("click", () => setScale(b.dataset.scale)));
   setScale(scale, false);
@@ -154,12 +155,52 @@ async function applySet(name) {
   }
 }
 
+// Reorder the genes by dragging a chip: the order sets the x axis of the multi-gene plot.
+function wireDrag() {
+  const box = $("chips");
+  let from = null;
+  const clearMarks = () => box.querySelectorAll(".chip").forEach((c) => c.classList.remove("dragging", "drop-before", "drop-after"));
+  const target = (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip || +chip.dataset.i === from) return null;
+    const r = chip.getBoundingClientRect();
+    return { chip, before: e.clientX < r.left + r.width / 2 };
+  };
+  box.addEventListener("dragstart", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    from = +chip.dataset.i;
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", chip.dataset.i);   // Firefox needs data for a drag to start
+    chip.classList.add("dragging");
+  });
+  box.addEventListener("dragover", (e) => {
+    if (from === null) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    box.querySelectorAll(".chip").forEach((c) => c.classList.remove("drop-before", "drop-after"));
+    const t = target(e);
+    if (t) t.chip.classList.add(t.before ? "drop-before" : "drop-after");
+  });
+  box.addEventListener("drop", (e) => {
+    if (from === null) return;
+    e.preventDefault();
+    const t = target(e);
+    const order = selected.filter((i) => i !== from);
+    if (t) order.splice(order.indexOf(+t.chip.dataset.i) + (t.before ? 0 : 1), 0, from);
+    else order.push(from);
+    from = null; clearMarks();
+    if (order.some((v, k) => v !== selected[k])) setGenes(order);
+  });
+  box.addEventListener("dragend", () => { from = null; clearMarks(); });
+}
+
 // Clear every gene at once; the status line offers to undo that.
 async function clearGenes() {
   const before = selected.slice();
   await setGenes([]);
   undoSel = before;
-  status(`Cleared ${before.length} genes. <button type="button" class="linklike" data-undo>Undo</button>`, true);
+  status(`Cleared ${before.length} genes. <button type="button" class="linklike" data-undo>Undo</button>, or try <button type="button" class="linklike" data-try="MED12">MED12</button>.`, true);
   $("gene").focus();
 }
 
@@ -167,7 +208,7 @@ function setGenes(idx, updateHash = true) {
   selected = [...new Set(idx)].slice(0, MAX_GENES);
   $("clear").hidden = selected.length < 2;
   $("chips").innerHTML = selected.map((i) =>
-    `<span class="chip">${esc(Data.genes[i][1])}<button type="button" data-remove="${i}" aria-label="Remove ${esc(Data.genes[i][1])}">×</button></span>`).join("");
+    `<span class="chip" draggable="true" data-i="${i}" title="Drag to reorder">${esc(Data.genes[i][1])}<button type="button" data-remove="${i}" aria-label="Remove ${esc(Data.genes[i][1])}">×</button></span>`).join("");
   $("gene").placeholder = selected.length ? "Add another gene" : "Type a gene symbol, e.g. MED12";
   if (updateHash) history.replaceState(null, "", "#genes=" + selected.map((i) => encodeURIComponent(Data.genes[i][1])).join(","));
   return render();

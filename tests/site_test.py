@@ -64,6 +64,15 @@ with sync_playwright() as p:
     pg.wait_for_function("document.getElementById('plot-NC_2D').data.every(t => !Array.isArray(t.marker?.opacity))")
     check(True, "moving away restores every point")
     check("genes=MED12," in pg.url, f"hash tracks genes: {pg.url}")
+    # drag the second chip onto the left half of the first: the order flips
+    src, dst = pg.locator(".chip >> nth=1"), pg.locator(".chip >> nth=0")
+    db = dst.bounding_box()
+    src.drag_to(dst, target_position={"x": 4, "y": db["height"] / 2})
+    pg.wait_for_function("location.hash.startsWith('#genes=HMGA2,MED12')")
+    check(pg.locator(".chip >> nth=0").inner_text().startswith("HMGA2"), f"dragging a chip reorders the genes: {pg.url}")
+    pg.locator(".chip >> nth=1").drag_to(pg.locator(".chip >> nth=0"), target_position={"x": 4, "y": db["height"] / 2})
+    pg.wait_for_function("location.hash.startsWith('#genes=MED12,HMGA2')")
+    check(True, "and back")
 
     pg.click("button[data-scale='lin']")
     pg.wait_for_function("document.querySelector('#plot-JCI_tissue .g-ytitle')?.textContent.trim() === 'TPM'")
@@ -84,6 +93,7 @@ with sync_playwright() as p:
     check(pg.locator("#clear").is_visible(), "Clear appears with several genes")
     pg.click("#clear")
     pg.wait_for_function("document.querySelector('#status').textContent.includes('Cleared 5 genes')")
+    check(pg.locator("#status [data-try]").count() == 1, "the Cleared message also offers a gene to try")
     check(pg.locator("#gene-head").is_hidden() and pg.locator("#clear").is_hidden(), "Clear empties the selection and hides itself")
     pg.click("#status [data-undo]")
     pg.wait_for_function("document.querySelector('#gene-name')?.textContent === '5 genes'")
