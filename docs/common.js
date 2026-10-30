@@ -1,12 +1,14 @@
 // Shared by the Genes and Comparisons pages. Data layout: see build_site_data.py.
 
-// Group colours (Okabe-Ito): reference groups a neutral grey, groups carrying a MED12 G44
-// mutation warm (vermilion, pink), groups without one blue. Mut2 is a deeper pink than
-// Okabe-Ito's so that it clears 3:1 on white.
+// Group colours (Okabe-Ito). A colour is shared across datasets only when the state is the
+// same kind of thing: the reference group is grey everywhere, and groups carrying a MED12 G44
+// mutation are warm (LM mut and Mut1 vermilion, Mut2 a deeper pink than Okabe-Ito's so that
+// it clears 3:1 on white). States unique to one dataset get their own colour: LM without the
+// mutation blue, the MED12 knock-out black.
 const COLORS = {
   MM: "#8A8F9A", WT: "#8A8F9A",
   LM_wtMED12: "#0072B2", LM_mutMED12: "#D55E00",
-  KO: "#0072B2", Mut1: "#D55E00", Mut2: "#BF6A9B",
+  KO: "#1c1e26", Mut1: "#D55E00", Mut2: "#BF6A9B",
 };
 // higher / lower in a comparison: the RdBu red and blue, so neither hue is a group colour
 const UP = "#B2182B", DOWN = "#2166AC";
