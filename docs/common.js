@@ -1,29 +1,80 @@
-// Shared by the explorer and the DE page. Data layout: see build_site_data.py.
-const COLORS = {           // reference groups grey; mutants vermilion across datasets
+// Shared by the Genes and Comparisons pages. Data layout: see build_site_data.py.
+
+// Group colours: reference groups grey, the MED12-mutant group vermilion in every dataset.
+const COLORS = {
   MM: "#6B7F99", WT: "#6B7F99",
   LM_wtMED12: "#0072B2", LM_mutMED12: "#D55E00",
   KO: "#0072B2", Mut1: "#D55E00", Mut2: "#CC79A7",
 };
-const GROUP_LABEL = { MM: "MM", LM_wtMED12: "LM<br>MED12 WT", LM_mutMED12: "LM<br>MED12 mut" };
+const UP = "#D55E00", DOWN = "#0072B2";
+const INK = "#1c1e26", MUTED = "#6b7080", RULE = "#e4e6ec", GRID = "#eff0f4";
+const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+const PLOT_FONT = { family: FONT, size: 13, color: INK };
+const PLOT_CONFIG = { displayModeBar: false, responsive: true, doubleClick: "reset" };
+const BASE_LAYOUT = {
+  font: PLOT_FONT, plot_bgcolor: "#fff", paper_bgcolor: "#fff",
+  hoverlabel: { bgcolor: "#fff", bordercolor: RULE, font: { family: FONT, size: 13, color: INK } },
+};
+const AXIS = { gridcolor: GRID, zeroline: false, ticks: "outside", tickcolor: "#c3c7d3", linecolor: RULE, fixedrange: true };
+
+const SHORT_DS = { JCI_tissue: "Tissue", NC_2D: "2D cells", NC_3D_spheroid: "3D spheroids" };
+const DATASET_NOTE = {
+  JCI_tissue: "10 patients: leiomyoma (LM) and matched myometrium (MM); six LM carry MED12 G44D. Zuberi et al. 2023.",
+  NC_2D: "MED12-edited cells in culture: wild-type, knock-out, two G44 mutant clones; 3 replicates each. Buyukcelebi et al. 2023.",
+  NC_3D_spheroid: "The same cells grown as spheroids: wild-type (2 replicates), Mut1 and Mut2 (3 each). Buyukcelebi et al. 2023.",
+};
+const GROUP_LABEL = { MM: "MM", LM_wtMED12: "LM, MED12 WT", LM_mutMED12: "LM, MED12 mut" };
+const GROUP_TICK = { LM_wtMED12: "LM<br>MED12 WT", LM_mutMED12: "LM<br>MED12 mut" };
 const CONTRAST_LABEL = {
-  LM_vs_MM: "LM vs MM (all 10 pairs)",
+  LM_vs_MM: "LM vs MM, all 10 pairs",
   LMmut_vs_MM: "LM MED12 mut vs MM",
   LMwt_vs_MM: "LM MED12 WT vs MM",
-  LMmut_vs_LMwt: "LM mut vs LM WT (shift vs own MM)",
+  LMmut_vs_LMwt: "LM MED12 mut vs LM MED12 WT",
 };
-const SHORT_DS = { JCI_tissue: "Tissue", NC_2D: "2D cells", NC_3D_spheroid: "3D spheroids" };
+// [numerator, denominator] in the words used on the page; log2FC > 0 means higher in the numerator
+const CONTRAST_SIDES = {
+  LM_vs_MM: ["LM", "MM"], LMmut_vs_MM: ["LM mut", "MM"], LMwt_vs_MM: ["LM WT", "MM"], LMmut_vs_LMwt: ["LM mut", "LM WT"],
+  KO_vs_WT: ["KO", "WT"], Mut1_vs_WT: ["Mut1", "WT"], Mut2_vs_WT: ["Mut2", "WT"],
+};
+// the shortest unambiguous name, for the multi-gene "changes" column
+const CONTRAST_SHORT = {
+  LM_vs_MM: "LM vs MM", LMmut_vs_MM: "LM mut vs MM", LMwt_vs_MM: "LM WT vs MM", LMmut_vs_LMwt: "LM mut vs LM WT",
+  KO_vs_WT: "KO", Mut1_vs_WT: "Mut1", Mut2_vs_WT: "Mut2",
+};
 
 const $ = (id) => document.getElementById(id);
-const fmt = (x, d = 2) => (x == null ? "—" : (Math.abs(x) < 0.5 * 10 ** -d ? 0 : x).toFixed(d));
-const fmtP = (p) => (p == null ? "—" : p < 1e-3 ? p.toExponential(1) : p.toFixed(3));
+const MINUS = "−";
+const fmt = (x, d = 2) => (x == null ? "—" : (Math.abs(x) < 0.5 * 10 ** -d ? 0 : x).toFixed(d).replace("-", MINUS));
+const fmtP = (p) => (p == null ? "—" : p === 0 ? "< 1e-300" : p < 1e-3 ? p.toExponential(1) : p < 0.1 ? p.toFixed(3) : p.toFixed(2));
 const fmtTPM = (v) => (v == null ? "—" : v >= 100 ? Math.round(v).toLocaleString() : v >= 10 ? v.toFixed(1) : v.toFixed(2));
-const groupLabel = (g, br = true) => (GROUP_LABEL[g] || g).replace("<br>", br ? "<br>" : " ");
+const ordinal = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th");
+const groupLabel = (g) => GROUP_LABEL[g] || g;
+const groupTick = (g) => GROUP_TICK[g] || GROUP_LABEL[g] || g;
 const contrastLabel = (c) => CONTRAST_LABEL[c] || c.replace("_vs_", " vs ");
+const contrastSides = (c) => CONTRAST_SIDES[c] || c.split("_vs_");
+const contrastShort = (c) => CONTRAST_SHORT[c] || c.replace("_vs_", " vs ");
+const contrastOption = (ds, c) => `${SHORT_DS[ds] || ds} · ${contrastLabel(c)}`;
 const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
-const explorerLink = (names) => `index.html#genes=${names.map(encodeURIComponent).join(",")}`;
+const genesLink = (names) => `index.html#genes=${names.map(encodeURIComponent).join(",")}`;
+const shortId = (id) => id.split(".")[0];
 
-const PLOT_FONT = { family: "Arial, sans-serif", size: 13, color: "#1a1a1a" };
-const PLOT_CONFIG = { displayModeBar: false, responsive: true };
+function sampleLabel(s) {
+  let m = s.match(/^tissue_(\d+)_(LM|MM)$/);
+  if (m) return `Patient ${m[1]}, ${m[2]}`;
+  m = s.match(/^cell[23]D_(\w+?)_rep(\d+)$/);
+  if (m) return `${m[1]}, replicate ${m[2]}`;
+  return s;
+}
+
+// A y axis in TPM. On the log scale the spacing is log2(TPM + 1) but the ticks read in TPM,
+// so every number on the page is in one unit. `top` is in axis units.
+function tpmAxis(log, top) {
+  const ax = { ...AXIS, title: { text: log ? "TPM (log scale)" : "TPM", standoff: 8 }, range: [-0.025 * top, top] };
+  if (!log) return ax;
+  let vals = [0, 1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000].filter((v) => Math.log2(v + 1) <= top);
+  if (vals.length > 7) vals = vals.filter((v) => /^(0|10*)$/.test(String(v)));
+  return { ...ax, tickvals: vals.map((v) => Math.log2(v + 1)), ticktext: vals.map((v) => v.toLocaleString()) };
+}
 
 // genes: [[id, name, type], ...]; lookups by symbol (may repeat) and by unversioned id
 const Data = {
@@ -34,7 +85,7 @@ const Data = {
       fetch("data/genes.json").then((r) => r.json()),
     ]);
     this.genes.forEach(([id, name], i) => {
-      this.byId.set(id.split(".")[0].toUpperCase(), i);
+      this.byId.set(shortId(id).toUpperCase(), i);
       const k = name.toUpperCase();
       if (!this.byName.has(k)) this.byName.set(k, []);
       this.byName.get(k).push(i);
@@ -47,16 +98,17 @@ const Data = {
     const i = this.byId.get(q.split(".")[0]);
     return i == null ? [] : [i];
   },
-  // up to n genes whose symbol starts with q, shortest first
-  suggest(q, n = 12) {
+  // up to n genes whose symbol starts with q: exact match first, then shortest
+  suggest(q, n = 10) {
     q = q.trim().toUpperCase();
     if (!q) return [];
     const hits = [];
-    for (let i = 0; i < this.genes.length && hits.length < 200; i++) {
+    for (let i = 0; i < this.genes.length && hits.length < 300; i++) {
       if (this.genes[i][1].toUpperCase().startsWith(q)) hits.push(i);
     }
     if (!hits.length) return this.lookup(q);
-    return hits.sort((a, b) => this.genes[a][1].length - this.genes[b][1].length).slice(0, n);
+    const rank = (i) => (this.genes[i][1].toUpperCase() === q ? -1 : this.genes[i][1].length);
+    return hits.sort((a, b) => rank(a) - rank(b) || this.genes[a][1].localeCompare(this.genes[b][1])).slice(0, n);
   },
   async gene(i) {
     const c = Math.floor(i / this.meta.chunk);
@@ -65,12 +117,14 @@ const Data = {
   },
 };
 
-// Gene search box with keyboard-navigable suggestions; onPick(i) gets a gene index.
+// Gene search box with keyboard-navigable suggestions. onPick(i) gets a gene index.
 function attachSearch(input, list, onPick, onMiss) {
   let sel = -1, matches = [];
   const render = () => {
-    list.innerHTML = matches.map((i, k) =>
-      `<li role="option" data-i="${i}" aria-selected="${k === sel}"><span>${esc(Data.genes[i][1])}</span><span class="id">${Data.genes[i][0]}</span></li>`).join("");
+    list.innerHTML = matches.map((i, k) => {
+      const [id, name, type] = Data.genes[i];
+      return `<li role="option" data-i="${i}" aria-selected="${k === sel}"><span>${esc(name)} <span class="dim small">${esc(type.replace(/_/g, " "))}</span></span><span class="id">${shortId(id)}</span></li>`;
+    }).join("");
     list.hidden = !matches.length;
   };
   input.addEventListener("input", () => { matches = Data.suggest(input.value); sel = matches.length ? 0 : -1; render(); });
@@ -83,14 +137,53 @@ function attachSearch(input, list, onPick, onMiss) {
       list.children[sel]?.scrollIntoView({ block: "nearest" });
     } else if (e.key === "Enter") {
       e.preventDefault();
-      const hit = sel >= 0 ? matches[sel] : Data.lookup(input.value)[0];
+      const q = input.value;
+      const hit = sel >= 0 ? matches[sel] : Data.lookup(q)[0];
       list.hidden = true; matches = []; sel = -1;
-      if (hit != null) onPick(hit); else onMiss?.(input.value);
+      if (hit != null) onPick(hit); else if (q.trim()) onMiss?.(q.trim());
     } else if (e.key === "Escape") list.hidden = true;
   });
   list.addEventListener("mousedown", (e) => {
     const li = e.target.closest("li");
     if (li) { e.preventDefault(); list.hidden = true; matches = []; onPick(+li.dataset.i); }
   });
-  input.addEventListener("blur", () => setTimeout(() => (list.hidden = true), 100));
+  input.addEventListener("blur", () => setTimeout(() => (list.hidden = true), 120));
+}
+
+// Show a Reset button while a plot is drag-zoomed away from the view it was drawn with
+// (el._home, set by the draw function); the button redraws it.
+function zoomReset(el, btn, redraw) {
+  if (el._zoomBound) return;
+  el._zoomBound = true;
+  const near = (a, b) => Math.abs(a - b) < 1e-6 * (1 + Math.abs(b));
+  el.on("plotly_relayout", () => {
+    const fx = el._fullLayout?.xaxis.range, fy = el._fullLayout?.yaxis.range, h = el._home;
+    btn.hidden = !h || !fx || (near(fx[0], h.x[0]) && near(fx[1], h.x[1]) && near(fy[0], h.y[0]) && near(fy[1], h.y[1]));
+  });
+  btn.addEventListener("click", () => { btn.hidden = true; redraw(); });
+}
+
+// Swap a button's label for a moment, e.g. "Copy link" -> "Copied".
+function flash(btn, text, ms = 1600) {
+  const old = btn.textContent;
+  btn.textContent = text;
+  btn.disabled = true;
+  setTimeout(() => { btn.textContent = old; btn.disabled = false; }, ms);
+}
+
+async function copyText(text, btn) {
+  try {
+    await navigator.clipboard.writeText(text);
+    flash(btn, "Copied");
+  } catch {
+    window.prompt("Copy this link:", text);
+  }
+}
+
+function saveText(text, filename, type = "text/csv") {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type }));
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }

@@ -1,7 +1,12 @@
 # MED12 RNA-seq explorer
 
 Three public MED12 RNA-seq datasets reprocessed from raw reads the same way, with an
-interactive gene explorer: **https://brandonlukas.github.io/med12-tpm/**
+interactive site: **https://brandonlukas.github.io/med12-tpm/**
+
+- **Genes**: TPM of any gene (or several side by side) in every sample, with DESeq2 results
+- **Comparisons**: volcano plot, ranked table and gene lookup for every DESeq2 comparison,
+  and agreement between any two comparisons
+- **Methods**: how everything was processed, with downloads
 
 | Dataset | Paper | GEO | Samples | Reads |
 |---|---|---|---|---|
@@ -28,8 +33,11 @@ The [methods page](https://brandonlukas.github.io/med12-tpm/methods.html) docume
 - `run_rnaseq.sh`: launches nf-core/rnaseq 3.27.0
 - `split_tpm.py`: per-dataset TPM tables and an Excel workbook
 - `deseq2.R`: DESeq2 within each dataset
-- `build_site_data.py`: data for the explorer
-- `docs/`: the explorer and methods page (GitHub Pages)
+- `build_site_data.py`: data for the site (`docs/data/`)
+- `tests/site_test.py`: scripted browser checks of the site (Playwright); `tests/screenshots.py` renders pages to PNG
+- `docs/`: the site, served by GitHub Pages: `index.html` + `app.js` (Genes), `de.html` + `de.js`
+  (Comparisons), `methods.html`, `common.js`, `style.css`; Plotly 2.35.2 is vendored in `docs/vendor/`
+  so the site has no third-party dependency at load time
 
 ## Reproducing (Linux / WSL2)
 

@@ -3,79 +3,110 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DE results · MED12 RNA-seq Explorer</title>
+<title>Comparisons · MED12 RNA-seq Explorer</title>
+<meta name="description" content="DESeq2 results for every comparison in three public MED12 RNA-seq datasets: volcano plots, ranked tables and agreement between comparisons.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+<script src="vendor/plotly-gl2d-2.35.2.min.js"></script>
 </head>
 <body>
-<header>
+<header class="site-header">
   <div class="wrap">
-    <h1>MED12 RNA-seq Explorer</h1>
-    <nav><a href="index.html">Explorer</a><a href="de.html" aria-current="page">DE results</a><a href="methods.html">Methods</a></nav>
+    <h1><a href="index.html">MED12 RNA-seq Explorer</a></h1>
+    <nav class="site-nav" aria-label="Site">
+      <a href="index.html">Genes</a>
+      <a href="de.html" aria-current="page">Comparisons</a>
+      <a href="methods.html">Methods</a>
+    </nav>
   </div>
 </header>
-<main class="wrap">
-  <p class="lede">Every DESeq2 comparison, to find genes you might not have thought to check, or to see where a gene ranks.
-    Click a point or a row to select a gene; its name opens it in the <a href="index.html">explorer</a>.</p>
 
-  <div class="controls">
+<main class="wrap">
+  <p class="lede">Which genes differ between groups in each dataset, and where your gene ranks. Click a point or a
+    row to select a gene.</p>
+
+  <section class="controls" aria-label="Choose a comparison">
     <div class="field">
       <label for="contrast">Comparison</label>
       <select id="contrast"></select>
     </div>
     <div class="field">
-      <label>Significant if</label>
-      <span class="thresholds">p<sub>adj</sub> &lt; <input id="alpha" type="number" value="0.05" min="0" max="1" step="0.01">
-        and |log<sub>2</sub>FC| ≥ <input id="lfcmin" type="number" value="1" min="0" step="0.5"></span>
+      <span class="label" id="thr-label">Call a gene significant when</span>
+      <div class="thresholds" aria-labelledby="thr-label">
+        <label for="alpha">p<sub>adj</sub> &lt;</label> <input id="alpha" type="number" value="0.05" min="0" max="1" step="0.01">
+        <span>and</span>
+        <label for="lfcmin">|log<sub>2</sub>FC| ≥</label> <input id="lfcmin" type="number" value="1" min="0" step="0.5">
+      </div>
     </div>
-    <div class="search field">
+    <div class="field search" style="flex: 1 1 220px; max-width: 340px">
       <label for="find">Find a gene</label>
-      <input id="find" type="search" autocomplete="off" spellcheck="false" placeholder="e.g. CDK8">
-      <ul id="suggest" role="listbox" hidden></ul>
+      <input id="find" type="search" autocomplete="off" spellcheck="false" placeholder="e.g. HMGA2">
+      <ul id="suggest" class="suggest" role="listbox" hidden></ul>
     </div>
-  </div>
-  <p id="summary" class="status">Loading…</p>
-  <p id="picked" class="picked" hidden></p>
-
-  <div id="volcano" class="volcano"></div>
-
-  <section>
-    <h2>All tested genes</h2>
-    <div class="tablebar">
-      <input id="filter" type="search" placeholder="Filter by gene name" spellcheck="false">
-      <label><input id="sigonly" type="checkbox"> significant only</label>
-      <button id="download" type="button">Download CSV</button>
-      <span id="count" class="muted"></span>
-    </div>
-    <div class="scroll"><table id="detable" class="sortable"></table></div>
-    <div class="pager"><button id="prev" type="button">‹ Previous</button><span id="page" class="muted"></span><button id="next" type="button">Next ›</button></div>
   </section>
 
-  <section>
-    <h2>Agreement between two comparisons</h2>
-    <p class="muted">Shrunken log<sub>2</sub>FC of every gene tested in both, e.g. whether the change in MED12-mutant tumours
-      matches the change in MED12-mutant cells. Uses the significance thresholds above.</p>
+  <p id="summary" class="summary" aria-live="polite">Loading…</p>
+  <div id="picked" class="picked" hidden></div>
+  <div class="plotwrap">
+    <div id="volcano" class="volcano"></div>
+    <button id="volcano-reset" type="button" class="btn reset" hidden>Reset zoom</button>
+  </div>
+
+  <section class="stack table-section" aria-labelledby="h-table">
+    <h2 id="h-table">All tested genes</h2>
+    <div class="tablebar">
+      <input id="filter" type="search" placeholder="Filter by gene name" spellcheck="false" aria-label="Filter by gene name">
+      <label class="check"><input id="sigonly" type="checkbox"> Significant only</label>
+      <button id="download" type="button" class="btn">Download CSV</button>
+      <span id="count" class="count"></span>
+    </div>
+    <div class="scroll"><table id="detable" class="sortable"></table></div>
+    <div class="pager">
+      <span id="page"></span>
+      <button id="prev" type="button" class="btn">Previous</button>
+      <button id="next" type="button" class="btn">Next</button>
+    </div>
+  </section>
+
+  <section class="stack" aria-labelledby="h-agree">
+    <h2 id="h-agree">Agreement between two comparisons</h2>
+    <p class="lede">Each gene's fold change in one comparison against its fold change in another: for example,
+      whether the genes that change in MED12-mutant tumours also change in MED12-mutant cells. Uses the
+      significance thresholds above.</p>
     <div class="controls">
       <div class="field"><label for="ax">x axis</label><select id="ax"></select></div>
       <div class="field"><label for="ay">y axis</label><select id="ay"></select></div>
     </div>
     <p id="agree-summary" class="status"></p>
-    <div id="agree" class="agree"></div>
+    <div class="plotwrap agree-wrap">
+      <div id="agree" class="agree"></div>
+      <button id="agree-reset" type="button" class="btn reset" hidden>Reset zoom</button>
+    </div>
   </section>
 
-  <section class="notes">
-    <h2>Notes</h2>
+  <details class="notes">
+    <summary>Notes on the statistics</summary>
     <ul>
-      <li>log<sub>2</sub>FC is the first group relative to the second, shrunken with apeglm: genes with few counts or high
-        variance are pulled toward zero, so the volcano and rankings are led by robust changes. The table also shows the
-        unshrunken estimate. p-values are DESeq2 Wald tests and are the same either way.</li>
-      <li>Rank orders the tested genes by p-value (1 = most significant). Genes removed by the expression filter, or whose
-        p<sub>adj</sub> DESeq2 left empty (independent filtering), are listed without p<sub>adj</sub> and are not plotted.</li>
-      <li>Points at the top edge of the volcano have p<sub>adj</sub> below the smallest value shown (drawn as triangles).</li>
+      <li>log<sub>2</sub>FC is the first group relative to the second, shrunken with apeglm: genes with few counts or
+        noisy estimates are pulled toward zero, so the volcano and the rankings are led by robust changes. The CSV also
+        has the unshrunken estimate. p-values are DESeq2 Wald tests and do not depend on shrinkage.</li>
+      <li>Rank orders the tested genes by p-value, 1 being the most significant. Mean count is DESeq2's baseMean, the
+        average normalized count over all samples in the dataset.</li>
+      <li>Genes DESeq2 did not test (too few counts) are not listed; the full tables are in the downloads on the
+        Methods page. A gene with a p-value but no p<sub>adj</sub> was removed by DESeq2's independent filtering.</li>
+      <li>The volcano's y axis is capped so that a few extreme genes do not squash the rest; triangles along the top are
+        genes above the cap. Drag to zoom into a region; double-click or Reset zoom to come back.</li>
+      <li>The tissue comparisons by genotype use 6 mutant and 4 wild-type patients; the spheroid wild-type group has 2 replicates.</li>
     </ul>
-  </section>
+  </details>
 </main>
-<footer class="wrap">Data: GEO GSE204969, GSE226014, GSE226016. Code: <a href="https://github.com/brandonlukas/med12-tpm">github.com/brandonlukas/med12-tpm</a></footer>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>Data: GEO GSE204969, GSE226014, GSE226016 · processed October 2026</span>
+    <a href="https://github.com/brandonlukas/med12-tpm">Code and downloads on GitHub</a>
+  </div>
+</footer>
 <script src="common.js"></script>
 <script src="de.js"></script>
 </body>

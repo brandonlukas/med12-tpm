@@ -4,44 +4,106 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Methods · MED12 RNA-seq Explorer</title>
+<meta name="description" content="How the three MED12 RNA-seq datasets were reprocessed: sources, what the values mean, DESeq2 designs, downloads, the nf-core/rnaseq pipeline and how to reproduce everything.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
+<header class="site-header">
   <div class="wrap">
-    <h1>MED12 RNA-seq Explorer</h1>
-    <nav><a href="index.html">Explorer</a><a href="de.html">DE results</a><a href="methods.html" aria-current="page">Methods</a></nav>
+    <h1><a href="index.html">MED12 RNA-seq Explorer</a></h1>
+    <nav class="site-nav" aria-label="Site">
+      <a href="index.html">Genes</a>
+      <a href="de.html">Comparisons</a>
+      <a href="methods.html" aria-current="page">Methods</a>
+    </nav>
   </div>
 </header>
+
 <main class="wrap prose">
+<p class="lede">All 40 samples were downloaded as raw reads and processed the same way, so the three datasets share
+  one reference, one annotation and one quantification method. Every step is a script in the repository.</p>
 
 <h2>Data</h2>
-<p>Three public datasets, 40 samples, all downloaded as raw reads and reprocessed together.</p>
-<table>
-  <tr><th>Dataset</th><th>Source</th><th>GEO</th><th>Samples</th><th>Reads</th></tr>
+<div class="scroll"><table>
+  <tr><th>Dataset</th><th>Paper</th><th>GEO</th><th>Samples</th><th>Reads</th></tr>
   <tr><td>Tissue</td><td>Zuberi et al., JCI Insight 2023 (PMID 37607000)</td><td>GSE204969</td>
-      <td>10 patients, leiomyoma (LM) and matched myometrium (MM): 6 MED12-mutant LM, 4 MED12 wild-type LM</td><td>single-end 75 bp</td></tr>
+      <td>10 patients, leiomyoma (LM) and matched myometrium (MM); 6 LM MED12 G44D mutant, 4 LM wild-type</td><td>single-end 75 bp</td></tr>
   <tr><td>2D cells</td><td>Buyukcelebi et al., Nat Commun 2023</td><td>GSE226014</td>
-      <td>WT, MED12 knock-out, two MED12-G44 mutant clones (Mut1, Mut2); 3 replicates each</td><td>paired-end 2×75 bp</td></tr>
+      <td>WT, MED12 knock-out, two MED12 G44 mutant clones (Mut1, Mut2); 3 replicates each</td><td>paired-end 2×75 bp</td></tr>
   <tr><td>3D spheroids</td><td>Buyukcelebi et al., Nat Commun 2023</td><td>GSE226016</td>
       <td>WT (2 replicates), Mut1 and Mut2 (3 each)</td><td>paired-end 2×151 bp</td></tr>
-</table>
+</table></div>
 <p><b>Genotype correction.</b> GEO lists the MED12 genotypes of patients 1007 and 1008 swapped. Following the
-  study authors, 1008 LM is the G44D mutant and 1007 LM is wild-type. The sample table keeps the GEO label in a
-  separate <code>genotype_as_listed_on_GEO_(incorrect)</code> column.</p>
+  study authors, 1008 LM is the G44D mutant and 1007 LM is wild-type. The sample table keeps GEO's label in a
+  separate column, <code>genotype_as_listed_on_GEO_(incorrect)</code>.</p>
 <p>Sample table with GSM and SRR accessions: <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/sample_info.csv">sample_info.csv</a>
   (also <a href="https://github.com/brandonlukas/med12-tpm/blob/main/samples.tsv">samples.tsv</a> in the repository).</p>
+
+<h2>What the values mean</h2>
+<h3>TPM</h3>
+<p>Transcripts per million, from Salmon, at the gene level. TPM corrects for sequencing depth and for gene length, so
+  it compares genes with each other within a sample, and samples with each other within a dataset. It does not
+  compare across the three datasets: tissue against cultured cells, different library preparations and read lengths,
+  and the 2D library is unstranded. The Genes page plots TPM on a log scale by default (log<sub>2</sub> of TPM + 1,
+  with the ticks labelled in TPM) and never lets the axis top fall below 10 TPM.</p>
+<h3>Expression percentile</h3>
+<p>Where a gene's mean TPM in a group ranks among the 19,350 protein-coding genes with nonzero TPM in at least
+  one sample (GENCODE <code>gene_type</code>). The 50th percentile is a typical gene; the 90th is in the top 10%.</p>
+<h3>log<sub>2</sub>FC and p<sub>adj</sub></h3>
+<p>From DESeq2, fitted separately in each dataset. log<sub>2</sub>FC is the first group relative to the second, so a
+  positive value means higher in the first group. The site shows fold changes shrunken with apeglm, which pulls
+  noisy estimates from low-count genes toward zero; the downloadable tables keep both the shrunken
+  (<code>log2FC_shrunk</code>) and the unshrunken (<code>log2FoldChange</code>) values. p<sub>adj</sub> is the
+  Benjamini–Hochberg adjusted p-value from a Wald test. A gene was tested only if it had at least 10 counts in at
+  least as many samples as the smallest group.</p>
+
+<h2>Differential expression design</h2>
+<div class="scroll"><table>
+  <tr><th>Dataset</th><th>Design</th><th>Comparisons</th></tr>
+  <tr><td>Tissue</td><td><code>~ patient + tissue</code></td><td>LM vs MM, all 10 pairs</td></tr>
+  <tr><td>Tissue</td><td><code>~ patient + group</code>, group = MM, LM MED12 WT, LM MED12 mut</td>
+      <td>LM mut vs MM; LM WT vs MM; LM mut vs LM WT</td></tr>
+  <tr><td>2D cells</td><td><code>~ group</code></td><td>KO, Mut1, Mut2, each vs WT</td></tr>
+  <tr><td>3D spheroids</td><td><code>~ group</code></td><td>Mut1, Mut2, each vs WT</td></tr>
+</table></div>
+<p>The patient term pairs each leiomyoma with its own myometrium, the multi-gene analogue of a paired t-test.
+  Because every patient contributes a myometrium baseline, LM mut vs LM WT asks whether the leiomyoma-versus-myometrium
+  change differs between MED12-mutant and wild-type tumours, although the two kinds of tumour come from different
+  patients.</p>
+<p>Caveats: the tissue comparisons by genotype use 6 mutant and 4 wild-type patients; the spheroid WT group has
+  2 replicates. No batch information (preparation or sequencing run) is recorded in GEO or SRA for any dataset.
+  DESeq2 1.50.2, apeglm 1.32.0, R 4.5.2.</p>
+
+<h2>Downloads</h2>
+<p>All files are attached to the <a href="https://github.com/brandonlukas/med12-tpm/releases/tag/v1.0">v1.0 release</a>,
+  including <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/MED12_RNAseq_gene_TPM.xlsx">one Excel workbook</a>
+  with the sample table and the TPM of all three datasets.</p>
+<div class="scroll"><table>
+  <tr><th>Dataset</th><th>Gene TPM</th><th>DESeq2 results, one table per comparison</th></tr>
+  <tr><td>Tissue</td><td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue_gene_TPM.csv.gz">CSV</a></td>
+      <td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LM_vs_MM.csv.gz">LM vs MM</a> ·
+          <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LMmut_vs_MM.csv.gz">LM mut vs MM</a> ·
+          <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LMwt_vs_MM.csv.gz">LM WT vs MM</a> ·
+          <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LMmut_vs_LMwt.csv.gz">LM mut vs LM WT</a></td></tr>
+  <tr><td>2D cells</td><td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D_gene_TPM.csv.gz">CSV</a></td>
+      <td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D__KO_vs_WT.csv.gz">KO vs WT</a> ·
+          <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D__Mut1_vs_WT.csv.gz">Mut1 vs WT</a> ·
+          <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D__Mut2_vs_WT.csv.gz">Mut2 vs WT</a></td></tr>
+  <tr><td>3D spheroids</td><td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_3D_spheroid_gene_TPM.csv.gz">CSV</a></td>
+      <td><a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_3D_spheroid__Mut1_vs_WT.csv.gz">Mut1 vs WT</a> ·
+          <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_3D_spheroid__Mut2_vs_WT.csv.gz">Mut2 vs WT</a></td></tr>
+</table></div>
+<p>The Comparisons page can also download any filtered table, and the Genes page the TPM of the genes shown.</p>
 
 <h2>Processing</h2>
 <h3>Reads</h3>
 <p>Runs were downloaded from NCBI SRA's AWS mirror and converted to FASTQ with sra-tools 3.0.3
   (<code>vdb-validate</code>, then <code>fasterq-dump --split-3</code>). Every file was checked against the run's read
   count in SRA.</p>
-
 <h3>Reference</h3>
 <p>GRCh38 primary assembly with the GENCODE v44 comprehensive annotation (62,298 genes), the same GENCODE release
   as 10x Genomics' 2024-A reference but unfiltered.</p>
-
 <h3>Quantification</h3>
 <p><a href="https://nf-co.re/rnaseq/3.27.0">nf-core/rnaseq</a> 3.27.0 (Nextflow 26.04.3, Docker), in Salmon-only
   mode: no genome alignment.</p>
@@ -51,19 +113,20 @@
   <li>Salmon 2.7.0 against a decoy-aware index: GENCODE v44 transcripts plus the whole genome as decoys, k = 31.</li>
   <li>Transcript estimates summarized to genes with tximport (tximeta 1.20.1).</li>
 </ul>
-<table>
+<div class="scroll"><table>
   <tr><th>Dataset</th><th>Mapping rate</th><th>Library strandedness (Salmon)</th></tr>
   <tr><td>Tissue</td><td>60.5 – 80.2%</td><td>reverse (SR)</td></tr>
   <tr><td>2D cells</td><td>93.2 – 95.6%</td><td>unstranded (IU)</td></tr>
   <tr><td>3D spheroids</td><td>86.9 – 93.5%</td><td>reverse (ISR)</td></tr>
-</table>
+</table></div>
 <p>Strandedness was the same for every sample within a dataset.</p>
-<p>The exact command:</p>
-<pre><code>nextflow run nf-core/rnaseq -r 3.27.0 -profile docker \
+<details class="notes">
+  <summary>Exact command and parameters</summary>
+  <pre><code>nextflow run nf-core/rnaseq -r 3.27.0 -profile docker \
     -params-file params.yaml -c home.config \
     --outdir results -resume</code></pre>
-<p>with <a href="https://github.com/brandonlukas/med12-tpm/blob/main/params.yaml">params.yaml</a>:</p>
-<pre><code>fasta: GRCh38.primary_assembly.genome.fa.gz
+  <p>with <a href="https://github.com/brandonlukas/med12-tpm/blob/main/params.yaml">params.yaml</a>:</p>
+  <pre><code>fasta: GRCh38.primary_assembly.genome.fa.gz
 gtf: gencode.v44.primary_assembly.annotation.gtf.gz
 gencode: true
 skip_alignment: true
@@ -73,66 +136,24 @@ skip_bigwig: true
 skip_stringtie: true
 skip_biotype_qc: true
 skip_deseq2_qc: true</code></pre>
-
-<h3>Expression values</h3>
-<p>Expression percentile: where a gene's mean TPM in a group ranks among the 19,350 protein-coding genes with
-  nonzero TPM in some sample (GENCODE <code>gene_type</code>).</p>
-<p>The explorer plots gene-level TPM from Salmon. TPM sums to one million within each sample, so it compares
-  genes within a sample and samples within a dataset. It is not comparable across the three datasets: tissue
-  and cultured cells, different library preparations and read lengths, and the 2D library is unstranded.</p>
-
-<h2>Differential expression</h2>
-<p>DESeq2 1.50.2 (R 4.5.2) on Salmon's length-scaled gene counts, fitted separately in each dataset. Before each fit,
-  a gene was kept if it had at least 10 counts in at least as many samples as the smallest group. p-values are Wald
-  tests; p<sub>adj</sub> is Benjamini–Hochberg. The site shows fold changes shrunken with apeglm
-  (<code>lfcShrink(type = "apeglm")</code>), which pulls noisy low-count estimates toward zero; the tables keep both the
-  shrunken (<code>log2FC_shrunk</code>) and the unshrunken (<code>log2FoldChange</code>) values.</p>
-<table>
-  <tr><th>Dataset</th><th>Design</th><th>Comparisons</th></tr>
-  <tr><td>Tissue</td><td><code>~ patient + tissue</code></td><td>LM vs MM, all 10 pairs</td></tr>
-  <tr><td>Tissue</td><td><code>~ patient + group</code>, group = MM, LM MED12 WT, LM MED12 mut</td>
-      <td>LM mut vs MM; LM WT vs MM; LM mut vs LM WT</td></tr>
-  <tr><td>2D cells</td><td><code>~ group</code></td><td>KO, Mut1, Mut2, each vs WT</td></tr>
-  <tr><td>3D spheroids</td><td><code>~ group</code></td><td>Mut1, Mut2, each vs WT</td></tr>
-</table>
-<p>The patient term pairs each leiomyoma with its own myometrium, the multi-gene analogue of a paired t-test.
-  Because every patient contributes a myometrium baseline, LM mut vs LM WT asks whether the leiomyoma-versus-myometrium
-  change differs between MED12-mutant and wild-type tumours, although the two kinds of tumour come from different
-  patients.</p>
-<p>Caveats: the tissue comparison by genotype rests on 6 and 4 patients; the spheroid WT group has 2 replicates.
-  No batch information (preparation or sequencing run) is recorded in GEO or SRA for any dataset.</p>
-
-<h2>Downloads</h2>
-<p>All files are attached to the <a href="https://github.com/brandonlukas/med12-tpm/releases/tag/v1.0">v1.0 release</a>,
-  including <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/MED12_RNAseq_gene_TPM.xlsx">one Excel workbook</a>
-  with the sample table and the TPM of all three datasets.</p>
-<ul>
-  <li>Gene TPM: <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue_gene_TPM.csv.gz">tissue</a>,
-    <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D_gene_TPM.csv.gz">2D cells</a>,
-    <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_3D_spheroid_gene_TPM.csv.gz">3D spheroids</a></li>
-  <li>DESeq2 results, one table per comparison:
-    <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LM_vs_MM.csv.gz">LM vs MM</a>,
-    <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LMmut_vs_MM.csv.gz">LM mut vs MM</a>,
-    <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LMwt_vs_MM.csv.gz">LM WT vs MM</a>,
-    <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/JCI_tissue__LMmut_vs_LMwt.csv.gz">LM mut vs LM WT</a>;
-    2D <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D__KO_vs_WT.csv.gz">KO vs WT</a>,
-    <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D__Mut1_vs_WT.csv.gz">Mut1 vs WT</a>,
-    <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_2D__Mut2_vs_WT.csv.gz">Mut2 vs WT</a>;
-    spheroid <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_3D_spheroid__Mut1_vs_WT.csv.gz">Mut1 vs WT</a>,
-    <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/NC_3D_spheroid__Mut2_vs_WT.csv.gz">Mut2 vs WT</a></li>
-</ul>
+</details>
 
 <h2>Reproducing</h2>
 <p>Every step is a script in <a href="https://github.com/brandonlukas/med12-tpm">github.com/brandonlukas/med12-tpm</a>.
-  Needs Nextflow ≥ 25.10.4, Docker, sra-tools, pigz, R with DESeq2, and Python with pandas.</p>
+  Needs Nextflow ≥ 25.10.4, Docker, sra-tools, pigz, R with DESeq2 and apeglm, and Python with pandas.</p>
 <pre><code>./fetch_reference.sh            # GENCODE v44 fasta + GTF, md5-checked
 ./download_fastqs.sh 4          # 40 runs from SRA, read counts checked
 ./run_rnaseq.sh                 # nf-core/rnaseq (about 2 h on 44 cores)
 python3 split_tpm.py            # per-dataset TPM tables
 Rscript deseq2.R                # DESeq2 tables
 python3 build_site_data.py      # data for this site</code></pre>
-
 </main>
-<footer class="wrap">Data: GEO GSE204969, GSE226014, GSE226016. Code: <a href="https://github.com/brandonlukas/med12-tpm">github.com/brandonlukas/med12-tpm</a></footer>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>Data: GEO GSE204969, GSE226014, GSE226016 · processed October 2026</span>
+    <a href="https://github.com/brandonlukas/med12-tpm">Code and downloads on GitHub</a>
+  </div>
+</footer>
 </body>
 </html>

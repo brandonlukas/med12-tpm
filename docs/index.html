@@ -4,58 +4,83 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MED12 RNA-seq Explorer</title>
+<meta name="description" content="Expression of any gene in three public MED12 RNA-seq datasets: leiomyoma with matched myometrium, and MED12-edited cells in 2D and 3D culture.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/plotly.js-basic-dist-min@2.35.2/plotly-basic.min.js"></script>
+<script src="vendor/plotly-basic-2.35.2.min.js"></script>
 </head>
 <body>
-<header>
+<header class="site-header">
   <div class="wrap">
-    <h1>MED12 RNA-seq Explorer</h1>
-    <nav><a href="index.html" aria-current="page">Explorer</a><a href="de.html">DE results</a><a href="methods.html">Methods</a></nav>
+    <h1><a href="index.html">MED12 RNA-seq Explorer</a></h1>
+    <nav class="site-nav" aria-label="Site">
+      <a href="index.html" aria-current="page">Genes</a>
+      <a href="de.html">Comparisons</a>
+      <a href="methods.html">Methods</a>
+    </nav>
   </div>
 </header>
-<main class="wrap">
-  <p class="lede">Expression of any gene in three public MED12 datasets: leiomyoma and matched myometrium,
-    and MED12-edited cells in 2D culture and 3D spheroids. Add several genes to compare them with each other.
-    All 40 samples were reprocessed from FASTQ the same way; see <a href="methods.html">Methods</a>.</p>
 
-  <div class="controls">
-    <div class="search">
+<main class="wrap">
+  <p class="lede">Look up a gene's expression in three public MED12 RNA-seq datasets: leiomyoma with matched
+    myometrium, and MED12-edited cells in 2D and 3D culture. Add more genes to compare them.</p>
+
+  <section class="controls" aria-label="Choose genes">
+    <div class="field search grow">
       <label for="gene">Genes</label>
-      <div class="chipbox" onclick="document.getElementById('gene').focus()">
+      <div class="chipbox" id="chipbox">
         <span id="chips"></span>
-        <input id="gene" type="search" autocomplete="off" spellcheck="false" placeholder="Symbol or Ensembl ID, e.g. MED12">
+        <input id="gene" type="search" autocomplete="off" spellcheck="false" placeholder="Type a gene symbol, e.g. MED12">
       </div>
-      <ul id="suggest" role="listbox" hidden></ul>
+      <ul id="suggest" class="suggest" role="listbox" hidden></ul>
     </div>
-    <div class="scale" role="radiogroup" aria-label="Y axis">
-      <label><input type="radio" name="scale" value="log" checked> log<sub>2</sub>(TPM + 1)</label>
-      <label><input type="radio" name="scale" value="lin"> TPM</label>
+  </section>
+  <p class="genesets" id="genesets"><span>Gene sets</span></p>
+
+  <p id="status" class="status" aria-live="polite">Loading the gene list…</p>
+
+  <div class="gene-head" id="gene-head" hidden>
+    <div class="title"><h2 id="gene-name"></h2><span class="meta" id="gene-meta"></span></div>
+    <div class="actions">
+      <div class="segmented" role="radiogroup" aria-label="Scale">
+        <button type="button" role="radio" data-scale="log" aria-checked="true">Log scale</button>
+        <button type="button" role="radio" data-scale="lin" aria-checked="false">Linear</button>
+      </div>
+      <button type="button" class="btn" id="copy">Copy link</button>
+      <button type="button" class="btn" id="csv">Download CSV</button>
     </div>
   </div>
-  <div class="presets"><span class="muted">Gene sets:</span> <span id="presets"></span></div>
-  <p id="status" class="status">Loading gene list…</p>
 
-  <div id="panels"></div>
+  <div class="panels" id="panels"></div>
 
-  <section class="notes">
-    <h2>Reading the plots</h2>
+  <details class="notes">
+    <summary>How to read these plots</summary>
     <ul>
       <li>Each point is one sample. In the tissue panel, a grey line joins each patient's myometrium and leiomyoma.</li>
-      <li>TPM compares genes within a sample and samples within a dataset. Do not compare values across the three panels:
-        tissue and cultured cells, different library preparations and read lengths.</li>
-      <li>Expression percentile: where the gene's mean TPM in that group ranks among all protein-coding genes
-        (50 = median gene, 90 = top 10%).</li>
-      <li>DESeq2 statistics are computed within each dataset. log<sub>2</sub>FC is the first group relative to the second,
-        shrunken with apeglm so that noisy low-count genes are pulled toward zero; p<sub>adj</sub> is Benjamini–Hochberg
-        over all genes tested in that comparison. A dash means the gene was removed by the expression filter (too few counts to test).</li>
-      <li>Brackets mark the DESeq2 comparisons: * p<sub>adj</sub> &lt; 0.05, ** &lt; 0.01, *** &lt; 0.001, ns not significant;
-        hover a label for the exact value. LM vs MM pooled over genotype is in the table only.</li>
-      <li>The spheroid WT group has 2 replicates.</li>
+      <li>The y axis is in TPM. On the log scale the spacing is logarithmic, which spreads out low values; the ticks
+        still read in TPM. The axis always reaches at least 10 TPM, so a gene that is barely expressed looks that way
+        instead of being stretched to fill the plot.</li>
+      <li>Mean TPM is the average over the samples in a group. The percentile says where that mean ranks among all
+        protein-coding genes in the same group: the 50th is a typical gene, the 90th is in the top 10%.</li>
+      <li>TPM compares genes within a sample and samples within a dataset. The three datasets differ in material and
+        library preparation, so values should not be compared across panels.</li>
+      <li>log<sub>2</sub>FC and p<sub>adj</sub> come from DESeq2, fitted within each dataset. log<sub>2</sub>FC is the
+        first group relative to the second, shrunken with apeglm so that noisy low-count genes are pulled toward zero.
+        p<sub>adj</sub> is the Benjamini–Hochberg adjusted p-value.</li>
+      <li>Brackets: * p<sub>adj</sub> &lt; 0.05, ** &lt; 0.01, *** &lt; 0.001, ns not significant. Hover a label for the
+        exact value. "LM vs MM, all 10 pairs" pools both LM groups, so it has no bracket of its own.</li>
+      <li>"Not tested" means the gene had too few counts in that dataset for DESeq2 to test.</li>
+      <li>The spheroid wild-type group has only 2 replicates.</li>
     </ul>
-  </section>
+  </details>
 </main>
-<footer class="wrap">Data: GEO GSE204969, GSE226014, GSE226016. Code: <a href="https://github.com/brandonlukas/med12-tpm">github.com/brandonlukas/med12-tpm</a></footer>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>Data: GEO GSE204969, GSE226014, GSE226016 · processed October 2026</span>
+    <a href="https://github.com/brandonlukas/med12-tpm">Code and downloads on GitHub</a>
+  </div>
+</footer>
 <script src="common.js"></script>
 <script src="app.js"></script>
 </body>
