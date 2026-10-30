@@ -58,6 +58,8 @@ with sync_playwright() as p:
     pg.hover("#tab-NC_2D .hl >> nth=0")
     pg.wait_for_function("document.getElementById('plot-NC_2D').data.some(t => Array.isArray(t.marker?.opacity) && t.marker.opacity.includes(0.15))")
     check(True, "hovering a change entry dims the other points")
+    href = pg.get_attribute("#tab-NC_2D .hl >> nth=0", "href")
+    check(href.startswith("de.html#c=NC_2D__") and "&gene=" in href, f"a change entry links to its comparison: {href}")
     pg.hover("#gene-name")
     pg.wait_for_function("document.getElementById('plot-NC_2D').data.every(t => !Array.isArray(t.marker?.opacity))")
     check(True, "moving away restores every point")

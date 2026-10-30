@@ -468,7 +468,7 @@ function plotMulti(d, data) {
 function changesCell(d, de, n) {
   if (!de || !Object.keys(de).length) return `<span class="dim">not tested</span>`;
   const hits = d.contrasts.filter((c) => de[c] && de[c][2] < 0.05)
-    .map((c) => `<span class="hl" data-hl-gene="${n}" data-hl-groups="${pairFor(d, c).join(",")}" title="padj ${fmtP(de[c][2])}">${esc(contrastShort(c))} ${de[c][1] > 0 ? "↑" : "↓"}</span>`);
+    .map((c) => `<a class="hl" href="de.html#c=${d.id}__${c}&gene=${encodeURIComponent(Data.genes[selected[n]][1])}" data-hl-gene="${n}" data-hl-groups="${pairFor(d, c).join(",")}" title="See the whole comparison">${esc(contrastShort(c))} ${de[c][1] > 0 ? "↑" : "↓"}</a>`);
   return hits.length ? hits.join(", ") : `<span class="dim">none</span>`;
 }
 
