@@ -12,6 +12,16 @@ const CONTRAST_LABEL = {
   LMmut_vs_LMwt: "LM mut vs LM WT (shift vs own MM)",
 };
 
+// groups each bracket joins; X_vs_Y names default to [X, Y]. LM_vs_MM pools both
+// LM groups, so it has no single bracket and stays in the table only.
+const CONTRAST_GROUPS = {
+  LM_vs_MM: null,
+  LMmut_vs_MM: ["LM_mutMED12", "MM"],
+  LMwt_vs_MM: ["LM_wtMED12", "MM"],
+  LMmut_vs_LMwt: ["LM_mutMED12", "LM_wtMED12"],
+};
+const stars = (p) => (p < 0.001 ? "***" : p < 0.01 ? "**" : p < 0.05 ? "*" : "ns");
+
 const $ = (id) => document.getElementById(id);
 let meta, genes, byName = new Map(), byId = new Map();
 const chunkCache = new Map();
@@ -67,7 +77,7 @@ async function show(i) {
   if (current !== i) return;
   $("status").innerHTML = `<b>${name}</b> · ${id}`;
   for (const d of meta.datasets) {
-    plot(d, g.tpm[d.id]);
+    plot(d, g.tpm[d.id], g.de[d.id]);
     table(d, g.de[d.id]);
   }
 }
@@ -75,7 +85,7 @@ async function show(i) {
 // deterministic jitter so points do not move between genes
 const jitter = (k) => ((Math.abs(Math.sin(k * 12.9898) * 43758.5453) % 1) - 0.5) * 0.3;
 
-function plot(d, tpm) {
+function plot(d, tpm, de) {
   const log = document.querySelector('input[name="scale"]:checked').value === "log";
   const y = tpm.map((v) => (v == null ? null : log ? Math.log2(v + 1) : v));
   const xi = Object.fromEntries(d.groups.map((g, k) => [g, k]));
@@ -99,15 +109,52 @@ function plot(d, tpm) {
       hovertemplate: "%{text}<extra></extra>", showlegend: false,
     });
   }
+  const ymax = Math.max(0, ...y.filter((v) => v != null)) || 1;
+  const { shapes, annotations, top } = brackets(d, de, xi, ymax);
   Plotly.react(`plot-${d.id}`, traces, {
+    shapes, annotations,
     margin: { l: 52, r: 8, t: 8, b: 48 },
     font: { family: "Arial, sans-serif", size: 13, color: "#1a1a1a" },
     xaxis: { tickvals: d.groups.map((_, k) => k), ticktext: d.groups.map(groupLabel),
       range: [-0.5, d.groups.length - 0.5], tickangle: 0, showgrid: false, zeroline: false, fixedrange: true },
-    yaxis: { title: { text: log ? "log₂(TPM + 1)" : "TPM" }, rangemode: "tozero", gridcolor: "#eeeeee",
+    yaxis: { title: { text: log ? "log₂(TPM + 1)" : "TPM" }, range: [0, top], gridcolor: "#eeeeee",
       zeroline: false, fixedrange: true, ticks: "outside", tickcolor: "#bbb" },
     plot_bgcolor: "#fff", paper_bgcolor: "#fff", hoverlabel: { bgcolor: "#fff", font: { color: "#1a1a1a" } },
   }, { displayModeBar: false, responsive: true });
+}
+
+// One bracket per tested comparison, stacked so no two overlap; label = DESeq2 padj
+// as stars. Filtered genes (no test) get no bracket.
+function brackets(d, de, xi, ymax) {
+  const items = [];
+  for (const c of d.contrasts) {
+    const pair = c in CONTRAST_GROUPS ? CONTRAST_GROUPS[c] : c.split("_vs_");
+    const padj = de[c]?.[2];
+    if (!pair || padj == null || !(pair[0] in xi) || !(pair[1] in xi)) continue;
+    const [lo, hi] = [xi[pair[0]], xi[pair[1]]].sort((a, b) => a - b);
+    items.push({ c, lo, hi, padj });
+  }
+  items.sort((a, b) => a.hi - a.lo - (b.hi - b.lo) || a.lo - b.lo);
+  const levels = [];   // per level, the [lo, hi] spans already placed
+  for (const it of items) {
+    let k = levels.findIndex((spans) => spans.every(([l, h]) => it.hi <= l || it.lo >= h));
+    if (k < 0) { k = levels.length; levels.push([]); }
+    levels[k].push([it.lo, it.hi]);
+    it.level = k;
+  }
+  const step = 0.13 * ymax, tick = 0.03 * ymax, inset = 0.08;
+  const shapes = [], annotations = [];
+  for (const it of items) {
+    const yb = ymax * 1.08 + it.level * step;
+    const [x1, x2] = [it.lo + inset, it.hi - inset];
+    shapes.push({ type: "path", xref: "x", yref: "y", path: `M${x1},${yb - tick} L${x1},${yb} L${x2},${yb} L${x2},${yb - tick}`,
+      line: { color: "#555", width: 1 } });
+    const sig = it.padj < 0.05;
+    annotations.push({ x: (it.lo + it.hi) / 2, y: yb, yanchor: "bottom", showarrow: false, text: stars(it.padj),
+      font: { size: sig ? 14 : 11, color: sig ? "#1a1a1a" : "#767676" },
+      hovertext: `${CONTRAST_LABEL[it.c] || it.c.replace("_vs_", " vs ")}: p<sub>adj</sub> ${fmtP(it.padj)}` });
+  }
+  return { shapes, annotations, top: ymax * 1.08 + levels.length * step + 0.04 * ymax };
 }
 
 function table(d, de) {
