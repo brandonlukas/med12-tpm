@@ -182,6 +182,21 @@ function zoomReset(el, btn, redraw) {
   btn.addEventListener("click", () => { btn.hidden = true; redraw(); });
 }
 
+// Plotly is a 1 MB file; on a poor connection it can fail while the page loads. Try once more,
+// and if it is still missing the pages show their tables without the plots.
+const NO_PLOT = `<p class="noplot">The chart could not be drawn because the plotting library did not load.
+  The numbers are complete; reload the page to try again.</p>`;
+function ensurePlotly(src) {
+  if (typeof Plotly !== "undefined") return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const el = document.createElement("script");
+    el.src = `${src}?retry=${Date.now()}`;
+    el.onload = () => resolve(typeof Plotly !== "undefined");
+    el.onerror = () => resolve(false);
+    document.head.appendChild(el);
+  });
+}
+
 // Swap a button's label for a moment, e.g. "Copy link" -> "Copied".
 function flash(btn, text, ms = 1600) {
   const old = btn.textContent;

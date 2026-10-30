@@ -122,6 +122,7 @@ input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
 .suggest .id { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 .status { color: var(--muted); font-size: 14px; min-height: 1.5em; }
+.noplot { color: var(--muted); font-size: 14px; max-width: 48ch; padding: 20px 0; border-top: 1px dashed var(--rule); border-bottom: 1px dashed var(--rule); }
 
 /* the selected gene(s) */
 .gene-head { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; justify-content: space-between; border-bottom: 1px solid var(--rule); padding-bottom: 12px; }

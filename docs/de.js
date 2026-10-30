@@ -6,6 +6,7 @@ const AGREE = { same: "#2b3a8c", opposite: "#009E73", one: "#a3abb9", neither: "
 const PAGE = 25;
 const cache = new Map();
 const state = { c: null, rows: [], sort: { key: "rank", dir: 1 }, page: 0, pick: null };
+let noPlots = false; // the plotting library did not load; the table still works
 
 const alpha = () => +$("alpha").value || 0.05;
 const lfcMin = () => +$("lfcmin").value || 0;
@@ -31,8 +32,8 @@ async function load(c) {
 }
 
 async function init() {
-  if (typeof Plotly === "undefined") { $("summary").textContent = "The plotting library did not load. Reload the page."; return; }
-  await Data.load();
+  const [plotly] = await Promise.all([ensurePlotly("vendor/plotly-gl2d-2.35.2.min.js"), Data.load()]);
+  noPlots = !plotly;
   const opts = Data.meta.datasets.map((d) => `<optgroup label="${esc(d.label)}">${d.contrasts.map((c) =>
     `<option value="${d.id}__${c}">${esc(contrastOption(d.id, c))}</option>`).join("")}</optgroup>`).join("");
   $("contrast").innerHTML = opts;
@@ -126,6 +127,7 @@ function placeLabels(cands, xr, yr, W, H, m, max = 14) {
 
 function drawVolcano() {
   const el = $("volcano");
+  if (noPlots) { el.innerHTML = NO_PLOT; return; }
   const rows = state.rows.filter((r) => r.padj != null && r.lfc != null);
   const [num, den] = sides(state.c);
   // Cap the y axis at 2.5x the 95th percentile of the significant genes (padj < 0.05) so that a
@@ -304,6 +306,7 @@ function spearman(x, y) {
 }
 
 async function drawAgree() {
+  if (noPlots) { $("agree").innerHTML = NO_PLOT; $("agree-summary").textContent = ""; return; }
   const [cx, cy] = [$("ax").value, $("ay").value];
   const [X, Y] = await Promise.all([load(cx), load(cy)]);
   if (cx !== $("ax").value || cy !== $("ay").value) return;

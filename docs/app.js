@@ -25,6 +25,7 @@ let renderId = 0;
 let current = [];    // data for the selected genes, for the CSV download
 let lastMode = null; // "one" | "multi": plots are rebuilt when the layout switches
 let undoSel = null;  // the selection a gene set replaced
+let noPlots = false; // the plotting library did not load; tables only
 
 const isLog = () => scale === "log";
 const toY = (v) => (v == null ? null : isLog() ? Math.log2(v + 1) : v);
@@ -65,9 +66,9 @@ function highlight(dsId, groups, gene) {
 }
 
 async function init() {
-  if (typeof Plotly === "undefined") { status("The plotting library did not load. Reload the page."); return; }
   try { if (localStorage.getItem("scale") === "lin") scale = "lin"; } catch { /* storage unavailable */ }
-  await Data.load();
+  const [plotly] = await Promise.all([ensurePlotly("vendor/plotly-basic-2.35.2.min.js"), Data.load()]);
+  noPlots = !plotly;
 
   $("genesets").insertAdjacentHTML("beforeend", Object.keys(GENE_SETS).map((p) =>
     `<button type="button" data-set="${esc(p)}">${esc(p)}</button>`).join(""));
@@ -102,7 +103,7 @@ async function init() {
       <div class="tables" id="tab-${d.id}"></div>
     </section>`).join("");
   // Plotly sizes a plot when it is created; redraw when the panel's width changes
-  new ResizeObserver(() => document.querySelectorAll(".plot").forEach((el) => el.data && Plotly.Plots.resize(el))).observe($("panels"));
+  if (!noPlots) new ResizeObserver(() => document.querySelectorAll(".plot").forEach((el) => el.data && Plotly.Plots.resize(el))).observe($("panels"));
   for (const d of Data.meta.datasets) {
     const tab = $(`tab-${d.id}`);
     tab.addEventListener("mouseover", (e) => {
@@ -164,7 +165,7 @@ async function render() {
   if (!selected.length) {
     $("gene-head").hidden = true;
     status("Add a gene to start.");
-    for (const d of Data.meta.datasets) { Plotly.purge(`plot-${d.id}`); $(`tab-${d.id}`).innerHTML = ""; }
+    for (const d of Data.meta.datasets) { if (!noPlots) Plotly.purge(`plot-${d.id}`); $(`tab-${d.id}`).innerHTML = ""; }
     lastMode = null;
     return;
   }
@@ -178,7 +179,7 @@ async function render() {
   $("gene-head").hidden = false;
   $("panels").classList.toggle("multi", multi);
   const mode = multi ? "multi" : "one";
-  if (mode !== lastMode) document.querySelectorAll(".plot").forEach((el) => el.data && Plotly.purge(el));
+  if (mode !== lastMode && !noPlots) document.querySelectorAll(".plot").forEach((el) => el.data && Plotly.purge(el));
   lastMode = mode;
   if (multi) {
     $("gene-name").textContent = `${selected.length} genes`;
@@ -201,6 +202,7 @@ async function render() {
 }
 
 function plotOne(d, g) {
+  if (noPlots) { $(`plot-${d.id}`).innerHTML = NO_PLOT; return; }
   const tpm = g.tpm[d.id];
   const y = tpm.map(toY);
   const xi = Object.fromEntries(d.groups.map((grp, k) => [grp, k]));
@@ -300,6 +302,7 @@ function tableOne(d, g) {
 
 // several genes: genes on x, groups side by side within each gene
 function plotMulti(d, data) {
+  if (noPlots) { $(`plot-${d.id}`).innerHTML = NO_PLOT; return; }
   const G = d.groups.length, slot = 0.74 / G;
   const points = [];   // per trace, what each point stands for: { g: group, n: gene index }
   const traces = d.groups.map((grp, gi) => {

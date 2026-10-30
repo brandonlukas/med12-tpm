@@ -222,6 +222,18 @@ with sync_playwright() as p:
         check(sw <= 390, f"no horizontal overflow at 390px for {url.split('/')[-1]}: scrollWidth {sw}")
 
     check(not errs, f"no console errors: {errs}")
+
+    # without the plotting library (blocked here), the pages still show their tables
+    ctx2 = b.new_context(viewport={"width": 1280, "height": 900})
+    ctx2.route("**/vendor/*", lambda route: route.abort())
+    p2 = ctx2.new_page()
+    p2.goto(BASE + "genes.html#genes=MED12", wait_until="networkidle")
+    p2.wait_for_selector("#tab-JCI_tissue table")
+    check("Mean TPM" in p2.inner_text("#tab-JCI_tissue") and p2.locator("#plot-JCI_tissue .noplot").count() == 1, "Genes page shows tables and a note when the plotting library is missing")
+    p2.goto(BASE + "de.html#c=NC_2D__KO_vs_WT", wait_until="networkidle")
+    p2.wait_for_selector("#detable tbody tr")
+    check(p2.locator("#volcano .noplot").count() == 1 and "16,007 genes tested" in p2.inner_text("#summary"), "Comparisons page shows the table and a note when the plotting library is missing")
+    ctx2.close()
     b.close()
 print("\nFAILURES:", len(fails))
 sys.exit(1 if fails else 0)
