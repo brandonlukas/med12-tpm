@@ -30,7 +30,7 @@ DATASETS = {
     "JCI_tissue": {
         "label": "Tissue (JCI Insight 2023)",
         "groups": ["MM", "LM_wtMED12", "LM_mutMED12"],
-        "contrasts": ["LM_vs_MM", "LMmut_vs_MM", "LMwt_vs_MM", "LMmut_vs_LMwt"],
+        "contrasts": ["LM_vs_MM", "LMwt_vs_MM", "LMmut_vs_MM", "LMmut_vs_LMwt"],
     },
     "NC_2D": {
         "label": "2D cells (Nat Commun 2023)",

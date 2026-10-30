@@ -15,8 +15,8 @@ out = Path(sys.argv[1]) if len(sys.argv) > 1 else here / "deliverables" / "MED12
 # sheet name (31 characters at most), file, design in words
 SHEETS = [
     ("Tissue LM vs MM",        "JCI_tissue__LM_vs_MM",        "Leiomyoma vs matched myometrium, all 10 patients (paired by patient)"),
-    ("Tissue LM mut vs MM",    "JCI_tissue__LMmut_vs_MM",     "MED12-mutant leiomyoma (6) vs myometrium (paired by patient)"),
     ("Tissue LM WT vs MM",     "JCI_tissue__LMwt_vs_MM",      "MED12 wild-type leiomyoma (4) vs myometrium (paired by patient)"),
+    ("Tissue LM mut vs MM",    "JCI_tissue__LMmut_vs_MM",     "MED12-mutant leiomyoma (6) vs myometrium (paired by patient)"),
     ("Tissue LM mut vs LM WT", "JCI_tissue__LMmut_vs_LMwt",   "MED12-mutant vs wild-type leiomyoma, each relative to its own myometrium"),
     ("2D KO vs WT",            "NC_2D__KO_vs_WT",             "MED12 knock-out vs unedited cells, 2D culture (3 vs 3)"),
     ("2D Mut1 vs WT",          "NC_2D__Mut1_vs_WT",           "MED12 G44N clone 1 vs unedited cells, 2D culture (3 vs 3)"),

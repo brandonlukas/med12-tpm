@@ -37,8 +37,8 @@ plan <- list(
     JCI_tissue = list(
         levels = c("MM", "LM_wtMED12", "LM_mutMED12"),
         contrasts = list(
-            LMmut_vs_MM   = c("LM_mutMED12", "MM"),
             LMwt_vs_MM    = c("LM_wtMED12", "MM"),
+            LMmut_vs_MM   = c("LM_mutMED12", "MM"),
             LMmut_vs_LMwt = c("LM_mutMED12", "LM_wtMED12")
         )
     ),
