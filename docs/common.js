@@ -184,6 +184,16 @@ function dimOthers(el, name) {
   Plotly.restyle(el, { opacity: name == null ? 1 : el.data.map((t) => (t.name === name ? 1 : t.showlegend === false ? 1 : 0.15)) });
 }
 
+// On a plot whose points can be clicked, the cursor becomes a hand only while it is over a point;
+// elsewhere it keeps the plot's own cursor (the crosshair that means "drag to zoom").
+function pointCursor(el) {
+  if (el._cursorBound) return;
+  el._cursorBound = true;
+  const set = (c) => el.querySelectorAll(".drag").forEach((d) => { d.style.cursor = c; });
+  el.on("plotly_hover", () => set("pointer"));
+  el.on("plotly_unhover", () => set(""));
+}
+
 // Plotly is a 1 MB file; on a poor connection it can fail while the page loads. Try once more,
 // and if it is still missing the pages show their tables without the plots.
 const NO_PLOT = `<p class="noplot">The chart could not be drawn because the plotting library did not load.

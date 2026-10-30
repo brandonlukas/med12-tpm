@@ -34,6 +34,7 @@ with sync_playwright() as p:
     pg.wait_for_selector("#gene-head:not([hidden])")
     check(pg.text_content("#gene-name") == "MED12", "single gene renders MED12")
     check(pg.locator("#plot-JCI_tissue .scatterlayer .trace").count() >= 3, "tissue plot has traces")
+    check(pg.evaluate("getComputedStyle(document.querySelector('#plot-NC_2D .nsewdrag')).cursor") == "default", "Genes plot: arrow cursor over the plot area")
     check("93rd" in pg.inner_text("#tab-JCI_tissue"), "percentile shown as ordinal")
     pg.hover("#tab-NC_2D tbody tr[data-hl-groups] >> nth=1")   # the KO row
     pg.wait_for_function("document.getElementById('plot-NC_2D').data.some(t => t.opacity === 0.15)")
@@ -181,6 +182,7 @@ with sync_playwright() as p:
     check("2D cells · KO vs WT" in pg.locator("#contrast option:checked").inner_text(), "closed select names the dataset")
     check("higher in KO" in pg.inner_text("#summary"), "summary names the numerator group")
     check(pg.locator("#picked").is_hidden(), "no picked strip before a selection")
+    check(pg.evaluate("getComputedStyle(document.querySelector('#volcano .nsewdrag')).cursor") == "crosshair", "volcano: crosshair where dragging zooms")
 
     pg.fill("#find", "MED12")
     pg.wait_for_selector("#suggest:not([hidden]) li")

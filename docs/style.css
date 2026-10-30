@@ -153,8 +153,11 @@ body.dragging-chip, body.dragging-chip * { cursor: grabbing !important; user-sel
 .panel h2 { font-size: 18px; }
 .panel .note { color: var(--muted); font-size: 13px; line-height: 1.45; }
 .plot { height: 330px; }
-/* legend entries are hover affordances, not buttons: no hand cursor */
+/* Cursors say what a click does: an arrow where it does nothing (the Genes plots, legends, hover-only
+   headers), a hand on links, buttons and clickable points, a crosshair where dragging zooms, a grab
+   hand on chips. The Genes plots have no drag behaviour, so their drag layers get the arrow. */
 .js-plotly-plot .plotly .legend .traces, .js-plotly-plot .plotly .legend .traces .legendtoggle { cursor: default !important; }
+.plot .drag { cursor: default !important; }
 .panels.multi .plot { height: 360px; }
 .panels.multi .scroll { max-width: 820px; }
 .panels.multi table { min-width: 560px; }

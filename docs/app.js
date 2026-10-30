@@ -318,7 +318,7 @@ function plotOne(d, g) {
   const { shapes, annotations, items, top } = brackets(d, g.de[d.id], xi, ymax);
   hl[d.id] = { mode: "one", traces: what, brackets: items.map((it) => it.pair) };
   Plotly.react(`plot-${d.id}`, traces, {
-    ...BASE_LAYOUT, shapes, annotations, margin: { l: 56, r: 10, t: 10, b: 50 },
+    ...BASE_LAYOUT, dragmode: false, shapes, annotations, margin: { l: 56, r: 10, t: 10, b: 50 },
     xaxis: { ...AXIS, tickvals: d.groups.map((_, k) => k), ticktext: d.groups.map(groupTick),
       range: [-0.5, d.groups.length - 0.5], tickangle: 0, showgrid: false, ticks: "" },
     yaxis: tpmAxis(isLog(), top),
@@ -436,7 +436,7 @@ function plotMulti(d, data) {
   const top = base * (star.x.length ? 1.08 : 1);
   const byLabel = Object.fromEntries(d.groups.map((grp) => [groupLabel(grp), grp]));
   Plotly.react(`plot-${d.id}`, traces, {
-    ...BASE_LAYOUT, shapes, margin: { l: 56, r: 10, t: 34, b: 44 },
+    ...BASE_LAYOUT, dragmode: false, shapes, margin: { l: 56, r: 10, t: 34, b: 44 },
     legend: { orientation: "h", x: 0, y: 1.02, yanchor: "bottom", font: { size: 13 }, itemclick: false, itemdoubleclick: false },
     xaxis: { ...AXIS, tickvals: selected.map((_, n) => n), ticktext: selected.map((i) => esc(Data.genes[i][1])),
       range: [-0.5, selected.length - 0.5], tickangle: "auto", showgrid: false, ticks: "" },
