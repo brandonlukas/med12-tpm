@@ -21,6 +21,10 @@ PAGE = HERE.parent / "docs" / "index.html"
 STONE_HI, STONE, STONE_LO, STONE_LINE = "#ece7df", "#d2cabd", "#b3a897", "#9e9382"
 PINK_HI, PINK, PINK_LO = "#f7e9e4", "#edd3cb", "#d4aba3"
 VERM_HI, VERM, VERM_LO, VERM_LINE = "#f3a872", "#d55e00", "#a84600", "#7e3400"
+PINK_C_HI, PINK_C, PINK_C_LO, PINK_C_LINE = "#e6b3cf", "#bf6a9b", "#8e4a73", "#5e2f4c"
+KO_HI, KO, KO_LO, KO_LINE = "#7b7f8a", "#3a3d46", "#1c1e26", "#0b0c10"
+CELL = {"stone": (STONE_HI, STONE, STONE_LO, STONE_LINE), "verm": (VERM_HI, VERM, VERM_LO, VERM_LINE),
+        "pink": (PINK_C_HI, PINK_C, PINK_C_LO, PINK_C_LINE), "ko": (KO_HI, KO, KO_LO, KO_LINE)}
 GLASS, GLASS_LINE, MEDIUM_HI, MEDIUM = "#eef3f7", "#b5c4cf", "#e3eef5", "#c7dbe8"
 INK, ARROW = "#1c1e26", "#4a4f5a"
 
@@ -120,8 +124,14 @@ def defs():
     <radialGradient id="gFibroid" cx="36%" cy="30%" r="75%">
       <stop offset="0" stop-color="{VERM_HI}"/><stop offset="0.5" stop-color="{VERM}"/><stop offset="1" stop-color="{VERM_LO}"/>
     </radialGradient>
-    <radialGradient id="gSphere" cx="36%" cy="32%" r="72%">
+    <radialGradient id="gSphereVerm" cx="36%" cy="32%" r="72%">
       <stop offset="0" stop-color="{VERM_HI}"/><stop offset="0.55" stop-color="{VERM}"/><stop offset="1" stop-color="{VERM_LO}"/>
+    </radialGradient>
+    <radialGradient id="gSpherePink" cx="36%" cy="32%" r="72%">
+      <stop offset="0" stop-color="{PINK_C_HI}"/><stop offset="0.55" stop-color="{PINK_C}"/><stop offset="1" stop-color="{PINK_C_LO}"/>
+    </radialGradient>
+    <radialGradient id="gSphereStone" cx="36%" cy="32%" r="72%">
+      <stop offset="0" stop-color="{STONE_HI}"/><stop offset="0.55" stop-color="{STONE}"/><stop offset="1" stop-color="{STONE_LO}"/>
     </radialGradient>
     <linearGradient id="gGlass" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#ffffff" stop-opacity="0.9"/><stop offset="0.5" stop-color="{GLASS}"/><stop offset="1" stop-color="{GLASS}"/>
@@ -207,67 +217,88 @@ def uterus():
     return "\n      ".join(parts)
 
 
-def cell(cx, cy, L, Wd, ang, gid, small=False):
+def cell(cx, cy, L, Wd, ang, gid, pal="verm", small=False):
     """A spindle-shaped smooth muscle cell with a nucleus, lit from the upper left."""
+    hi, mid, lo, line = CELL[pal]
     body = smooth_path(spindle(cx, cy, L, Wd, ang))
     nuc = smooth_path(spindle(cx, cy, L * 0.36, Wd * 0.6, ang))
     deg = math.degrees(ang)
     grad = (f'<linearGradient id="{gid}" gradientUnits="userSpaceOnUse" x1="{cx}" y1="{cy - Wd}" x2="{cx}" y2="{cy + Wd}" gradientTransform="rotate({deg:.1f} {cx} {cy})">'
-            f'<stop offset="0" stop-color="{VERM_HI}"/><stop offset="0.5" stop-color="{VERM}"/><stop offset="1" stop-color="{VERM_LO}"/></linearGradient>')
+            f'<stop offset="0" stop-color="{hi}"/><stop offset="0.5" stop-color="{mid}"/><stop offset="1" stop-color="{lo}"/></linearGradient>')
     sw = 0.5 if small else 0.7
-    shape = (f'<path d="{body}" fill="url(#{gid})" stroke="{VERM_LO}" stroke-width="{sw}"/>'
-             f'<path d="{nuc}" fill="{VERM_LINE}" fill-opacity="0.85"/>')
+    shape = (f'<path d="{body}" fill="url(#{gid})" stroke="{lo}" stroke-width="{sw}"/>'
+             f'<path d="{nuc}" fill="{line}" fill-opacity="0.85"/>')
     if not small:
         hx, hy = cx - L * 0.12 * math.cos(ang) - Wd * 0.18 * math.sin(ang), cy - L * 0.12 * math.sin(ang) + Wd * 0.18 * math.cos(ang)
         shape += f'<ellipse cx="{hx:.1f}" cy="{hy:.1f}" rx="{L * 0.14:.1f}" ry="{Wd * 0.14:.1f}" fill="#ffffff" fill-opacity="0.45" transform="rotate({deg:.1f} {hx:.1f} {hy:.1f})"/>'
     return grad, shape
 
 
+LINES = (("WT", "stone"), ("KO", "ko"), ("Mut1", "verm"), ("Mut2", "pink"))
+LINE_X = (610, 650, 690, 730)          # the four lines side by side, after the editing step
+
+
+def sphere(sx, sy, sr, pal):
+    hi, mid, lo, line = CELL[pal]
+    gid = {"verm": "gSphereVerm", "pink": "gSpherePink", "stone": "gSphereStone"}[pal]
+    parts = [f'<ellipse cx="{sx + 1}" cy="{sy + sr + 2}" rx="{sr * 0.9}" ry="{sr * 0.22}" fill="#5f7384" fill-opacity="0.18" filter="url(#blur6)"/>',
+             f'<circle cx="{sx}" cy="{sy}" r="{sr}" fill="url(#{gid})" stroke="{lo}" stroke-width="0.7"/>']
+    for a_, rr in ((0.9, 0.55), (2.4, 0.62), (4.0, 0.5), (5.3, 0.6)):
+        px, py = sx + sr * rr * math.cos(a_), sy + sr * rr * math.sin(a_)
+        parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="{sr * 0.3:.1f}" fill="none" stroke="{line}" stroke-opacity="0.28" stroke-width="0.8"/>')
+    parts.append(f'<ellipse cx="{sx - sr * 0.35}" cy="{sy - sr * 0.4}" rx="{sr * 0.32}" ry="{sr * 0.22}" fill="#ffffff" fill-opacity="0.45" transform="rotate(-35 {sx - sr * 0.35} {sy - sr * 0.4})"/>')
+    return "".join(parts)
+
+
 def cultures():
     rng = np.random.default_rng(5)
     grads, parts = [], []
-    # the derived, edited cells: a small cluster
-    for i, (cx, cy, L, Wd, ang) in enumerate(((548, 204, 46, 13, -0.38), (570, 225, 40, 12, 0.55), (541, 233, 38, 11.5, 1.3))):
-        g, sh = cell(cx, cy, L, Wd, ang, f"gCell{i}")
+    # cells taken from the myometrium: still the tissue's colour
+    for i, (cx, cy, L, Wd, ang) in enumerate(((508, 204, 44, 12.5, -0.38), (530, 224, 38, 11.5, 0.55), (502, 232, 36, 11, 1.3))):
+        g, sh = cell(cx, cy, L, Wd, ang, f"gDer{i}", "stone")
         grads.append(g); parts.append(f'<g filter="url(#castSoft)">{sh}</g>')
-    # 2D culture: a dish in section with medium and a single layer of cells on its floor
-    dish = "M650 258 L650 290 Q650 304 664 304 L788 304 Q802 304 802 290 L802 258 L796 258 L796 288 Q796 298 786 298 L666 298 Q656 298 656 288 L656 258 Z"
-    parts.append(f'<path d="M656 282 L796 282 L796 288 Q796 298 786 298 L666 298 Q656 298 656 288 Z" fill="url(#gMedium)"/>')
-    layer = []
-    x = 664
-    k = 0
-    while x < 786:
-        L = rng.uniform(15, 21)
-        g, sh = cell(x + L / 2, 295.3 + rng.uniform(-0.4, 0.4), L, rng.uniform(4.2, 5.0), rng.uniform(-0.16, 0.16), f"gLay{k}", small=True)
-        grads.append(g); layer.append(sh); x += L * rng.uniform(0.9, 1.02); k += 1
+    # after CRISPR: the four lines, each in its colour
+    for (name, pal), x in zip(LINES, LINE_X):
+        g, sh = cell(x, 214, 36, 11.5, -0.3, f"gLine{name}", pal)
+        grads.append(g); parts.append(f'<g filter="url(#castSoft)">{sh}</g>')
+    # 2D culture: one dish stands for the four lines, each grown separately
+    x0, x1 = 800, 962
+    dish = (f"M{x0} 258 L{x0} 290 Q{x0} 304 {x0 + 14} 304 L{x1 - 14} 304 Q{x1} 304 {x1} 290 L{x1} 258 L{x1 - 6} 258 L{x1 - 6} 288 "
+            f"Q{x1 - 6} 298 {x1 - 16} 298 L{x0 + 16} 298 Q{x0 + 6} 298 {x0 + 6} 288 L{x0 + 6} 258 Z")
+    parts.append(f'<path d="M{x0 + 6} 282 L{x1 - 6} 282 L{x1 - 6} 288 Q{x1 - 6} 298 {x1 - 16} 298 L{x0 + 16} 298 Q{x0 + 6} 298 {x0 + 6} 288 Z" fill="url(#gMedium)"/>')
+    layer, k, x = [], 0, x0 + 12
+    seg = (x1 - x0 - 24) / 4
+    for (name, pal), s0 in zip(LINES, range(4)):
+        xx = x0 + 12 + s0 * seg + 2
+        while xx < x0 + 12 + (s0 + 1) * seg - 4:
+            L = rng.uniform(13, 17)
+            g, sh = cell(xx + L / 2, 295.3 + rng.uniform(-0.4, 0.4), L, rng.uniform(4.0, 4.8), rng.uniform(-0.16, 0.16), f"gLay{k}", pal, small=True)
+            grads.append(g); layer.append(sh); xx += L * rng.uniform(0.92, 1.02); k += 1
     parts.append("".join(layer))
     parts.append(f'<path d="{dish}" fill="url(#gGlass)" stroke="{GLASS_LINE}" stroke-width="0.8" filter="url(#inGlass)"/>')
-    parts.append(f'<path d="M659 262 L659 286" stroke="#ffffff" stroke-opacity="0.9" stroke-width="1.6" stroke-linecap="round"/>')
-    parts.append(f'<path d="M657 282 L795 282" stroke="#ffffff" stroke-opacity="0.7" stroke-width="1"/>')
-    # 3D culture: a round-bottom well with medium and spheroids
-    well = ("M658 56 L658 108 Q658 152 702 152 L758 152 Q802 152 802 108 L802 56 L796 56 L796 108 Q796 146 758 146 L702 146 "
-            "Q664 146 664 108 L664 56 Z")
-    parts.append(f'<path d="M664 92 L796 92 L796 108 Q796 146 758 146 L702 146 Q664 146 664 108 Z" fill="url(#gMedium)"/>')
-    for i, (sx, sy, sr) in enumerate(((701, 121, 12.5), (748, 126, 11.5), (727, 96, 10.5))):
-        parts.append(f'<ellipse cx="{sx + 1}" cy="{sy + sr + 2}" rx="{sr * 0.9}" ry="{sr * 0.22}" fill="#5f7384" fill-opacity="0.18" filter="url(#blur6)"/>')
-        parts.append(f'<circle cx="{sx}" cy="{sy}" r="{sr}" fill="url(#gSphere)" stroke="{VERM_LO}" stroke-width="0.7"/>')
-        # the aggregate's cells, hinted as a few darker arcs and a soft highlight
-        for a, rr in ((0.9, 0.55), (2.4, 0.62), (4.0, 0.5), (5.3, 0.6)):
-            px, py = sx + sr * rr * math.cos(a), sy + sr * rr * math.sin(a)
-            parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="{sr * 0.3:.1f}" fill="none" stroke="{VERM_LINE}" stroke-opacity="0.28" stroke-width="0.8"/>')
-        parts.append(f'<ellipse cx="{sx - sr * 0.35}" cy="{sy - sr * 0.4}" rx="{sr * 0.32}" ry="{sr * 0.22}" fill="#ffffff" fill-opacity="0.45" transform="rotate(-35 {sx - sr * 0.35} {sy - sr * 0.4})"/>')
+    parts.append(f'<path d="M{x0 + 9} 262 L{x0 + 9} 286" stroke="#ffffff" stroke-opacity="0.9" stroke-width="1.6" stroke-linecap="round"/>')
+    parts.append(f'<path d="M{x0 + 7} 282 L{x1 - 7} 282" stroke="#ffffff" stroke-opacity="0.7" stroke-width="1"/>')
+    # 3D culture: a round-bottom well with the three lines grown as spheroids
+    w0, w1 = 812, 950
+    well = (f"M{w0} 56 L{w0} 108 Q{w0} 152 {w0 + 44} 152 L{w1 - 44} 152 Q{w1} 152 {w1} 108 L{w1} 56 L{w1 - 6} 56 L{w1 - 6} 108 "
+            f"Q{w1 - 6} 146 {w1 - 44} 146 L{w0 + 44} 146 Q{w0 + 6} 146 {w0 + 6} 108 L{w0 + 6} 56 Z")
+    parts.append(f'<path d="M{w0 + 6} 92 L{w1 - 6} 92 L{w1 - 6} 108 Q{w1 - 6} 146 {w1 - 44} 146 L{w0 + 44} 146 Q{w0 + 6} 146 {w0 + 6} 108 Z" fill="url(#gMedium)"/>')
+    for (sx, sy, sr), pal in zip(((852, 121, 12.5), (902, 126, 11.5), (880, 97, 10.5)), ("stone", "pink", "verm")):
+        parts.append(sphere(sx, sy, sr, pal))
     parts.append(f'<path d="{well}" fill="url(#gGlass)" stroke="{GLASS_LINE}" stroke-width="0.8" filter="url(#inGlass)"/>')
-    parts.append(f'<path d="M667 60 L667 104" stroke="#ffffff" stroke-opacity="0.9" stroke-width="1.6" stroke-linecap="round"/>')
-    parts.append(f'<path d="M665 92 L795 92" stroke="#ffffff" stroke-opacity="0.7" stroke-width="1"/>')
+    parts.append(f'<path d="M{w0 + 9} 60 L{w0 + 9} 104" stroke="#ffffff" stroke-opacity="0.9" stroke-width="1.6" stroke-linecap="round"/>')
+    parts.append(f'<path d="M{w0 + 7} 92 L{w1 - 7} 92" stroke="#ffffff" stroke-opacity="0.7" stroke-width="1"/>')
     return "\n    ".join(grads), "\n      ".join(parts)
 
 
 def labels():
+    line_labels = "".join(f'<text x="{x}" y="243" text-anchor="middle">{name}</text>' for (name, _), x in zip(LINES, LINE_X))
     return f"""
       <g stroke="{ARROW}" stroke-width="1.8" fill="none" stroke-linecap="round">
-        <path d="M282 238 C 340 262, 430 250, 512 222" marker-end="url(#arrow)"/>
-        <path d="M580 238 C 602 264, 622 282, 642 290" marker-end="url(#arrow)"/>
-        <path d="M576 200 C 600 170, 620 138, 644 112" marker-end="url(#arrow)"/>
+        <path d="M282 238 C 340 262, 410 250, 474 222" marker-end="url(#arrow)"/>
+        <path d="M548 214 L 588 214" marker-end="url(#arrow)"/>
+        <path d="M744 206 C 768 180, 786 140, 804 112" marker-end="url(#arrow)"/>
+        <path d="M744 224 C 768 252, 782 272, 794 286" marker-end="url(#arrow)"/>
       </g>
       <g stroke="{ARROW}" stroke-width="1.2" fill="none" stroke-linecap="round">
         <path d="M154 204 L 118 246"/>
@@ -279,19 +310,23 @@ def labels():
         <text x="112" y="251" text-anchor="end">Leiomyoma</text>
         <text x="134" y="311" text-anchor="end">Myometrium</text>
         <text x="332" y="205">Endometrium</text>
-        <text x="570" y="270" text-anchor="end">MED12-edited cells</text>
-        <text x="726" y="334" text-anchor="middle">2D culture</text>
-        <text x="730" y="44" text-anchor="middle">3D spheroids</text>
+        <text x="524" y="272" text-anchor="middle">Myometrial cells</text>
+        <text x="880" y="334" text-anchor="middle">2D culture</text>
+        <text x="880" y="44" text-anchor="middle">3D spheroids</text>
       </g>
       <g font-size="14" fill="#6b7080">
-        <text x="570" y="292" text-anchor="end">derived from the myometrium</text>
+        <text x="352" y="284" text-anchor="middle">derived from the myometrium</text>
+        <text x="524" y="292" text-anchor="middle">hTERT-immortalized</text>
+        <text x="568" y="198" text-anchor="middle">CRISPR editing</text>
+        <text x="669" y="182" text-anchor="middle">four lines</text>
+        {line_labels}
       </g>"""
 
 
 def main():
     cell_grads, culture_parts = cultures()
-    svg = f"""<svg class="design-svg" viewBox="0 0 900 360" role="img" aria-labelledby="design-title" xmlns="http://www.w3.org/2000/svg">
-      <title id="design-title">Illustration: a frontal section of the uterus with a leiomyoma in the myometrial wall; myometrial cells edited at MED12 codon 44, grown as a flat 2D culture and as 3D spheroids.</title>{defs()}
+    svg = f"""<svg class="design-svg" viewBox="0 0 1000 360" role="img" aria-labelledby="design-title" xmlns="http://www.w3.org/2000/svg">
+      <title id="design-title">Illustration: a frontal section of the uterus with a leiomyoma in the myometrial wall; myometrial cells taken from it and edited with CRISPR into four lines (unedited WT, MED12 knock-out, and two codon-44 mutant clones Mut1 and Mut2), grown as 2D cultures and, for WT, Mut1 and Mut2, as 3D spheroids.</title>{defs()}
   <defs>
     {cell_grads}
   </defs>
