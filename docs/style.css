@@ -271,3 +271,10 @@ code { font-family: var(--mono); font-size: .92em; }
 .pca-panel h3 { font: 400 17px/1.25 var(--serif); }
 .pca-panel svg { width: 100%; height: auto; display: block; font-family: var(--sans); }
 .pca-panel .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+.pca-panel circle { transition: r .12s, opacity .15s; cursor: default; outline: none; }
+.pca-panel circle.hot, .pca-panel circle.mate { r: 7.5; }
+.pca-panel circle.faded { opacity: .18; }
+.pca-panel line.pair.lit { stroke: var(--ink); stroke-width: 1.4; }
+.pca-panel .legend [data-group] { cursor: default; }
+.tip { position: absolute; z-index: 30; pointer-events: none; background: #fff; border: 1px solid var(--rule); border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(28,30,38,.10); padding: 6px 9px; font-size: 13px; line-height: 1.45; color: var(--ink); white-space: nowrap; }

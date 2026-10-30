@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 
 docs = Path(__file__).resolve().parent / "docs"
-assets = ["style.css", "common.js", "app.js", "de.js", "overview.js"]
+assets = ["style.css", "common.js", "app.js", "de.js", "overview.js", "methods.js"]
 stamp = hashlib.sha1(b"".join((docs / a).read_bytes() for a in assets)).hexdigest()[:8]
 pattern = re.compile(r'((?:href|src)=")(' + "|".join(map(re.escape, assets)) + r')(?:\?v=[0-9a-f]+)?"')
 for page in docs.glob("*.html"):

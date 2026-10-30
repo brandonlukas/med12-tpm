@@ -37,17 +37,20 @@ def panel(ds):
     out = [f'<rect x="{L}" y="{T}" width="{pw}" height="{ph}" fill="none" stroke="{RULE}"/>',
            f'<line x1="{X(0):.1f}" y1="{T}" x2="{X(0):.1f}" y2="{T + ph}" stroke="{RULE}" stroke-dasharray="3 3"/>',
            f'<line x1="{L}" y1="{Y(0):.1f}" x2="{L + pw}" y2="{Y(0):.1f}" stroke="{RULE}" stroke-dasharray="3 3"/>']
+    patient = lambda p: (re.match(r"tissue_(\d+)_", p["sample"]) or [None, ""])[1]
     if ds == "JCI_tissue":   # join each patient's two samples
         by = {}
-        for p in pts: by.setdefault(re.match(r"tissue_(\d+)_", p["sample"]).group(1), []).append(p)
-        for a, b in (v for v in by.values() if len(v) == 2):
-            out.append(f'<line x1="{X(a["pc1"]):.1f}" y1="{Y(a["pc2"]):.1f}" x2="{X(b["pc1"]):.1f}" y2="{Y(b["pc2"]):.1f}" stroke="#cfd3dc" stroke-width="1"/>')
+        for p in pts: by.setdefault(patient(p), []).append(p)
+        for pid, (a, b) in ((k, v) for k, v in by.items() if len(v) == 2):
+            out.append(f'<line class="pair" data-patient="{pid}" x1="{X(a["pc1"]):.1f}" y1="{Y(a["pc2"]):.1f}" x2="{X(b["pc1"]):.1f}" y2="{Y(b["pc2"]):.1f}" stroke="#cfd3dc" stroke-width="1"/>')
     for p in pts:
-        out.append(f'<circle cx="{X(p["pc1"]):.1f}" cy="{Y(p["pc2"]):.1f}" r="5.5" fill="{COLORS[p["group"]]}" stroke="#fff" stroke-width="1.2">'
-                   f'<title>{sample_label(p["sample"])} · PC1 {p["pc1"]:.1f}, PC2 {p["pc2"]:.1f}</title></circle>')
+        out.append(f'<circle cx="{X(p["pc1"]):.1f}" cy="{Y(p["pc2"]):.1f}" r="5.5" fill="{COLORS[p["group"]]}" stroke="#fff" stroke-width="1.2" '
+                   f'data-label="{sample_label(p["sample"])}" data-group="{LABEL.get(p["group"], p["group"])}" data-color="{COLORS[p["group"]]}" '
+                   f'data-pc="PC1 {p["pc1"]:.1f} · PC2 {p["pc2"]:.1f}" data-patient="{patient(p)}" tabindex="0" '
+                   f'aria-label="{sample_label(p["sample"])}, {LABEL.get(p["group"], p["group"])}, PC1 {p["pc1"]:.1f}, PC2 {p["pc2"]:.1f}"/>')
     out.append(f'<text x="{L + pw / 2:.0f}" y="{H - 14}" text-anchor="middle" font-size="12" fill="{MUTED}">PC1 · {ve[0]:.0f}% of variation</text>')
     out.append(f'<text transform="translate(14 {T + ph / 2:.0f}) rotate(-90)" text-anchor="middle" font-size="12" fill="{MUTED}">PC2 · {ve[1]:.0f}%</text>')
-    legend = " ".join(f'<span><span class="swatch" style="background:{COLORS[g]}"></span>{LABEL.get(g, g)}</span>' for g in ORDER[ds])
+    legend = " ".join(f'<span data-group="{LABEL.get(g, g)}"><span class="swatch" style="background:{COLORS[g]}"></span>{LABEL.get(g, g)}</span>' for g in ORDER[ds])
     return (f'<figure class="pca-panel"><h3>{TITLE[ds]}</h3>'
             f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="{TITLE[ds]}: samples by their first two principal components">{"".join(out)}</svg>'
             f'<p class="legend">{legend}</p></figure>')

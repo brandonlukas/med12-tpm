@@ -133,6 +133,13 @@ with sync_playwright() as p:
     pg.goto(BASE + "methods.html", wait_until="domcontentloaded")
     check(pg.locator(".pca svg circle").count() == 40, f"PCA panels show all 40 samples: {pg.locator('.pca svg circle').count()}")
     check(pg.locator(".pca-panel").count() == 3, "one PCA panel per dataset")
+    pg.hover(".pca-panel >> nth=0 >> circle >> nth=0")
+    pg.wait_for_selector(".tip:not([hidden])")
+    check("Patient" in pg.inner_text(".tip") and "PC1" in pg.inner_text(".tip"), f"PCA hover label: {pg.inner_text('.tip').replace(chr(10), ' | ')}")
+    check(pg.locator(".pca-panel >> nth=0 >> line.pair.lit").count() == 1, "the hovered sample's patient line lights up")
+    pg.hover("#h-table") if pg.locator("#h-table").count() else pg.mouse.move(5, 5)
+    pg.wait_for_selector(".tip[hidden]", state="attached")
+    check(True, "PCA hover label hides on leave")
 
     # ---- Downloads page and the nav
     pg.goto(BASE + "downloads.html", wait_until="networkidle")
