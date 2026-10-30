@@ -35,8 +35,8 @@ const DATASET_PAPER = { JCI_tissue: "zuberi", NC_2D: "buyukcelebi", NC_3D_sphero
 const GEO = { JCI_tissue: "GSE204969", NC_2D: "GSE226014", NC_3D_spheroid: "GSE226016" };
 const geoLink = (acc) => `https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=${acc}`;
 const DATASET_TEXT = {
-  JCI_tissue: "10 patients, leiomyoma and matched myometrium; 6 LM carry MED12 G44D.",
-  NC_2D: "MED12-edited myometrial cells; 3 replicates per line.",
+  JCI_tissue: "10 patients, leiomyoma and matched myometrium; 6 LM carry <i>MED12</i> G44D.",
+  NC_2D: "<i>MED12</i>-edited myometrial cells; 3 replicates per line.",
   NC_3D_spheroid: "The same cells as spheroids; WT has 2 replicates.",
 };
 const GROUP_LABEL = { MM: "MM", LM_wtMED12: "LM, MED12 WT", LM_mutMED12: "LM, MED12 mut" };
@@ -73,7 +73,7 @@ const contrastOption = (ds, c) => `${SHORT_DS[ds] || ds} · ${contrastLabel(c)}`
 const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
 const paperLink = (key) => `<a href="${PAPERS[key].url}" title="${esc(PAPERS[key].title)}">${esc(PAPERS[key].short)}</a>`;
 // one line per dataset; the papers and GEO series are linked on the Overview and Methods pages
-const datasetNote = (id) => esc(DATASET_TEXT[id] || "");
+const datasetNote = (id) => DATASET_TEXT[id] || "";
 const genesLink = (names) => `genes.html#genes=${names.map(encodeURIComponent).join(",")}`;
 const shortId = (id) => id.split(".")[0];
 

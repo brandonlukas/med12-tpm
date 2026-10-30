@@ -6,7 +6,7 @@
 <title>Methods · MED12 RNA-seq Explorer</title>
 <meta name="description" content="How the three MED12 RNA-seq datasets were reprocessed: sources, what the values mean, DESeq2 designs, downloads, the nf-core/rnaseq pipeline and how to reproduce everything.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=be9a0f82">
+<link rel="stylesheet" href="style.css?v=46fc495c">
 </head>
 <body>
 <header class="site-header">
@@ -29,13 +29,13 @@
 <div class="scroll"><table>
   <tr><th>Dataset</th><th>Paper</th><th>GEO</th><th>Samples</th><th>Reads</th></tr>
   <tr><td>Tissue</td><td><a href="https://doi.org/10.1172/jci.insight.171305">Zuberi et al., JCI Insight 2023</a></td><td><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE204969">GSE204969</a></td>
-      <td>10 patients, leiomyoma (LM) and matched myometrium (MM); 6 LM MED12 G44D mutant, 4 LM wild-type</td><td>single-end 75 bp</td></tr>
+      <td>10 patients, leiomyoma (LM) and matched myometrium (MM); 6 LM <i>MED12</i> G44D mutant, 4 LM wild-type</td><td>single-end 75 bp</td></tr>
   <tr><td>2D cells</td><td><a href="https://doi.org/10.1038/s41467-023-39684-y">Buyukcelebi et al., Nat Commun 2023</a></td><td><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226014">GSE226014</a></td>
-      <td>hTERT-immortalized myometrial smooth muscle cells: unedited (WT), MED12 knock-out (KO), two MED12 G44N mutant clones (Mut1, Mut2); 3 replicates each</td><td>paired-end 2×75 bp</td></tr>
+      <td>hTERT-immortalized myometrial smooth muscle cells: unedited (WT), <i>MED12</i> knock-out (KO), two <i>MED12</i> G44N mutant clones (Mut1, Mut2); 3 replicates each</td><td>paired-end 2×75 bp</td></tr>
   <tr><td>3D spheroids</td><td><a href="https://doi.org/10.1038/s41467-023-39684-y">Buyukcelebi et al., Nat Commun 2023</a></td><td><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226016">GSE226016</a></td>
       <td>WT (2 replicates), Mut1 and Mut2 (3 each)</td><td>paired-end 2×151 bp</td></tr>
 </table></div>
-<p><b>Genotype correction.</b> GEO lists the MED12 genotypes of patients 1007 and 1008 swapped. Following the
+<p><b>Genotype correction.</b> GEO lists the <i>MED12</i> genotypes of patients 1007 and 1008 swapped. Following the
   study authors, 1008 LM is the G44D mutant and 1007 LM is wild-type. The sample table keeps GEO's label in a
   separate column, <code>genotype_as_listed_on_GEO_(incorrect)</code>.</p>
 <p>Sample table with GSM and SRR accessions: <a href="https://github.com/brandonlukas/med12-tpm/releases/download/v1.0/sample_info.csv">sample_info.csv</a>
@@ -62,14 +62,14 @@
 <div class="scroll"><table>
   <tr><th>Dataset</th><th>Design</th><th>Comparisons</th></tr>
   <tr><td>Tissue</td><td><code>~ patient + tissue</code></td><td>LM vs MM, all 10 pairs</td></tr>
-  <tr><td>Tissue</td><td><code>~ patient + group</code>, group = MM, LM MED12 WT, LM MED12 mut</td>
+  <tr><td>Tissue</td><td><code>~ patient + group</code>, group = MM, LM <i>MED12</i> WT, LM <i>MED12</i> mut</td>
       <td>LM mut vs MM; LM WT vs MM; LM mut vs LM WT</td></tr>
   <tr><td>2D cells</td><td><code>~ group</code></td><td>KO, Mut1, Mut2, each vs WT</td></tr>
   <tr><td>3D spheroids</td><td><code>~ group</code></td><td>Mut1, Mut2, each vs WT</td></tr>
 </table></div>
 <p>The patient term pairs each leiomyoma with its own myometrium, the multi-gene analogue of a paired t-test.
   Because every patient contributes a myometrium baseline, LM mut vs LM WT asks whether the leiomyoma-versus-myometrium
-  change differs between MED12-mutant and wild-type tumours, although the two kinds of tumour come from different
+  change differs between <i>MED12</i>-mutant and wild-type tumours, although the two kinds of tumour come from different
   patients.</p>
 <p>Caveats: the tissue comparisons by genotype use 6 mutant and 4 wild-type patients; the spheroid WT group has
   2 replicates. No batch information (preparation or sequencing run) is recorded in GEO or SRA for any dataset.

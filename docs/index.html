@@ -6,7 +6,7 @@
 <title>MED12 RNA-seq Explorer</title>
 <meta name="description" content="Three public RNA-seq studies of MED12-mutant uterine fibroids, reprocessed together: patient tumours with matched myometrium, and MED12-edited myometrial cells in 2D and 3D culture. Look up any gene.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=be9a0f82">
+<link rel="stylesheet" href="style.css?v=46fc495c">
 <script>
   // links made before the overview existed pointed the explorer's gene hash at this page
   if (/(^|[#&])genes?=/.test(location.hash)) location.replace("genes.html" + location.hash);
@@ -26,7 +26,7 @@
 </header>
 
 <main class="wrap">
-  <p class="lede big">Gene expression across three public RNA-seq studies of MED12-mutant uterine fibroids: tumours
+  <p class="lede big">Gene expression across three public RNA-seq studies of <i>MED12</i>-mutant uterine fibroids: tumours
     with each patient's own myometrium, and myometrial cells engineered to carry a <i>MED12</i> codon-44 mutation,
     grown in 2D and as spheroids.</p>
 
@@ -203,8 +203,8 @@
         <text x="880" y="44" text-anchor="middle">3D spheroids</text>
       </g>
       <g font-size="14" fill="#5c6170">
-        <text x="112" y="269" text-anchor="end">MED12 G44D</text>
-        <text x="152" y="64" text-anchor="end">MED12 wild-type</text>
+        <text x="112" y="269" text-anchor="end"><tspan font-style="italic">MED12</tspan> G44D</text>
+        <text x="152" y="64" text-anchor="end"><tspan font-style="italic">MED12</tspan> wild-type</text>
         <text x="568" y="198" text-anchor="middle">CRISPR editing</text>
         <text x="610" y="243" text-anchor="middle">WT</text><text x="650" y="243" text-anchor="middle">KO</text><text x="690" y="243" text-anchor="middle">Mut1</text><text x="730" y="243" text-anchor="middle">Mut2</text>
       </g>
@@ -212,7 +212,7 @@
     <!-- design:end -->
     </div>
     <figcaption id="design-cap">From each of 10 patients, a leiomyoma and the myometrium next to it; 6 of the tumours
-      carry MED12 G44D, 4 are wild-type. The four cell lines were each grown in 2D, and WT, Mut1 and Mut2 also as
+      carry <i>MED12</i> G44D, 4 are wild-type. The four cell lines were each grown in 2D, and WT, Mut1 and Mut2 also as
       spheroids. The colours are the ones used for these groups throughout the site.</figcaption>
   </figure>
 
@@ -226,7 +226,7 @@
       (<a href="https://doi.org/10.1038/s41467-023-39684-y">Buyukcelebi et al., Nat Commun 2023</a>;
       <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226014">GSE226014</a>,
       <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226016">GSE226016</a>) asks the question the
-      other way round: put a codon-44 mutation (G44N) into myometrial cells, or remove MED12 altogether, and see what
+      other way round: put a codon-44 mutation (G44N) into myometrial cells, or remove <i>MED12</i> altogether, and see what
       changes. Side by side, they show whether a gene's behaviour in the tumour is reproduced in the model, and
       whether that depends on how the cells are grown.</p>
     <p>All 40 samples went through one pipeline, so values are comparable within each dataset and genes can be compared
@@ -243,7 +243,7 @@
     <a href="https://github.com/brandonlukas/med12-tpm">Code and downloads on GitHub</a>
   </div>
 </footer>
-<script src="common.js?v=be9a0f82"></script>
-<script src="overview.js?v=be9a0f82"></script>
+<script src="common.js?v=46fc495c"></script>
+<script src="overview.js?v=46fc495c"></script>
 </body>
 </html>

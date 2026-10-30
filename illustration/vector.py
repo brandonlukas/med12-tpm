@@ -326,8 +326,8 @@ def labels():
         <text x="880" y="44" text-anchor="middle">3D spheroids</text>
       </g>
       <g font-size="14" fill="#5c6170">
-        <text x="112" y="269" text-anchor="end">MED12 G44D</text>
-        <text x="152" y="64" text-anchor="end">MED12 wild-type</text>
+        <text x="112" y="269" text-anchor="end"><tspan font-style="italic">MED12</tspan> G44D</text>
+        <text x="152" y="64" text-anchor="end"><tspan font-style="italic">MED12</tspan> wild-type</text>
         <text x="568" y="198" text-anchor="middle">CRISPR editing</text>
         {line_labels}
       </g>"""
