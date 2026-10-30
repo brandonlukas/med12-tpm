@@ -8,7 +8,8 @@
 #   NC_2D, NC_3D_spheroid: ~ group, each clone vs WT.
 # Input: length-scaled counts from nf-core (tximport countsFromAbundance =
 # "lengthScaledTPM"), which tximport recommends for count-matrix DESeq2.
-# Output: deliverables/de/<dataset>__<contrast>.csv
+# Output: deliverables/de/<dataset>__<contrast>.csv (log2FoldChange unshrunken,
+# log2FC_shrunk from apeglm)
 # Usage: Rscript deseq2.R [counts.tsv]
 suppressPackageStartupMessages({
     library(DESeq2)
@@ -51,9 +52,19 @@ plan <- list(
     )
 )
 
-write_de <- function(dds, contrast, dataset, name) {
-    res <- results(dds, contrast = contrast)
+# log2FC_shrunk: apeglm, which needs the contrast as a model coefficient, so the
+# factor is releveled to make the denominator the reference. p-values come from
+# the unshrunken Wald test either way.
+write_de <- function(dds, var, num, den, dataset, name) {
+    if (levels(dds[[var]])[1] != den) {
+        dds[[var]] <- relevel(dds[[var]], den)
+        dds <- nbinomWaldTest(dds, quiet = TRUE)
+    }
+    coef <- sprintf("%s_%s_vs_%s", var, num, den)
+    res <- results(dds, name = coef)
+    shr <- lfcShrink(dds, coef = coef, type = "apeglm", quiet = TRUE)
     dt <- data.table(gene_id = rownames(res), as.data.frame(res))
+    dt[, log2FC_shrunk := shr$log2FoldChange]
     dt <- merge(genes, dt, by = "gene_id", sort = FALSE)
     dt[, `:=`(dataset = dataset, contrast = name)]
     setorder(dt, pvalue, na.last = TRUE)
@@ -76,10 +87,13 @@ for (ds in names(plan)) {
     if (ds == "JCI_tissue") {
         meta$patient <- factor(meta$patient)
         meta$tissue <- factor(meta$tissue, levels = c("MM", "LM"))
-        write_de(fit(meta, ~ patient + tissue), c("tissue", "LM", "MM"), ds, "LM_vs_MM")
+        write_de(fit(meta, ~ patient + tissue), "tissue", "LM", "MM", ds, "LM_vs_MM")
         dds <- fit(meta, ~ patient + group)
     } else {
         dds <- fit(meta, ~ group)
     }
-    for (nm in names(p$contrasts)) write_de(dds, c("group", p$contrasts[[nm]]), ds, nm)
+    for (nm in names(p$contrasts)) {
+        k <- p$contrasts[[nm]]
+        write_de(dds, "group", k[1], k[2], ds, nm)
+    }
 }

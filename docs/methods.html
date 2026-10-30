@@ -10,7 +10,7 @@
 <header>
   <div class="wrap">
     <h1>MED12 RNA-seq Explorer</h1>
-    <nav><a href="index.html">Explorer</a><a href="methods.html" aria-current="page">Methods</a></nav>
+    <nav><a href="index.html">Explorer</a><a href="de.html">DE results</a><a href="methods.html" aria-current="page">Methods</a></nav>
   </div>
 </header>
 <main class="wrap prose">
@@ -75,6 +75,8 @@ skip_biotype_qc: true
 skip_deseq2_qc: true</code></pre>
 
 <h3>Expression values</h3>
+<p>Expression percentile: where a gene's mean TPM in a group ranks among the 19,350 protein-coding genes with
+  nonzero TPM in some sample (GENCODE <code>gene_type</code>).</p>
 <p>The explorer plots gene-level TPM from Salmon. TPM sums to one million within each sample, so it compares
   genes within a sample and samples within a dataset. It is not comparable across the three datasets: tissue
   and cultured cells, different library preparations and read lengths, and the 2D library is unstranded.</p>
@@ -82,7 +84,9 @@ skip_deseq2_qc: true</code></pre>
 <h2>Differential expression</h2>
 <p>DESeq2 1.50.2 (R 4.5.2) on Salmon's length-scaled gene counts, fitted separately in each dataset. Before each fit,
   a gene was kept if it had at least 10 counts in at least as many samples as the smallest group. p-values are Wald
-  tests; p<sub>adj</sub> is Benjamini–Hochberg. Fold changes are not shrunk.</p>
+  tests; p<sub>adj</sub> is Benjamini–Hochberg. The site shows fold changes shrunken with apeglm
+  (<code>lfcShrink(type = "apeglm")</code>), which pulls noisy low-count estimates toward zero; the tables keep both the
+  shrunken (<code>log2FC_shrunk</code>) and the unshrunken (<code>log2FoldChange</code>) values.</p>
 <table>
   <tr><th>Dataset</th><th>Design</th><th>Comparisons</th></tr>
   <tr><td>Tissue</td><td><code>~ patient + tissue</code></td><td>LM vs MM, all 10 pairs</td></tr>

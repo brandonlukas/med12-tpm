@@ -1,24 +1,30 @@
 #!/usr/bin/env python3
-"""Write the gene explorer's data into docs/data/ (served by GitHub Pages).
+"""Write the explorer's data into docs/data/ (served by GitHub Pages).
 
-- meta.json: datasets, groups, samples (column order of every TPM array) and contrasts
-- genes.json: [gene_id, gene_name] for every gene with nonzero TPM in some sample
-- chunks/<i>.json: TPM and DESeq2 results for genes i*CHUNK .. (i+1)*CHUNK-1 of
-  genes.json, so the page fetches ~100 kB per gene lookup instead of everything.
+- meta.json: datasets, groups, samples (column order of every TPM array), contrasts
+- genes.json: [gene_id, gene_name, gene_type] for every gene with nonzero TPM somewhere
+- chunks/<i>.json: per gene, TPM per sample, expression percentile per group and the
+  DESeq2 results, for genes i*CHUNK .. (i+1)*CHUNK-1 of genes.json, so the explorer
+  fetches ~100 kB per gene instead of everything
+- de/<dataset>__<contrast>.json: one comparison as columns, for the DE results page
 
 Run after the pipeline and deseq2.R:
     uv run --with pandas python build_site_data.py
 """
+import gzip
 import json
 import math
+import re
 from pathlib import Path
 
 import pandas as pd
 
 CHUNK = 256
+GTF = "/home/brandon/data/reference_genomes/gencode_v44/gencode.v44.primary_assembly.annotation.gtf.gz"
 here = Path(__file__).resolve().parent
 out = here / "docs/data"
-(out / "chunks").mkdir(parents=True, exist_ok=True)
+for d in ("chunks", "de"):
+    (out / d).mkdir(parents=True, exist_ok=True)
 
 DATASETS = {
     "JCI_tissue": {
@@ -46,47 +52,77 @@ def sig(x, digits=3):
     return float(f"{x:.{digits}g}")
 
 
+def dump(obj, path):
+    path.write_text(json.dumps(obj, separators=(",", ":")))
+
+
+gene_type = {}
+with gzip.open(GTF, "rt") as f:
+    for line in f:
+        if "\tgene\t" in line:
+            attrs = line.split("\t")[8]
+            gene_type[re.search(r'gene_id "([^"]+)"', attrs)[1]] = re.search(r'gene_type "([^"]+)"', attrs)[1]
+
 samples = pd.read_csv(here / "samples.tsv", sep="\t", dtype=str)
 samples["patient"] = samples["sample"].str.extract(r"^tissue_(\d+)_")[0]
 tpm = pd.read_csv(here / "results/salmon/salmon.merged.gene_tpm.tsv", sep="\t")
 tpm = tpm[tpm[samples["sample"]].sum(axis=1) > 0].reset_index(drop=True)
+tpm["gene_type"] = tpm["gene_id"].map(gene_type)
+index = {g: i for i, g in enumerate(tpm["gene_id"])}
+coding = tpm["gene_type"] == "protein_coding"
 
-meta = {"chunk": CHUNK, "datasets": []}
+# Percentile of each gene's group-mean TPM among protein-coding genes' group means:
+# "is this gene expressed well?" judged against the genes people usually target.
+pct = {}
+meta = {"chunk": CHUNK, "n_coding": int(coding.sum()), "datasets": []}
 for ds, cfg in DATASETS.items():
     s = samples[samples["dataset"] == ds].copy()
     s["group"] = pd.Categorical(s["group"], cfg["groups"])
     s = s.sort_values(["group", "sample"])
     cfg["samples"] = s["sample"].tolist()
+    for g in cfg["groups"]:
+        means = tpm[s.loc[s["group"] == g, "sample"]].mean(axis=1)
+        ref = means[coding].sort_values().to_numpy()
+        pct[ds, g] = (ref.searchsorted(means.to_numpy(), side="right") / len(ref) * 100).round().astype(int)
     meta["datasets"].append({
         "id": ds, "label": cfg["label"], "groups": cfg["groups"], "contrasts": cfg["contrasts"],
         "samples": [{"sample": r.sample, "group": r.group, "patient": r.patient if isinstance(r.patient, str) else None}
                     for r in s.itertuples()],
     })
-(out / "meta.json").write_text(json.dumps(meta, separators=(",", ":")))
-(out / "genes.json").write_text(json.dumps(tpm[["gene_id", "gene_name"]].values.tolist(), separators=(",", ":")))
+dump(meta, out / "meta.json")
+dump(tpm[["gene_id", "gene_name", "gene_type"]].values.tolist(), out / "genes.json")
 
-# de[(dataset, contrast)] = DataFrame indexed by gene_id
+# per comparison: columns for the DE page, plus a lookup for the chunks
 de = {}
 for ds, cfg in DATASETS.items():
     for c in cfg["contrasts"]:
-        d = pd.read_csv(here / f"deliverables/de/{ds}__{c}.csv").set_index("gene_id")
-        de[ds, c] = d[["baseMean", "log2FoldChange", "padj"]]
+        d = pd.read_csv(here / f"deliverables/de/{ds}__{c}.csv")
+        d = d[d["gene_id"].isin(index)]
+        de[ds, c] = d.set_index("gene_id")
+        dump({
+            "g": [index[g] for g in d["gene_id"]],
+            "base": [sig(x) for x in d["baseMean"]],
+            "lfc": [sig(x) for x in d["log2FC_shrunk"]],
+            "mle": [sig(x) for x in d["log2FoldChange"]],
+            "p": [sig(x, 2) for x in d["pvalue"]],
+            "padj": [sig(x, 2) for x in d["padj"]],
+        }, out / f"de/{ds}__{c}.json")
 
 for i in range(0, len(tpm), CHUNK):
-    block = tpm.iloc[i:i + CHUNK]
     chunk = {}
-    for row in block.to_dict("records"):
+    for j, row in enumerate(tpm.iloc[i:i + CHUNK].to_dict("records"), start=i):
         g = row["gene_id"]
-        entry = {"tpm": {}, "de": {}}
+        entry = {"tpm": {}, "pct": {}, "de": {}}
         for ds, cfg in DATASETS.items():
             entry["tpm"][ds] = [sig(row[s]) for s in cfg["samples"]]
+            entry["pct"][ds] = [int(pct[ds, grp][j]) for grp in cfg["groups"]]
             entry["de"][ds] = {}
             for c in cfg["contrasts"]:
                 d = de[ds, c]
                 if g in d.index:  # absent = removed by the expression filter
                     r = d.loc[g]
-                    entry["de"][ds][c] = [sig(r.baseMean), sig(r.log2FoldChange), sig(r.padj, 2)]
+                    entry["de"][ds][c] = [sig(r.baseMean), sig(r.log2FC_shrunk), sig(r.padj, 2), sig(r.log2FoldChange)]
         chunk[g] = entry
-    (out / f"chunks/{i // CHUNK}.json").write_text(json.dumps(chunk, separators=(",", ":")))
+    dump(chunk, out / f"chunks/{i // CHUNK}.json")
 
-print(f"{len(tpm)} genes in {math.ceil(len(tpm) / CHUNK)} chunks -> {out}")
+print(f"{len(tpm)} genes ({int(coding.sum())} protein-coding) in {math.ceil(len(tpm) / CHUNK)} chunks -> {out}")

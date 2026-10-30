@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DE results · MED12 RNA-seq Explorer</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>MED12 RNA-seq Explorer</h1>
+    <nav><a href="index.html">Explorer</a><a href="de.html" aria-current="page">DE results</a><a href="methods.html">Methods</a></nav>
+  </div>
+</header>
+<main class="wrap">
+  <p class="lede">Every DESeq2 comparison, to find genes you might not have thought to check, or to see where a gene ranks.
+    Click a point or a row to select a gene; its name opens it in the <a href="index.html">explorer</a>.</p>
+
+  <div class="controls">
+    <div class="field">
+      <label for="contrast">Comparison</label>
+      <select id="contrast"></select>
+    </div>
+    <div class="field">
+      <label>Significant if</label>
+      <span class="thresholds">p<sub>adj</sub> &lt; <input id="alpha" type="number" value="0.05" min="0" max="1" step="0.01">
+        and |log<sub>2</sub>FC| ≥ <input id="lfcmin" type="number" value="1" min="0" step="0.5"></span>
+    </div>
+    <div class="search field">
+      <label for="find">Find a gene</label>
+      <input id="find" type="search" autocomplete="off" spellcheck="false" placeholder="e.g. CDK8">
+      <ul id="suggest" role="listbox" hidden></ul>
+    </div>
+  </div>
+  <p id="summary" class="status">Loading…</p>
+  <p id="picked" class="picked" hidden></p>
+
+  <div id="volcano" class="volcano"></div>
+
+  <section>
+    <h2>All tested genes</h2>
+    <div class="tablebar">
+      <input id="filter" type="search" placeholder="Filter by gene name" spellcheck="false">
+      <label><input id="sigonly" type="checkbox"> significant only</label>
+      <button id="download" type="button">Download CSV</button>
+      <span id="count" class="muted"></span>
+    </div>
+    <div class="scroll"><table id="detable" class="sortable"></table></div>
+    <div class="pager"><button id="prev" type="button">‹ Previous</button><span id="page" class="muted"></span><button id="next" type="button">Next ›</button></div>
+  </section>
+
+  <section>
+    <h2>Agreement between two comparisons</h2>
+    <p class="muted">Shrunken log<sub>2</sub>FC of every gene tested in both, e.g. whether the change in MED12-mutant tumours
+      matches the change in MED12-mutant cells. Uses the significance thresholds above.</p>
+    <div class="controls">
+      <div class="field"><label for="ax">x axis</label><select id="ax"></select></div>
+      <div class="field"><label for="ay">y axis</label><select id="ay"></select></div>
+    </div>
+    <p id="agree-summary" class="status"></p>
+    <div id="agree" class="agree"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Notes</h2>
+    <ul>
+      <li>log<sub>2</sub>FC is the first group relative to the second, shrunken with apeglm: genes with few counts or high
+        variance are pulled toward zero, so the volcano and rankings are led by robust changes. The table also shows the
+        unshrunken estimate. p-values are DESeq2 Wald tests and are the same either way.</li>
+      <li>Rank orders the tested genes by p-value (1 = most significant). Genes removed by the expression filter, or whose
+        p<sub>adj</sub> DESeq2 left empty (independent filtering), are listed without p<sub>adj</sub> and are not plotted.</li>
+      <li>Points at the top edge of the volcano have p<sub>adj</sub> below the smallest value shown (drawn as triangles).</li>
+    </ul>
+  </section>
+</main>
+<footer class="wrap">Data: GEO GSE204969, GSE226014, GSE226016. Code: <a href="https://github.com/brandonlukas/med12-tpm">github.com/brandonlukas/med12-tpm</a></footer>
+<script src="common.js"></script>
+<script src="de.js"></script>
+</body>
+</html>

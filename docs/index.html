@@ -11,18 +11,21 @@
 <header>
   <div class="wrap">
     <h1>MED12 RNA-seq Explorer</h1>
-    <nav><a href="index.html" aria-current="page">Explorer</a><a href="methods.html">Methods</a></nav>
+    <nav><a href="index.html" aria-current="page">Explorer</a><a href="de.html">DE results</a><a href="methods.html">Methods</a></nav>
   </div>
 </header>
 <main class="wrap">
   <p class="lede">Expression of any gene in three public MED12 datasets: leiomyoma and matched myometrium,
-    and MED12-edited cells in 2D culture and 3D spheroids. All 40 samples were reprocessed from FASTQ
-    the same way; see <a href="methods.html">Methods</a>.</p>
+    and MED12-edited cells in 2D culture and 3D spheroids. Add several genes to compare them with each other.
+    All 40 samples were reprocessed from FASTQ the same way; see <a href="methods.html">Methods</a>.</p>
 
   <div class="controls">
     <div class="search">
-      <label for="gene">Gene</label>
-      <input id="gene" type="search" autocomplete="off" spellcheck="false" placeholder="Symbol or Ensembl ID, e.g. MED12">
+      <label for="gene">Genes</label>
+      <div class="chipbox" onclick="document.getElementById('gene').focus()">
+        <span id="chips"></span>
+        <input id="gene" type="search" autocomplete="off" spellcheck="false" placeholder="Symbol or Ensembl ID, e.g. MED12">
+      </div>
       <ul id="suggest" role="listbox" hidden></ul>
     </div>
     <div class="scale" role="radiogroup" aria-label="Y axis">
@@ -30,6 +33,7 @@
       <label><input type="radio" name="scale" value="lin"> TPM</label>
     </div>
   </div>
+  <div class="presets"><span class="muted">Gene sets:</span> <span id="presets"></span></div>
   <p id="status" class="status">Loading gene list…</p>
 
   <div id="panels"></div>
@@ -40,9 +44,11 @@
       <li>Each point is one sample. In the tissue panel, a grey line joins each patient's myometrium and leiomyoma.</li>
       <li>TPM compares genes within a sample and samples within a dataset. Do not compare values across the three panels:
         tissue and cultured cells, different library preparations and read lengths.</li>
-      <li>DESeq2 statistics are computed within each dataset. log<sub>2</sub>FC is the first group relative to the second;
-        p<sub>adj</sub> is Benjamini–Hochberg over all genes tested in that comparison.
-        A dash means the gene was removed by the expression filter (too few counts to test).</li>
+      <li>Expression percentile: where the gene's mean TPM in that group ranks among all protein-coding genes
+        (50 = median gene, 90 = top 10%).</li>
+      <li>DESeq2 statistics are computed within each dataset. log<sub>2</sub>FC is the first group relative to the second,
+        shrunken with apeglm so that noisy low-count genes are pulled toward zero; p<sub>adj</sub> is Benjamini–Hochberg
+        over all genes tested in that comparison. A dash means the gene was removed by the expression filter (too few counts to test).</li>
       <li>Brackets mark the DESeq2 comparisons: * p<sub>adj</sub> &lt; 0.05, ** &lt; 0.01, *** &lt; 0.001, ns not significant;
         hover a label for the exact value. LM vs MM pooled over genotype is in the table only.</li>
       <li>The spheroid WT group has 2 replicates.</li>
@@ -50,6 +56,7 @@
   </section>
 </main>
 <footer class="wrap">Data: GEO GSE204969, GSE226014, GSE226016. Code: <a href="https://github.com/brandonlukas/med12-tpm">github.com/brandonlukas/med12-tpm</a></footer>
+<script src="common.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
