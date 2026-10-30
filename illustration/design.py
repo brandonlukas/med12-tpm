@@ -23,51 +23,64 @@ for name in ("arial.ttf", "arialbd.ttf", "ariali.ttf"):
 
 from ruled import *      # noqa: E402
 from sketched import *   # noqa: E402
+from sketched import _spline, YAW   # noqa: E402
+import numpy as np   # noqa: E402
 
 # The site's role colours, so the drawing means what the plots mean: the
 # MED12-mutant material takes the plots' vermilion, the reference their grey.
 MUTANT, REFERENCE = "#D55E00", "#8A8F9A"
 
+# A coronal section of the uterus is a flat shape, so it is drawn as faces in the one
+# plane that the house view shows without skew (perpendicular to the line of sight):
+# a point (u, w) of the section lands on the page at (u, w). The cells and the two
+# culture formats are solids in front of it.
+E1 = np.array([np.cos(YAW), 0, np.sin(YAW)])
+E2 = np.array([-0.187, 0.927, -0.324])
+at = lambda u, w: tuple(u * E1 + w * E2)
+curve = lambda pts: [at(u, w) for u, w in _spline(pts, 8)]
+
 scene = Scene()
-scene.box(0, 0, 0, 94, 2, 46)                                # the bench
+# the uterus: myometrium (the reference tissue, grey), the cavity, a leiomyoma in the wall
+wall = [(0, -24), (-6, -22), (-11, -12), (-16, 0), (-21, 12), (-18, 21), (-8, 25.5), (0, 26),
+        (8, 25.5), (18, 21), (21, 12), (16, 0), (11, -12), (6, -22), (0, -24)]
+cavity = [(0, -7), (-5, 3), (-11, 13), (-5, 15.5), (0, 15), (5, 15.5), (11, 13), (5, 3), (0, -7)]
+scene.face(curve(wall), tone=REFERENCE, outline=True)
+scene.face(curve(cavity), tone="#FFFFFF")
+scene.ball(*at(-14.5, 8), 5.4, colour=MUTANT)
 
-# the sequencer, at the back, with a screen on its front
+# cells derived from the myometrium and edited at MED12 codon 44
+for u, w in ((38.5, 3.6), (43, 1.4), (39.8, -3)):
+    scene.ball(*at(u, w), 2.3, colour=MUTANT)
+
+# 2D culture: a flat dish, the cells spread on its floor
+dx, dy, dz = at(62, -17)
 with scene.object():
-    scene.box(48, 2, 4, 26, 14, 14)
-    scene.face([(51, 9.5, 18.05), (65, 9.5, 18.05), (65, 13.5, 18.05), (51, 13.5, 18.05)], tone="dark")
-
-# tissue from a patient: a block of myometrium with a leiomyoma on it
-scene.box(6, 2, 26, 24, 7, 15, colour=REFERENCE)
-scene.ball(22, 12.2, 35, 4.4, colour=MUTANT)
-
-# 2D culture: a dish of edited cells
-with scene.object():
-    scene.cylinder(47, 2, 34, 7.5, 2.4)
-    scene.disc(47, 4.4, 34, 6.6, tone="light")
-for dx, dz in ((-2.6, -1.4), (1.9, -2.7), (-0.5, 2.3), (3.3, 1.3)):
-    scene.ball(47 + dx, 5.3, 34 + dz, 0.95, colour=MUTANT)
+    scene.cylinder(dx, dy, dz, 9.5, 2.6)
+    scene.disc(dx, dy + 2.6, dz, 8.6, tone="light")
+for ou, ow in ((-4.6, -1.8), (-1.2, -4.2), (2.6, -3.1), (-2.4, 2.4), (1.4, 0.6), (4.8, 2.2), (-5.4, 3.4)):
+    scene.ball(dx + ou, dy + 3.5, dz + ow, 1.0, colour=MUTANT)
 
 # 3D culture: a well with spheroids of the same cells
+wx, wy, wz = at(90, -15)
 with scene.object():
-    scene.cylinder(69, 2, 34, 6, 4)
-    scene.disc(69, 6, 34, 5.2, tone="dark")
-for dx, dz in ((-2.3, 0.3), (1.6, -1.7), (1.5, 2.1)):
-    scene.ball(69 + dx, 6.9, 34 + dz, 1.7, colour=MUTANT)
+    scene.cylinder(wx, wy, wz, 7.2, 5)
+    scene.disc(wx, wy + 5, wz, 6.3, tone="dark")
+for ou, ow in ((-2.8, 0.4), (2.0, -2.0), (1.8, 2.6)):
+    scene.ball(wx + ou, wy + 6.1, wz + ow, 2.1, colour=MUTANT)
 
-# what moves: every sample into the sequencer; cells on into spheroid culture
-scene.flow([(29, 7.5, 27), (51.5, 5.5, 18.6)])
-scene.flow([(50, 4.6, 26.6), (58, 5, 18.6)])
-scene.flow([(69, 6.5, 27.8), (65.5, 6.5, 18.6)])
-scene.flow([(55.6, 4.6, 34), (62.2, 4.6, 34)])
+# what moves: cells taken from the myometrium, then grown two ways
+scene.flow([(21, 1), (28.5, 2.8), (34.6, 2.4)])
+scene.flow([(42.3, -4.2), (49, -9.5), (54, -13)])
+scene.flow([(45.2, 0.4), (64, -1.5), (83, -8.5)])
 
 # five labels
-scene.label("Leiomyoma", (3, 22, 36), (19.5, 15.2, 34))
-scene.label("Myometrium", (4, -5, 54), (16, 5.5, 41))
-scene.label("MED12-edited cells", (42, -5, 56), (45, 4.4, 40.5))
-scene.label("Spheroids", (80, -3, 50), (71.2, 8.4, 36.5))
-scene.label("RNA-seq", (66, 25, 8), (62, 16, 10))
+scene.label("Leiomyoma", (-31, 22), (-15.5, 11.6), ha="right")
+scene.label("Myometrium", (-31, -13), (-12.2, -13), ha="right")
+scene.label("MED12-edited myometrial cells", (27, 19), (38.6, 5.6))
+scene.label("2D culture", (46, -31), (54.5, -20))
+scene.label("3D spheroids", (102, 3), (91.6, -6.6))
 
-fig = plt.figure(figsize=(89 * MM, 38.6 * MM))
+fig = plt.figure(figsize=(89 * MM, 27 * MM))
 ax = drawing(fig)
 scene.draw(ax)
 box = fit(ax, *columns(1, 6, 89), top=1, bottom=0)
