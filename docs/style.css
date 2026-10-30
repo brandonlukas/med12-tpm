@@ -245,24 +245,17 @@ code { font-family: var(--mono); font-size: .92em; }
 .uses dd { margin: 0; color: var(--text); }
 .prose-block { max-width: 72ch; display: grid; gap: 10px; }
 
-/* design schematic */
-.design { display: grid; gap: 16px; margin: 0; }
-.design-grid { display: grid; grid-template-columns: 1fr 132px 1fr 132px 1fr; gap: 10px; align-items: start; }
-.node { display: grid; gap: 6px; align-content: start; min-width: 0; }
+/* the study-design drawing and the three study notes under it */
+.design { display: grid; gap: 12px; margin: 0; }
+.design img { display: block; width: min(100%, 640px); height: auto; }
+.design figcaption { color: var(--text); font-size: 14px; max-width: 72ch; }
+.design figcaption b { color: var(--ink); }
+.studies { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+@media (max-width: 920px) { .studies { grid-template-columns: 1fr; } }
+.node { display: grid; gap: 6px; align-content: start; min-width: 0; border-top: 2px solid var(--accent-line); padding-top: 10px; }
 .node h3 { font: 400 18px/1.25 var(--serif); }
 .node p { font-size: 14px; }
 .node .cite { color: var(--muted); font-size: 13px; }
-.picto { width: 120px; height: 80px; display: block; color: var(--text); }
-.link { width: 132px; height: 80px; color: var(--muted); display: block; justify-self: center; }
-.link text { font-family: var(--sans); font-size: 11px; fill: var(--muted); }
-.link-v { display: none; }
-@media (max-width: 920px) {
-  .design-grid { grid-template-columns: 1fr; gap: 14px; }
-  .link { display: none; }
-  .link-v { display: flex; gap: 10px; align-items: center; color: var(--muted); font-size: 13px; }
-}
-.design-bar { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 10px 0; font-size: 14px; }
-.design figcaption { color: var(--muted); font-size: 14px; max-width: 72ch; }
 
 /* try a gene */
 .minis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
