@@ -9,12 +9,6 @@ const GENE_SETS = {
 };
 // groups each bracket joins; X_vs_Y names default to [X, Y]. LM_vs_MM pools both
 // LM groups, so it has no single bracket and stays in the table only.
-const CONTRAST_GROUPS = {
-  LM_vs_MM: null,
-  LMmut_vs_MM: ["LM_mutMED12", "MM"],
-  LMwt_vs_MM: ["LM_wtMED12", "MM"],
-  LMmut_vs_LMwt: ["LM_mutMED12", "LM_wtMED12"],
-};
 const stars = (p) => (p < 0.001 ? "***" : p < 0.01 ? "**" : p < 0.05 ? "*" : "ns");
 // the y axis always reaches 10 TPM, so a gene that is barely expressed looks that way
 const FLOOR_TPM = 10;
@@ -35,7 +29,7 @@ const jitter = (k) => ((Math.abs(Math.sin(k * 12.9898) * 43758.5453) % 1) - 0.5)
 const mean = (v) => v.reduce((a, b) => a + b, 0) / v.length;
 const status = (msg, html = false) => { const el = $("status"); el[html ? "innerHTML" : "textContent"] = msg; el.hidden = !msg; };
 // the groups a comparison is about; the pooled LM vs MM involves every group
-const pairFor = (d, c) => (c in CONTRAST_GROUPS ? CONTRAST_GROUPS[c] : c.split("_vs_")) || d.groups;
+const pairFor = (d, c) => contrast(d.id, c).pair || d.groups;
 
 // Linked highlighting: hovering a table row, or one "KO ↓" entry, lights up the points it
 // refers to and dims the rest. hl[dataset] records what each trace (or each point) stands for.
@@ -102,7 +96,7 @@ async function init() {
 
   $("panels").innerHTML = Data.meta.datasets.map((d) => `
     <section class="panel" aria-labeledby="h-${d.id}">
-      <header><h2 id="h-${d.id}">${SHORT_DS[d.id] || d.label}</h2><p class="note">${datasetNote(d.id)}</p></header>
+      <header><h2 id="h-${d.id}">${esc(d.name)}</h2><p class="note">${d.note}</p></header>
       <div class="plot" id="plot-${d.id}"></div>
       <div class="tables" id="tab-${d.id}"></div>
     </section>`).join("");
@@ -331,7 +325,7 @@ function plotOne(d, g) {
     traces.push({
       x: ks.map((k) => xs[k]), y: ks.map((k) => y[k]), mode: "markers", showlegend: false,
       marker: { color: COLORS[grp], size: 10, line: { color: "#fff", width: 1.5 } },
-      text: ks.map((k) => `${sampleLabel(d.samples[k].sample)}<br>TPM ${fmtTPM(tpm[k])}`),
+      text: ks.map((k) => `${sampleLabel(d.samples[k])}<br>TPM ${fmtTPM(tpm[k])}`),
       hovertemplate: "%{text}<extra></extra>",
     });
   }
@@ -350,8 +344,8 @@ function plotOne(d, g) {
 // DESeq2 padj as stars; a gene DESeq2 did not test gets no bracket.
 function brackets(d, de, xi, ymax) {
   const items = [];
-  for (const c of d.contrasts) {
-    const pair = c in CONTRAST_GROUPS ? CONTRAST_GROUPS[c] : c.split("_vs_");
+  for (const { id: c } of d.contrasts) {
+    const pair = contrast(d.id, c).pair;
     const padj = de[c]?.[2];
     if (!pair || padj == null || !(pair[0] in xi) || !(pair[1] in xi)) continue;
     const [lo, hi] = [xi[pair[0]], xi[pair[1]]].sort((a, b) => a - b);
@@ -375,7 +369,7 @@ function brackets(d, de, xi, ymax) {
     const sig = it.padj < 0.05;
     annotations.push({ x: (it.lo + it.hi) / 2, y: yb, yanchor: "bottom", showarrow: false, text: stars(it.padj),
       font: { size: sig ? 15 : 11, color: sig ? INK : MUTED }, yshift: sig ? -2 : 1,
-      hovertext: `${contrastLabel(it.c)}<br>p<sub>adj</sub> ${fmtP(it.padj)}` });
+      hovertext: `${contrastLabel(d.id, it.c)}<br>p<sub>adj</sub> ${fmtP(it.padj)}` });
   }
   return { shapes, annotations, items, top: ymax * 1.02 + levels.length * step + 0.05 * ymax };
 }
@@ -390,9 +384,9 @@ function tableOne(d, g) {
     const v = d.samples.map((s, k) => (s.group === grp ? tpm[k] : null)).filter((x) => x != null);
     return `<tr><td>${groupCell(grp)}</td><td>${fmtTPM(mean(v))}</td><td>${ordinal(g.pct[d.id][gi])}</td></tr>`;
   });
-  const diffs = d.contrasts.map((c) => {
+  const diffs = d.contrasts.map(({ id: c }) => {
     const [, lfc, padj] = de[c] || [];
-    const label = `<a href="de.html#c=${d.id}__${c}&gene=${name}" title="See the whole comparison">${esc(contrastLabel(c))}</a>`;
+    const label = `<a href="de.html#c=${d.id}__${c}&gene=${name}" title="See the whole comparison">${esc(contrastLabel(d.id, c))}</a>`;
     const row = `<tr data-hl-groups="${pairFor(d, c).join(",")}">`;
     if (padj == null) return `${row}<td>${label}</td><td colspan="2" class="dim">not tested</td></tr>`;
     // no direction color here: on this page orange and blue already mean sample groups
@@ -421,7 +415,7 @@ function plotMulti(d, data) {
         const v = g.tpm[d.id][k];
         x.push(n + (gi - (G - 1) / 2) * slot + jitter(k + 31 * n) * slot * 0.5);
         y.push(toY(v));
-        text.push(`${esc(Data.genes[selected[n]][1])} · ${sampleLabel(s.sample)}<br>TPM ${fmtTPM(v)}`);
+        text.push(`${esc(Data.genes[selected[n]][1])} · ${sampleLabel(s)}<br>TPM ${fmtTPM(v)}`);
         pts.push({ g: grp, n });
       });
     });
@@ -437,14 +431,14 @@ function plotMulti(d, data) {
   const base = yTop(Math.max(0, ...traces.flatMap((t) => t.y.filter((v) => v != null))));
   const ref = d.groups[0], star = { x: [], y: [], text: [], pts: [] };
   data.forEach((g, n) => {
-    for (const c of d.contrasts) {
+    for (const { id: c } of d.contrasts) {
       const pair = pairFor(d, c), padj = g.de[d.id][c]?.[2];
       if (pair.length !== 2 || pair[1] !== ref || !d.groups.includes(pair[0]) || padj == null || padj >= 0.05) continue;
       const gi = d.groups.indexOf(pair[0]);
       const ys = d.samples.map((s, k) => (s.group === pair[0] ? toY(g.tpm[d.id][k]) : null)).filter((v) => v != null);
       star.x.push(n + (gi - (G - 1) / 2) * slot);
       star.y.push(Math.max(...ys) + 0.055 * base);
-      star.text.push(`${esc(Data.genes[selected[n]][1])}, ${contrastLabel(c)}<br>p<sub>adj</sub> ${fmtP(padj)}`);
+      star.text.push(`${esc(Data.genes[selected[n]][1])}, ${contrastLabel(d.id, c)}<br>p<sub>adj</sub> ${fmtP(padj)}`);
       star.pts.push({ g: pair[0], n });
     }
   });
@@ -467,13 +461,13 @@ function plotMulti(d, data) {
 // which comparisons call the gene significant, as short labels with the direction
 function changesCell(d, de, n) {
   if (!de || !Object.keys(de).length) return `<span class="dim">not tested</span>`;
-  const hits = d.contrasts.filter((c) => de[c] && de[c][2] < 0.05)
-    .map((c) => `<a class="hl" href="de.html#c=${d.id}__${c}&gene=${encodeURIComponent(Data.genes[selected[n]][1])}" data-hl-gene="${n}" data-hl-groups="${pairFor(d, c).join(",")}" title="See the whole comparison">${esc(contrastShort(c))} ${de[c][1] > 0 ? "↑" : "↓"}</a>`);
+  const hits = d.contrasts.map((k) => k.id).filter((c) => de[c] && de[c][2] < 0.05)
+    .map((c) => `<a class="hl" href="de.html#c=${d.id}__${c}&gene=${encodeURIComponent(Data.genes[selected[n]][1])}" data-hl-gene="${n}" data-hl-groups="${pairFor(d, c).join(",")}" title="See the whole comparison">${esc(contrastShort(d.id, c))} ${de[c][1] > 0 ? "↑" : "↓"}</a>`);
   return hits.length ? hits.join(", ") : `<span class="dim">none</span>`;
 }
 
 function tableMulti(d, data) {
-  const vsWT = d.contrasts.every((c) => c.endsWith("_vs_WT"));
+  const vsWT = d.contrasts.every((k) => k.id.endsWith("_vs_WT"));
   const head = `<tr><th scope="col">Gene</th>${d.groups.map((grp) => `<th scope="col">${groupCell(grp)}</th>`).join("")}
     <th scope="col" class="left">Significant changes${vsWT ? " vs WT" : ""}</th></tr>`;
   const rows = data.map((g, n) => {

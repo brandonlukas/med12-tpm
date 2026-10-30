@@ -1,0 +1,348 @@
+{
+  "_about": "The one list of datasets and comparisons. Read by deseq2.R, merge_salmon.R (via samples.tsv's batch), page_tables.py, pca.R, split_tpm.py, excel_deseq2.py, build_site_data.py (which copies it into docs/data/meta.json for the site) and pca_svg.py. Datasets appear on the site in this order. A comparison: num/den are groups, or LM/MM to pool every LM against MM (fitted with ~ patient + tissue); 'pair' is the two groups its bracket joins on the Genes page (null: no bracket); 'subset' restricts the samples it uses.",
+  "release": "v1.1",
+  "batches": {
+    "_about": "Each batch is one nf-core/rnaseq run (same pipeline version, reference and Salmon index) and its output folder; samples.tsv says which batch a sample belongs to. A batch is never re-run when another is added.",
+    "v1.0": "results",
+    "v1.1": "results_v1.1"
+  },
+  "datasets": [
+    {
+      "id": "JCI_tissue",
+      "name": "Tissue · Zuberi 2023",
+      "sheet": "Zuberi",
+      "paper": "Zuberi et al., JCI Insight 2023",
+      "doi": "10.1172/jci.insight.171305",
+      "note": "Leiomyoma (LM) and matched myometrium (MM) from 10 patients, none treated with hormones in the 6 months before surgery; 6 LM are <i>MED12</i> mutant (G44D), 4 wild-type (WT).",
+      "paired": true,
+      "groups": [
+        "MM",
+        "LM_wtMED12",
+        "LM_mutMED12"
+      ],
+      "contrasts": [
+        {
+          "id": "LM_vs_MM",
+          "num": "LM",
+          "den": "MM",
+          "label": "LM vs MM, all 10 pairs",
+          "short": "LM vs MM",
+          "sides": [
+            "LM",
+            "MM"
+          ],
+          "pair": null,
+          "about": "Leiomyoma vs matched myometrium, all 10 patients (paired by patient)"
+        },
+        {
+          "id": "LMwt_vs_MM",
+          "num": "LM_wtMED12",
+          "den": "MM",
+          "label": "LM WT vs MM",
+          "short": "LM WT vs MM",
+          "sides": [
+            "LM WT",
+            "MM"
+          ],
+          "pair": [
+            "LM_wtMED12",
+            "MM"
+          ],
+          "about": "MED12 wild-type leiomyoma (4) vs myometrium (paired by patient)"
+        },
+        {
+          "id": "LMmut_vs_MM",
+          "num": "LM_mutMED12",
+          "den": "MM",
+          "label": "LM mut vs MM",
+          "short": "LM mut vs MM",
+          "sides": [
+            "LM mut",
+            "MM"
+          ],
+          "pair": [
+            "LM_mutMED12",
+            "MM"
+          ],
+          "about": "MED12-mutant leiomyoma (6) vs myometrium (paired by patient)"
+        },
+        {
+          "id": "LMmut_vs_LMwt",
+          "num": "LM_mutMED12",
+          "den": "LM_wtMED12",
+          "label": "LM mut vs LM WT",
+          "short": "LM mut vs LM WT",
+          "sides": [
+            "LM mut",
+            "LM WT"
+          ],
+          "pair": [
+            "LM_mutMED12",
+            "LM_wtMED12"
+          ],
+          "about": "MED12-mutant vs wild-type leiomyoma, each relative to its own myometrium"
+        }
+      ],
+      "geo": [
+        "GSE204969"
+      ],
+      "reads": "single-end 75 bp",
+      "methods": "10 patients, leiomyoma (LM) and matched myometrium (MM); 6 LM <i>MED12</i> G44D mutant, 4 LM wild-type; no hormone treatment in the 6 months before surgery"
+    },
+    {
+      "id": "Moyo_tissue",
+      "name": "Tissue · Moyo 2020",
+      "sheet": "Moyo",
+      "paper": "Moyo et al., Nat Commun 2020",
+      "doi": "10.1038/s41467-020-14701-6",
+      "note": "Leiomyoma (LM) and matched myometrium (MM) from 15 patients; every LM is <i>MED12</i> mutant (10 G44D, 5 G44S); 2 patients had hormone treatment.",
+      "paired": true,
+      "groups": [
+        "MM",
+        "LM_mutMED12"
+      ],
+      "contrasts": [
+        {
+          "id": "LM_vs_MM",
+          "num": "LM",
+          "den": "MM",
+          "label": "LM vs MM, all 15 pairs",
+          "short": "LM vs MM",
+          "sides": [
+            "LM",
+            "MM"
+          ],
+          "pair": [
+            "LM_mutMED12",
+            "MM"
+          ],
+          "about": "MED12-mutant leiomyoma vs matched myometrium, all 15 patients (paired by patient)"
+        }
+      ],
+      "geo": [
+        "GSE128229"
+      ],
+      "reads": "paired-end 2×42 bp",
+      "methods": "15 patients, LM and matched MM; every LM <i>MED12</i> mutant (10 G44D, 5 G44S); 2 patients hormone-treated; ribosomal RNA depleted"
+    },
+    {
+      "id": "Leistico_tissue",
+      "name": "Tissue · Leistico 2021",
+      "sheet": "Leistico",
+      "paper": "Leistico et al., Cell Rep 2021",
+      "doi": "10.1016/j.celrep.2021.108927",
+      "note": "Leiomyoma (LM) and matched myometrium (MM) from 20 patients; 12 LM are <i>MED12</i> mutant, 8 are not (WT: 3 with high <i>HMGA2</i>, 2 FH-deficient, 3 other); 9 patients had hormone treatment.",
+      "paired": true,
+      "groups": [
+        "MM",
+        "LM_wtMED12",
+        "LM_mutMED12"
+      ],
+      "contrasts": [
+        {
+          "id": "LM_vs_MM",
+          "num": "LM",
+          "den": "MM",
+          "label": "LM vs MM, all 20 pairs",
+          "short": "LM vs MM",
+          "sides": [
+            "LM",
+            "MM"
+          ],
+          "pair": null,
+          "about": "Leiomyoma vs matched myometrium, all 20 patients (paired by patient)"
+        },
+        {
+          "id": "LMwt_vs_MM",
+          "num": "LM_wtMED12",
+          "den": "MM",
+          "label": "LM WT vs MM",
+          "short": "LM WT vs MM",
+          "sides": [
+            "LM WT",
+            "MM"
+          ],
+          "pair": [
+            "LM_wtMED12",
+            "MM"
+          ],
+          "about": "MED12 wild-type leiomyoma (8) vs myometrium (paired by patient)"
+        },
+        {
+          "id": "LMmut_vs_MM",
+          "num": "LM_mutMED12",
+          "den": "MM",
+          "label": "LM mut vs MM",
+          "short": "LM mut vs MM",
+          "sides": [
+            "LM mut",
+            "MM"
+          ],
+          "pair": [
+            "LM_mutMED12",
+            "MM"
+          ],
+          "about": "MED12-mutant leiomyoma (12) vs myometrium (paired by patient)"
+        },
+        {
+          "id": "LMmut_vs_LMwt",
+          "num": "LM_mutMED12",
+          "den": "LM_wtMED12",
+          "label": "LM mut vs LM WT",
+          "short": "LM mut vs LM WT",
+          "sides": [
+            "LM mut",
+            "LM WT"
+          ],
+          "pair": [
+            "LM_mutMED12",
+            "LM_wtMED12"
+          ],
+          "about": "MED12-mutant vs wild-type leiomyoma, each relative to its own myometrium"
+        },
+        {
+          "id": "LMmut_vs_MM_naive",
+          "num": "LM",
+          "den": "MM",
+          "subset": "naive_mut",
+          "label": "LM mut vs MM, hormone-naive",
+          "short": "LM mut vs MM, hormone-naive",
+          "sides": [
+            "LM mut",
+            "MM"
+          ],
+          "pair": null,
+          "about": "MED12-mutant leiomyoma vs myometrium in the 6 patients without hormone treatment (paired by patient)"
+        }
+      ],
+      "geo": [
+        "GSE142329"
+      ],
+      "reads": "paired-end 2×42 bp",
+      "methods": "20 patients, LM and matched MM; 12 LM <i>MED12</i> mutant (G44, L36R or exon 2 deletions), 8 not (3 <i>HMGA2</i>-high, 2 FH-deficient, 3 other); 9 patients hormone-treated"
+    },
+    {
+      "id": "NC_2D",
+      "name": "2D cells · Buyukcelebi 2023",
+      "sheet": "2D",
+      "paper": "Buyukcelebi et al., Nat Commun 2023",
+      "doi": "10.1038/s41467-023-39684-y",
+      "note": "An immortalized myometrial cell line, <i>MED12</i>-edited: unedited (WT), knock-out (KO), two G44N clones (Mut1, Mut2); 3 replicates each.",
+      "paired": false,
+      "groups": [
+        "WT",
+        "KO",
+        "Mut1",
+        "Mut2"
+      ],
+      "contrasts": [
+        {
+          "id": "KO_vs_WT",
+          "num": "KO",
+          "den": "WT",
+          "label": "KO vs WT",
+          "short": "KO",
+          "sides": [
+            "KO",
+            "WT"
+          ],
+          "pair": [
+            "KO",
+            "WT"
+          ],
+          "about": "MED12 knock-out vs unedited cells, 2D culture (3 vs 3)"
+        },
+        {
+          "id": "Mut1_vs_WT",
+          "num": "Mut1",
+          "den": "WT",
+          "label": "Mut1 vs WT",
+          "short": "Mut1",
+          "sides": [
+            "Mut1",
+            "WT"
+          ],
+          "pair": [
+            "Mut1",
+            "WT"
+          ],
+          "about": "MED12 G44N clone 1 vs unedited cells, 2D culture (3 vs 3)"
+        },
+        {
+          "id": "Mut2_vs_WT",
+          "num": "Mut2",
+          "den": "WT",
+          "label": "Mut2 vs WT",
+          "short": "Mut2",
+          "sides": [
+            "Mut2",
+            "WT"
+          ],
+          "pair": [
+            "Mut2",
+            "WT"
+          ],
+          "about": "MED12 G44N clone 2 vs unedited cells, 2D culture (3 vs 3)"
+        }
+      ],
+      "geo": [
+        "GSE226014"
+      ],
+      "reads": "paired-end 2×75 bp",
+      "methods": "hTERT-immortalized myometrial smooth muscle cells: unedited (WT), <i>MED12</i> knock-out (KO), two <i>MED12</i> G44N mutant clones (Mut1, Mut2); 3 replicates each"
+    },
+    {
+      "id": "NC_3D_spheroid",
+      "name": "3D spheroids · Buyukcelebi 2023",
+      "sheet": "3D",
+      "paper": "Buyukcelebi et al., Nat Commun 2023",
+      "doi": "10.1038/s41467-023-39684-y",
+      "note": "The same cells grown as spheroids; WT has 2 replicates.",
+      "paired": false,
+      "groups": [
+        "WT",
+        "Mut1",
+        "Mut2"
+      ],
+      "contrasts": [
+        {
+          "id": "Mut1_vs_WT",
+          "num": "Mut1",
+          "den": "WT",
+          "label": "Mut1 vs WT",
+          "short": "Mut1",
+          "sides": [
+            "Mut1",
+            "WT"
+          ],
+          "pair": [
+            "Mut1",
+            "WT"
+          ],
+          "about": "MED12 G44N clone 1 vs unedited cells, spheroids (3 vs 2)"
+        },
+        {
+          "id": "Mut2_vs_WT",
+          "num": "Mut2",
+          "den": "WT",
+          "label": "Mut2 vs WT",
+          "short": "Mut2",
+          "sides": [
+            "Mut2",
+            "WT"
+          ],
+          "pair": [
+            "Mut2",
+            "WT"
+          ],
+          "about": "MED12 G44N clone 2 vs unedited cells, spheroids (3 vs 2)"
+        }
+      ],
+      "geo": [
+        "GSE226016"
+      ],
+      "reads": "paired-end 2×151 bp",
+      "methods": "WT (2 replicates), Mut1 and Mut2 (3 each)"
+    }
+  ]
+}

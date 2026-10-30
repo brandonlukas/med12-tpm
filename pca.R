@@ -5,9 +5,9 @@
 # docs/data/pca.json: per dataset, the samples' PC1 and PC2 scores and the variance explained.
 suppressPackageStartupMessages({ library(DESeq2); library(data.table); library(jsonlite) })
 setwd(dirname(sub("--file=", "", grep("--file=", commandArgs(FALSE), value = TRUE))))
-samples <- fread("samples.tsv"); counts <- fread("results/salmon/salmon.merged.gene_counts_length_scaled.tsv")
+samples <- fread("samples.tsv"); counts <- fread("results_merged/salmon.merged.gene_counts_length_scaled.tsv")
 out <- list()
-for (ds in c("JCI_tissue", "NC_2D", "NC_3D_spheroid")) {
+for (ds in sapply(fromJSON("datasets.json", simplifyDataFrame = FALSE)$datasets, `[[`, "id")) {
   meta <- as.data.frame(samples[dataset == ds]); rownames(meta) <- meta$sample
   mat <- round(as.matrix(counts[, meta$sample, with = FALSE])); rownames(mat) <- counts$gene_id
   dds <- DESeqDataSetFromMatrix(mat[rowSums(mat) >= 10, ], meta, ~ 1)

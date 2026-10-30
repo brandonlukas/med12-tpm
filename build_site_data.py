@@ -26,23 +26,9 @@ out = here / "docs/data"
 for d in ("chunks", "de"):
     (out / d).mkdir(parents=True, exist_ok=True)
 
-DATASETS = {
-    "JCI_tissue": {
-        "label": "Tissue (JCI Insight 2023)",
-        "groups": ["MM", "LM_wtMED12", "LM_mutMED12"],
-        "contrasts": ["LM_vs_MM", "LMwt_vs_MM", "LMmut_vs_MM", "LMmut_vs_LMwt"],
-    },
-    "NC_2D": {
-        "label": "2D cells (Nat Commun 2023)",
-        "groups": ["WT", "KO", "Mut1", "Mut2"],
-        "contrasts": ["KO_vs_WT", "Mut1_vs_WT", "Mut2_vs_WT"],
-    },
-    "NC_3D_spheroid": {
-        "label": "3D spheroids (Nat Commun 2023)",
-        "groups": ["WT", "Mut1", "Mut2"],
-        "contrasts": ["Mut1_vs_WT", "Mut2_vs_WT"],
-    },
-}
+# datasets.json is the one list of datasets and comparisons; the site reads it from meta.json
+CONFIG = json.load(open(here / "datasets.json"))["datasets"]
+DATASETS = {d["id"]: {"groups": d["groups"], "contrasts": [c["id"] for c in d["contrasts"]]} for d in CONFIG}
 
 
 def sig(x, digits=3):
@@ -64,8 +50,7 @@ with gzip.open(GTF, "rt") as f:
             gene_type[re.search(r'gene_id "([^"]+)"', attrs)[1]] = re.search(r'gene_type "([^"]+)"', attrs)[1]
 
 samples = pd.read_csv(here / "samples.tsv", sep="\t", dtype=str)
-samples["patient"] = samples["sample"].str.extract(r"^tissue_(\d+)_")[0]
-tpm = pd.read_csv(here / "results/salmon/salmon.merged.gene_tpm.tsv", sep="\t")
+tpm = pd.read_csv(here / "results_merged/salmon.merged.gene_tpm.tsv", sep="\t")
 tpm = tpm[tpm[samples["sample"]].sum(axis=1) > 0].reset_index(drop=True)
 tpm["gene_type"] = tpm["gene_id"].map(gene_type)
 index = {g: i for i, g in enumerate(tpm["gene_id"])}
@@ -84,9 +69,14 @@ for ds, cfg in DATASETS.items():
         means = tpm[s.loc[s["group"] == g, "sample"]].mean(axis=1)
         ref = means[coding].sort_values().to_numpy()
         pct[ds, g] = (ref.searchsorted(means.to_numpy(), side="right") / len(ref) * 100).round().astype(int)
+    d = next(d for d in CONFIG if d["id"] == ds)
     meta["datasets"].append({
-        "id": ds, "label": cfg["label"], "groups": cfg["groups"], "contrasts": cfg["contrasts"],
-        "samples": [{"sample": r.sample, "group": r.group, "patient": r.patient if isinstance(r.patient, str) else None}
+        "id": ds, "name": d["name"], "note": d["note"], "paper": d["paper"], "doi": d["doi"], "groups": cfg["groups"],
+        "contrasts": [{k: c.get(k) for k in ("id", "label", "short", "sides", "pair")} for c in d["contrasts"]],
+        # what the hover label says about each sample; empty fields are left out
+        "samples": [{k: v for k, v in {"sample": r.sample, "group": r.group, "patient": r.patient,
+                     "genotype": r.genotype if r.group.startswith("LM") else None,
+                     "hormone": r.hormone_treatment if d["paired"] else None}.items() if isinstance(v, str) and v}
                     for r in s.itertuples()],
     })
 dump(meta, out / "meta.json")

@@ -22,30 +22,9 @@ const BASE_LAYOUT = {
 };
 const AXIS = { gridcolor: GRID, zeroline: false, ticks: "outside", tickcolor: "#c3c7d3", linecolor: RULE, fixedrange: true };
 
-const SHORT_DS = { JCI_tissue: "Tissue", NC_2D: "2D cells", NC_3D_spheroid: "3D spheroids" };
-const DATASET_TEXT = {
-  JCI_tissue: "Leiomyoma (LM) and matched myometrium (MM) from 10 patients; 6 LM are <i>MED12</i> mutant (G44D), 4 wild-type (WT).",
-  NC_2D: "An immortalized myometrial cell line, <i>MED12</i>-edited: unedited (WT), knock-out (KO), two G44N clones (Mut1, Mut2); 3 replicates each.",
-  NC_3D_spheroid: "The same cells grown as spheroids; WT has 2 replicates.",
-};
+// Dataset names, notes and comparison labels come from datasets.json, via meta.json.
 const GROUP_LABEL = { MM: "MM", LM_wtMED12: "LM WT", LM_mutMED12: "LM mut" };
 const GROUP_TICK = {};
-const CONTRAST_LABEL = {
-  LM_vs_MM: "LM vs MM, all 10 pairs",
-  LMmut_vs_MM: "LM mut vs MM",
-  LMwt_vs_MM: "LM WT vs MM",
-  LMmut_vs_LMwt: "LM mut vs LM WT",
-};
-// [numerator, denominator] in the words used on the page; log2FC > 0 means higher in the numerator
-const CONTRAST_SIDES = {
-  LM_vs_MM: ["LM", "MM"], LMmut_vs_MM: ["LM mut", "MM"], LMwt_vs_MM: ["LM WT", "MM"], LMmut_vs_LMwt: ["LM mut", "LM WT"],
-  KO_vs_WT: ["KO", "WT"], Mut1_vs_WT: ["Mut1", "WT"], Mut2_vs_WT: ["Mut2", "WT"],
-};
-// the shortest unambiguous name, for the multi-gene "changes" column
-const CONTRAST_SHORT = {
-  LM_vs_MM: "LM vs MM", LMmut_vs_MM: "LM mut vs MM", LMwt_vs_MM: "LM WT vs MM", LMmut_vs_LMwt: "LM mut vs LM WT",
-  KO_vs_WT: "KO", Mut1_vs_WT: "Mut1", Mut2_vs_WT: "Mut2",
-};
 
 const $ = (id) => document.getElementById(id);
 const MINUS = "−";
@@ -55,21 +34,26 @@ const fmtTPM = (v) => (v == null ? "—" : v >= 100 ? Math.round(v).toLocaleStri
 const ordinal = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th");
 const groupLabel = (g) => GROUP_LABEL[g] || g;
 const groupTick = (g) => GROUP_TICK[g] || GROUP_LABEL[g] || g;
-const contrastLabel = (c) => CONTRAST_LABEL[c] || c.replace("_vs_", " vs ");
-const contrastSides = (c) => CONTRAST_SIDES[c] || c.split("_vs_");
-const contrastShort = (c) => CONTRAST_SHORT[c] || c.replace("_vs_", " vs ");
-const contrastOption = (ds, c) => `${SHORT_DS[ds] || ds} · ${contrastLabel(c)}`;
+const dataset = (id) => Data.meta.datasets.find((d) => d.id === id);
+const contrast = (ds, c) => dataset(ds).contrasts.find((k) => k.id === c);
+const contrastLabel = (ds, c) => contrast(ds, c).label;
+const contrastSides = (ds, c) => contrast(ds, c).sides;
+const contrastShort = (ds, c) => contrast(ds, c).short;
+const contrastOption = (ds, c) => `${dataset(ds).name} · ${contrastLabel(ds, c)}`;
 const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
-const datasetNote = (id) => DATASET_TEXT[id] || "";
 const genesLink = (names) => `genes.html#genes=${names.map(encodeURIComponent).join(",")}`;
 const shortId = (id) => id.split(".")[0];
 
+// a sample as the hover label names it: s is one of meta.json's samples
 function sampleLabel(s) {
-  let m = s.match(/^tissue_(\d+)_(LM|MM)$/);
-  if (m) return `Patient ${m[1]}, ${m[2]}`;
-  m = s.match(/^cell[23]D_(\w+?)_rep(\d+)$/);
-  if (m) return `${m[1]}, replicate ${m[2]}`;
-  return s;
+  if (s.patient) {
+    const tissue = s.group === "MM" ? "MM" : "LM";
+    const gt = s.genotype && !/^(wild type|not tested)$/.test(s.genotype) ? ` (${s.genotype})` : "";
+    const hormone = s.hormone && s.hormone !== "none" ? `<br>Hormone treatment: ${s.hormone}` : "";
+    return `Patient ${s.patient.replace(/^pt0*/i, "")}, ${tissue}${gt}${hormone}`;
+  }
+  const m = s.sample.match(/^cell[23]D_(\w+?)_rep(\d+)$/);
+  return m ? `${m[1]}, replicate ${m[2]}` : s.sample;
 }
 
 // A y axis in TPM. On the log scale the spacing is log2(TPM + 1) but the ticks read in TPM,

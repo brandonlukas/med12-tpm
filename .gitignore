@@ -8,3 +8,5 @@ null/
 samplesheet.abs.csv
 __pycache__/
 illustration/*_check.png
+results_v1.1
+results_merged

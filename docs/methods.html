@@ -23,19 +23,12 @@
 </header>
 
 <main class="wrap prose">
-<p class="lede">All 40 samples were downloaded as raw reads and processed the same way, so the three datasets share
+<p class="lede">All <!-- count:start -->
+<!-- count:end --> samples were downloaded as raw reads and processed the same way, so the datasets share
   one reference, one annotation and one quantification method. Every step is a script in the repository.</p>
 
-<h2>Data</h2>
-<div class="scroll"><table>
-  <tr><th>Dataset</th><th>Paper</th><th>GEO</th><th>Samples</th><th>Reads</th></tr>
-  <tr><td>Tissue</td><td><a href="https://doi.org/10.1172/jci.insight.171305">Zuberi et al., JCI Insight 2023</a></td><td><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE204969">GSE204969</a></td>
-      <td>10 patients, leiomyoma (LM) and matched myometrium (MM); 6 LM <i>MED12</i> G44D mutant, 4 LM wild-type</td><td>single-end 75 bp</td></tr>
-  <tr><td>2D cells</td><td><a href="https://doi.org/10.1038/s41467-023-39684-y">Buyukcelebi et al., Nat Commun 2023</a></td><td><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226014">GSE226014</a></td>
-      <td>hTERT-immortalized myometrial smooth muscle cells: unedited (WT), <i>MED12</i> knock-out (KO), two <i>MED12</i> G44N mutant clones (Mut1, Mut2); 3 replicates each</td><td>paired-end 2×75 bp</td></tr>
-  <tr><td>3D spheroids</td><td><a href="https://doi.org/10.1038/s41467-023-39684-y">Buyukcelebi et al., Nat Commun 2023</a></td><td><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226016">GSE226016</a></td>
-      <td>WT (2 replicates), Mut1 and Mut2 (3 each)</td><td>paired-end 2×151 bp</td></tr>
-</table></div>
+<!-- data:start -->
+<!-- data:end -->
 <p><b>Genotype correction.</b> GEO lists the <i>MED12</i> genotypes of patients 1007 and 1008 swapped. Following the
   study authors, 1008 LM is the G44D mutant and 1007 LM is wild-type. The sample table keeps GEO's label in a
   separate column, <code>genotype_as_listed_on_GEO_(incorrect)</code>.</p>
@@ -72,14 +65,8 @@
   in at least as many samples as the smallest group.</p>
 
 <h2>Differential expression design</h2>
-<div class="scroll"><table>
-  <tr><th>Dataset</th><th>Design</th><th>Comparisons</th></tr>
-  <tr><td>Tissue</td><td><code>~ patient + tissue</code></td><td>LM vs MM, all 10 pairs</td></tr>
-  <tr><td>Tissue</td><td><code>~ patient + group</code>, group = MM, LM WT, LM mut</td>
-      <td>LM WT vs MM; LM mut vs MM; LM mut vs LM WT</td></tr>
-  <tr><td>2D cells</td><td><code>~ group</code></td><td>KO, Mut1, Mut2, each vs WT</td></tr>
-  <tr><td>3D spheroids</td><td><code>~ group</code></td><td>Mut1, Mut2, each vs WT</td></tr>
-</table></div>
+<!-- design:start -->
+<!-- design:end -->
 <p>The patient term pairs each leiomyoma with its own myometrium, the multi-gene analog of a paired t-test.
   Because every patient contributes a myometrium baseline, LM mut vs LM WT asks whether the leiomyoma-versus-myometrium
   change differs between <i>MED12</i>-mutant and wild-type tumors, although the two kinds of tumor come from different
@@ -108,12 +95,8 @@
   <li>Salmon 2.7.0 against a decoy-aware index: GENCODE v44 transcripts plus the whole genome as decoys, k = 31.</li>
   <li>Transcript estimates summarized to genes with tximport (tximeta 1.20.1).</li>
 </ul>
-<div class="scroll"><table>
-  <tr><th>Dataset</th><th>Mapping rate</th><th>Library strandedness (Salmon)</th></tr>
-  <tr><td>Tissue</td><td>60.5–80.2%</td><td>reverse (SR)</td></tr>
-  <tr><td>2D cells</td><td>93.2–95.6%</td><td>unstranded (IU)</td></tr>
-  <tr><td>3D spheroids</td><td>86.9–93.5%</td><td>reverse (ISR)</td></tr>
-</table></div>
+<!-- mapping:start -->
+<!-- mapping:end -->
 <p>Strandedness was the same for every sample within a dataset.</p>
 <details class="notes">
   <summary>Exact command and parameters</summary>
@@ -146,7 +129,8 @@ python3 build_site_data.py      # data for this site</code></pre>
 
 <footer class="site-footer">
   <div class="wrap">
-    <span>Data: GEO GSE204969, GSE226014, GSE226016 · processed October 2026</span>
+    <!-- footer:start -->
+<!-- footer:end -->
     <a href="https://github.com/brandonlukas/med12-tpm">Code on GitHub</a>
   </div>
 </footer>

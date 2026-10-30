@@ -4,6 +4,8 @@ explains the columns and the design. Reads deliverables/de/*.csv (from deseq2.R)
 
     uv run --with pandas --with openpyxl python excel_deseq2.py [out.xlsx]
 """
+import json
+import re
 import sys
 from pathlib import Path
 
@@ -12,18 +14,11 @@ import pandas as pd
 here = Path(__file__).resolve().parent
 out = Path(sys.argv[1]) if len(sys.argv) > 1 else here / "deliverables" / "MED12_RNAseq_DESeq2.xlsx"
 
-# sheet name (31 characters at most), file, design in words
-SHEETS = [
-    ("Tissue LM vs MM",        "JCI_tissue__LM_vs_MM",        "Leiomyoma vs matched myometrium, all 10 patients (paired by patient)"),
-    ("Tissue LM WT vs MM",     "JCI_tissue__LMwt_vs_MM",      "MED12 wild-type leiomyoma (4) vs myometrium (paired by patient)"),
-    ("Tissue LM mut vs MM",    "JCI_tissue__LMmut_vs_MM",     "MED12-mutant leiomyoma (6) vs myometrium (paired by patient)"),
-    ("Tissue LM mut vs LM WT", "JCI_tissue__LMmut_vs_LMwt",   "MED12-mutant vs wild-type leiomyoma, each relative to its own myometrium"),
-    ("2D KO vs WT",            "NC_2D__KO_vs_WT",             "MED12 knock-out vs unedited cells, 2D culture (3 vs 3)"),
-    ("2D Mut1 vs WT",          "NC_2D__Mut1_vs_WT",           "MED12 G44N clone 1 vs unedited cells, 2D culture (3 vs 3)"),
-    ("2D Mut2 vs WT",          "NC_2D__Mut2_vs_WT",           "MED12 G44N clone 2 vs unedited cells, 2D culture (3 vs 3)"),
-    ("3D Mut1 vs WT",          "NC_3D_spheroid__Mut1_vs_WT",  "MED12 G44N clone 1 vs unedited cells, spheroids (3 vs 2)"),
-    ("3D Mut2 vs WT",          "NC_3D_spheroid__Mut2_vs_WT",  "MED12 G44N clone 2 vs unedited cells, spheroids (3 vs 2)"),
-]
+# one sheet per comparison, in datasets.json order; Excel allows 31 characters per sheet name
+CONFIG = json.load(open(here / "datasets.json"))["datasets"]
+sheet_name = lambda d, c: f"{d['sheet']} " + re.sub(r", all \d+ pairs", "", c["label"]).replace(", hormone-naive", " naive")
+SHEETS = [(sheet_name(d, c), f"{d['id']}__{c['id']}", f"{d['paper']}: {c['about']}") for d in CONFIG for c in d["contrasts"]]
+assert all(len(name) <= 31 for name, _, _ in SHEETS) and len({n for n, _, _ in SHEETS}) == len(SHEETS)
 COLUMNS = [
     ("gene_id", "Ensembl gene ID (GENCODE v44)"),
     ("gene_name", "Gene symbol"),

@@ -21,7 +21,7 @@ const isSig = (r) => r.padj != null && r.padj < alpha() && Math.abs(r.lfc) >= lf
 const dsOf = (c) => c.split("__")[0];
 const conOf = (c) => c.split("__")[1];
 const fullLabel = (c) => contrastOption(dsOf(c), conOf(c));
-const sides = (c) => contrastSides(conOf(c));
+const sides = (c) => contrastSides(dsOf(c), conOf(c));
 const nlog = (p) => -Math.log10(p);
 
 async function load(c) {
@@ -41,7 +41,7 @@ async function load(c) {
 async function init() {
   const [plotly] = await Promise.all([ensurePlotly("vendor/plotly-gl2d-2.35.2.min.js"), Data.load()]);
   noPlots = !plotly;
-  const opts = Data.meta.datasets.map((d) => `<optgroup label="${esc(d.label)}">${d.contrasts.map((c) =>
+  const opts = Data.meta.datasets.map((d) => `<optgroup label="${esc(d.name)}">${d.contrasts.map(({ id: c }) =>
     `<option value="${d.id}__${c}">${esc(contrastOption(d.id, c))}</option>`).join("")}</optgroup>`).join("");
   $("contrast").innerHTML = opts;
   $("ax").innerHTML = opts; $("ay").innerHTML = opts;
@@ -337,7 +337,7 @@ async function drawAgree() {
     { name: "both, same direction", color: AGREE.same, f: (a, b) => isSig(a) && isSig(b) && Math.sign(a.lfc) === Math.sign(b.lfc) },
   ];
   const sets = cats.map((c) => pairs.filter(([a, b]) => c.f(a, b)));
-  const xname = SHORT_DS[dsOf(cx)], yname = SHORT_DS[dsOf(cy)];
+  const xname = dataset(dsOf(cx)).name, yname = dataset(dsOf(cy)).name;
   const traces = cats.map((c, k) => {
     const ps = sets[k];
     return { type: "scattergl", mode: "markers", name: `${c.name} (${ps.length.toLocaleString()})`,

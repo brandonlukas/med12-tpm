@@ -2,12 +2,14 @@
 # Download runs from NCBI's AWS mirror (sra-pub-run-odp) and convert to FASTQ.
 # ENA served ~0.1 MB/s per file here, the AWS mirror ~30 MB/s. Each run is
 # verified by vdb-validate and by its read count against samples.tsv.
-# Writes fastq/<sample>.fastq.gz (single-end) or fastq/<sample>_{1,2}.fastq.gz
-# (paired-end), the paths in samplesheet.csv. Finished runs are skipped on re-run.
-# Usage: ./download_fastqs.sh [parallel_jobs]   (default 4)
+# Writes fastq/<name>.fastq.gz (single-end) or fastq/<name>_{1,2}.fastq.gz
+# (paired-end), the paths in samplesheet.csv; <name> is the sample, or
+# <sample>_<run> for a sample sequenced in several runs. Finished runs are skipped.
+# Usage: ./download_fastqs.sh [parallel_jobs] [dataset ...]   (default 4 jobs, all datasets)
 set -euo pipefail
 cd "$(dirname "$0")"
 JOBS="${1:-4}"
+DATASETS="${*:2}"
 FASTQ="$(realpath fastq)"
 TMP="$FASTQ/.sra_tmp"
 mkdir -p "$TMP"
@@ -39,9 +41,20 @@ fetch() {
 export -f fetch
 export FASTQ TMP
 
-# samples.tsv columns: sample dataset group genotype genotype_as_listed_on_GEO_(incorrect) gsm srr geo_title layout read_count
-tail -n +2 samples.tsv | tr -d '\r' | awk -F'\t' '{print $1, $7, $9, $10}' \
-    | xargs -P "$JOBS" -L 1 bash -c 'fetch "$0" "$1" "$2" "$3"'
+# samples.tsv: one row per sample; srr and read_count list a sample's runs, comma-separated
+runs() {
+    python3 - "$DATASETS" <<'PY'
+import csv, sys
+want = sys.argv[1].split()
+for r in csv.DictReader(open("samples.tsv"), delimiter="\t"):
+    if want and r["dataset"] not in want:
+        continue
+    srrs, counts = r["srr"].split(","), r["read_count"].split(",")
+    for srr, n in zip(srrs, counts):
+        print(r["sample"] if len(srrs) == 1 else f"{r['sample']}_{srr}", srr, r["layout"], n)
+PY
+}
+runs | xargs -P "$JOBS" -L 1 bash -c 'fetch "$0" "$1" "$2" "$3"'
 
 rmdir "$TMP"
-echo "All $(tail -n +2 samples.tsv | wc -l) runs downloaded and verified."
+echo "All $(runs | wc -l) runs downloaded and verified."
