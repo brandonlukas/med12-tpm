@@ -1,12 +1,15 @@
 // Shared by the Genes and Comparisons pages. Data layout: see build_site_data.py.
 
-// Group colours: reference groups grey, the MED12-mutant group vermilion in every dataset.
+// Group colours (Okabe-Ito): reference groups a neutral grey, groups carrying a MED12 G44
+// mutation warm (vermilion, pink), groups without one blue. Mut2 is a deeper pink than
+// Okabe-Ito's so that it clears 3:1 on white.
 const COLORS = {
-  MM: "#6B7F99", WT: "#6B7F99",
+  MM: "#8A8F9A", WT: "#8A8F9A",
   LM_wtMED12: "#0072B2", LM_mutMED12: "#D55E00",
-  KO: "#0072B2", Mut1: "#D55E00", Mut2: "#CC79A7",
+  KO: "#0072B2", Mut1: "#D55E00", Mut2: "#BF6A9B",
 };
-const UP = "#D55E00", DOWN = "#0072B2";
+// higher / lower in a comparison: the RdBu red and blue, so neither hue is a group colour
+const UP = "#B2182B", DOWN = "#2166AC";
 const INK = "#1c1e26", MUTED = "#6b7080", RULE = "#e4e6ec", GRID = "#eff0f4";
 const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 const PLOT_FONT = { family: FONT, size: 13, color: INK };

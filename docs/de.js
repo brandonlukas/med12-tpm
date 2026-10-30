@@ -1,7 +1,8 @@
 // Comparisons page: volcano, ranked table and agreement between two comparisons.
 // Data: data/de/<dataset>__<contrast>.json, one comparison as columns.
 const NS = "#cfd2db";
-const AGREE = { same: "#2b3a8c", opposite: "#CC79A7", one: "#9aa5b8", neither: "#dcdfe6" };
+// agreement categories: neither a direction nor a group hue
+const AGREE = { same: "#2b3a8c", opposite: "#009E73", one: "#a3abb9", neither: "#e1e4ea" };
 const PAGE = 25;
 const cache = new Map();
 const state = { c: null, rows: [], sort: { key: "rank", dir: 1 }, page: 0, pick: null };
