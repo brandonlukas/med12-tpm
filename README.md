@@ -3,7 +3,7 @@
 Three public MED12 RNA-seq datasets reprocessed from raw reads the same way, with an
 interactive site: **https://brandonlukas.github.io/med12-tpm/**
 
-- **Overview**: what the three studies are and how they relate, a sample figure, and a gene search
+- **Overview**: a gene search, an illustration of where the samples come from, and why the studies belong together
 - **Genes**: TPM of any gene (or several side by side) in every sample, with DESeq2 results
 - **Comparisons**: volcano plot, ranked table and gene lookup for every DESeq2 comparison,
   and agreement between any two comparisons
