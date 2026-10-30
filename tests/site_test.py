@@ -44,6 +44,8 @@ with sync_playwright() as p:
     pg.wait_for_function("document.querySelector('#gene-name').textContent === '2 genes'")
     check(pg.text_content("#gene-name") == "2 genes", "second gene switches to multi view")
     check(pg.locator("#plot-NC_2D .legend").count() == 1, "multi view shows a legend")
+    check(pg.locator("#plot-NC_2D .annotation").count() >= 1, "multi view stars significant groups (HMGA2 KO vs WT)")
+    check(pg.locator("#plot-JCI_tissue .annotation").count() >= 1, "multi view stars tissue groups vs MM (HMGA2 LM mut)")
     check("genes=MED12," in pg.url, f"hash tracks genes: {pg.url}")
 
     pg.click("button[data-scale='lin']")

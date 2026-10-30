@@ -274,9 +274,24 @@ function plotMulti(d, data) {
   });
   const shapes = selected.slice(1).map((_, n) => ({ type: "line", xref: "x", yref: "paper", x0: n + 0.5, x1: n + 0.5,
     y0: 0, y1: 1, line: { color: RULE, width: 1 } }));
-  const top = yTop(Math.max(0, ...traces.flatMap((t) => t.y.filter((v) => v != null))));
+  // one star above a group where it differs from the reference group (padj < 0.05); a single
+  // glyph so that neighbouring groups never collide. Comparisons that are not against the
+  // reference stay in the table below
+  const ref = d.groups[0], annotations = [];
+  data.forEach((g, n) => {
+    for (const c of d.contrasts) {
+      const pair = c in CONTRAST_GROUPS ? CONTRAST_GROUPS[c] : c.split("_vs_");
+      const padj = g.de[d.id][c]?.[2];
+      if (!pair || pair[1] !== ref || !(pair[0] in Object.fromEntries(d.groups.map((x) => [x, 1]))) || padj == null || padj >= 0.05) continue;
+      const gi = d.groups.indexOf(pair[0]);
+      const ys = d.samples.map((s, k) => (s.group === pair[0] ? toY(g.tpm[d.id][k]) : null)).filter((v) => v != null);
+      annotations.push({ x: n + (gi - (G - 1) / 2) * slot, y: Math.max(...ys), yanchor: "bottom", yshift: 4, showarrow: false,
+        text: "*", font: { size: 16, color: INK }, hovertext: `${contrastLabel(c)}<br>p<sub>adj</sub> ${fmtP(padj)}` });
+    }
+  });
+  const top = yTop(Math.max(0, ...traces.flatMap((t) => t.y.filter((v) => v != null)))) * (annotations.length ? 1.08 : 1);
   Plotly.react(`plot-${d.id}`, traces, {
-    ...BASE_LAYOUT, shapes, margin: { l: 56, r: 10, t: 34, b: 44 },
+    ...BASE_LAYOUT, shapes, annotations, margin: { l: 56, r: 10, t: 34, b: 44 },
     legend: { orientation: "h", x: 0, y: 1.02, yanchor: "bottom", font: { size: 13 }, itemclick: false, itemdoubleclick: false },
     xaxis: { ...AXIS, tickvals: selected.map((_, n) => n), ticktext: selected.map((i) => esc(Data.genes[i][1])),
       range: [-0.5, selected.length - 0.5], tickangle: "auto", showgrid: false, ticks: "" },
