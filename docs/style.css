@@ -77,8 +77,8 @@ select:focus-visible, input:focus-visible { outline: none; border-color: var(--a
 input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
 
 .chipbox {
-  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
-  min-height: 44px; padding: 5px 8px; background: #fff; cursor: text;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  min-height: 44px; padding: 6px 8px; background: #fff; cursor: text;
   border: 1px solid var(--control); border-radius: var(--radius);
 }
 .chipbox:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
@@ -87,7 +87,7 @@ input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
 .chip-clear:hover { color: var(--ink); background: var(--panel); }
 .chip-clear:focus-visible { outline: 2px solid var(--accent); }
 .chipbox input:focus-visible { box-shadow: none; }
-.chip { display: inline-flex; align-items: center; gap: 2px; background: var(--accent-soft); color: var(--ink); border-radius: 4px; padding: 3px 3px 3px 9px; font-size: 14px; line-height: 1.4; font-weight: 500; cursor: grab; }
+.chip { display: inline-flex; align-items: center; gap: 2px; background: var(--accent-soft); color: var(--ink); border-radius: 4px; padding: 3px 4px 3px 10px; font-size: 14px; line-height: 1.4; font-weight: 500; cursor: grab; }
 .chip:active { cursor: grabbing; }
 .chip { touch-action: none; }
 .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
