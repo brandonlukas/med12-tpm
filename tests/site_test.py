@@ -73,6 +73,11 @@ with sync_playwright() as p:
     pg.locator(".chip >> nth=1").drag_to(pg.locator(".chip >> nth=0"), target_position={"x": 4, "y": db["height"] / 2})
     pg.wait_for_function("location.hash.startsWith('#genes=MED12,HMGA2')")
     check(True, "and back")
+    check(pg.locator(".chip.ghost").count() == 0 and not pg.evaluate("document.body.classList.contains('dragging-chip')"), "nothing of the drag is left behind")
+    pg.locator(".chip >> nth=0").focus(); pg.keyboard.press("Alt+ArrowRight")
+    pg.wait_for_function("location.hash.startsWith('#genes=HMGA2,MED12')")
+    check(pg.evaluate("document.activeElement?.dataset.i") is not None, "Alt+arrow moves the focused chip and keeps focus")
+    pg.keyboard.press("Alt+ArrowLeft"); pg.wait_for_function("location.hash.startsWith('#genes=MED12,HMGA2')")
 
     pg.click("button[data-scale='lin']")
     pg.wait_for_function("document.querySelector('#plot-JCI_tissue .g-ytitle')?.textContent.trim() === 'TPM'")

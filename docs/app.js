@@ -155,44 +155,78 @@ async function applySet(name) {
   }
 }
 
-// Reorder the genes by dragging a chip: the order sets the x axis of the multi-gene plot.
+// Reorder the genes by dragging a chip. Pointer events rather than native drag-and-drop, so the
+// cursor stays a hand, the chip follows the pointer as a crisp copy, the other chips part to make
+// room, and it works on touch screens. Alt+arrows move a focused chip; Delete removes it.
+function renderChips() {
+  $("chips").innerHTML = selected.map((i) =>
+    `<span class="chip" data-i="${i}" tabindex="0" title="Drag to reorder">${esc(Data.genes[i][1])}<button type="button" data-remove="${i}" tabindex="-1" aria-label="Remove ${esc(Data.genes[i][1])}">×</button></span>`).join("");
+}
+
 function wireDrag() {
   const box = $("chips");
-  let from = null;
-  const clearMarks = () => box.querySelectorAll(".chip").forEach((c) => c.classList.remove("dragging", "drop-before", "drop-after"));
-  const target = (e) => {
-    const chip = e.target.closest(".chip");
-    if (!chip || +chip.dataset.i === from) return null;
-    const r = chip.getBoundingClientRect();
-    return { chip, before: e.clientX < r.left + r.width / 2 };
+  let drag = null;
+  const end = () => {
+    if (!drag) return;
+    drag.ghost?.remove();
+    document.body.classList.remove("dragging-chip");
+    drag.chip.classList.remove("placeholder");
+    drag = null;
   };
-  box.addEventListener("dragstart", (e) => {
+  box.addEventListener("pointerdown", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip || e.target.closest("button") || (e.pointerType === "mouse" && e.button !== 0)) return;
+    drag = { chip, id: e.pointerId, x0: e.clientX, y0: e.clientY, moved: false };
+    chip.setPointerCapture(e.pointerId);
+  });
+  box.addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.moved) {
+      if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 5) return;   // a click, not a drag
+      drag.moved = true;
+      const r = drag.chip.getBoundingClientRect();
+      drag.dx = e.clientX - r.left; drag.dy = e.clientY - r.top;
+      drag.ghost = drag.chip.cloneNode(true);
+      drag.ghost.className = "chip ghost"; drag.ghost.style.width = `${r.width}px`;
+      document.body.appendChild(drag.ghost);
+      document.body.classList.add("dragging-chip");
+      drag.chip.classList.add("placeholder");
+    }
+    drag.ghost.style.transform = `translate(${e.clientX - drag.dx}px, ${e.clientY - drag.dy}px)`;
+    // the placeholder moves among the other chips: before the first chip in the pointer's row whose
+    // midpoint is right of the pointer, else after the last chip in that row
+    const others = [...box.querySelectorAll(".chip:not(.placeholder)")];
+    const inRow = (c) => { const r = c.getBoundingClientRect(); return e.clientY >= r.top - 4 && e.clientY <= r.bottom + 4; };
+    const before = others.find((c) => inRow(c) && e.clientX < c.getBoundingClientRect().left + c.getBoundingClientRect().width / 2);
+    if (before) { if (before !== drag.chip.nextElementSibling) box.insertBefore(drag.chip, before); }
+    else { const row = others.filter(inRow); if (row.length && row.at(-1) !== drag.chip.previousElementSibling) row.at(-1).after(drag.chip); }
+  });
+  const finish = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const moved = drag.moved;
+    end();
+    if (!moved) return;
+    const order = [...box.querySelectorAll(".chip")].map((c) => +c.dataset.i);
+    if (order.some((v, k) => v !== selected[k])) setGenes(order); else renderChips();
+  };
+  box.addEventListener("pointerup", finish);
+  box.addEventListener("pointercancel", (e) => { if (drag && e.pointerId === drag.id) { end(); renderChips(); } });
+  // keyboard: Alt+arrows move the focused chip, Delete or Backspace removes it
+  box.addEventListener("keydown", (e) => {
     const chip = e.target.closest(".chip");
     if (!chip) return;
-    from = +chip.dataset.i;
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", chip.dataset.i);   // Firefox needs data for a drag to start
-    chip.classList.add("dragging");
+    const i = +chip.dataset.i, k = selected.indexOf(i);
+    if (e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+      const j = e.key === "ArrowLeft" ? k - 1 : k + 1;
+      if (j < 0 || j >= selected.length) return;
+      e.preventDefault();
+      const order = selected.slice(); [order[k], order[j]] = [order[j], order[k]];
+      setGenes(order).then(() => box.querySelector(`.chip[data-i="${i}"]`)?.focus());
+    } else if (e.key === "Delete" || e.key === "Backspace") {
+      e.preventDefault();
+      setGenes(selected.filter((g) => g !== i)).then(() => ($("chips").querySelector(".chip") || $("gene")).focus());
+    }
   });
-  box.addEventListener("dragover", (e) => {
-    if (from === null) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    box.querySelectorAll(".chip").forEach((c) => c.classList.remove("drop-before", "drop-after"));
-    const t = target(e);
-    if (t) t.chip.classList.add(t.before ? "drop-before" : "drop-after");
-  });
-  box.addEventListener("drop", (e) => {
-    if (from === null) return;
-    e.preventDefault();
-    const t = target(e);
-    const order = selected.filter((i) => i !== from);
-    if (t) order.splice(order.indexOf(+t.chip.dataset.i) + (t.before ? 0 : 1), 0, from);
-    else order.push(from);
-    from = null; clearMarks();
-    if (order.some((v, k) => v !== selected[k])) setGenes(order);
-  });
-  box.addEventListener("dragend", () => { from = null; clearMarks(); });
 }
 
 // Clear every gene at once; the status line offers to undo that.
@@ -207,8 +241,7 @@ async function clearGenes() {
 function setGenes(idx, updateHash = true) {
   selected = [...new Set(idx)].slice(0, MAX_GENES);
   $("clear").hidden = selected.length < 2;
-  $("chips").innerHTML = selected.map((i) =>
-    `<span class="chip" draggable="true" data-i="${i}" title="Drag to reorder">${esc(Data.genes[i][1])}<button type="button" data-remove="${i}" aria-label="Remove ${esc(Data.genes[i][1])}">×</button></span>`).join("");
+  renderChips();
   $("gene").placeholder = selected.length ? "Add another gene" : "Type a gene symbol, e.g. MED12";
   if (updateHash) history.replaceState(null, "", "#genes=" + selected.map((i) => encodeURIComponent(Data.genes[i][1])).join(","));
   return render();

@@ -89,9 +89,11 @@ input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
 .chipbox input:focus-visible { box-shadow: none; }
 .chip { display: inline-flex; align-items: center; gap: 2px; background: var(--accent-soft); color: var(--ink); border-radius: 4px; padding: 3px 3px 3px 9px; font-size: 14px; line-height: 1.4; font-weight: 500; cursor: grab; }
 .chip:active { cursor: grabbing; }
-.chip.dragging { opacity: .4; }
-.chip.drop-before { box-shadow: -3px 0 0 var(--accent); }
-.chip.drop-after { box-shadow: 3px 0 0 var(--accent); }
+.chip { touch-action: none; }
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.chip.placeholder { opacity: .35; outline: 1px dashed var(--accent); outline-offset: -1px; background: transparent; }
+.chip.ghost { position: fixed; left: 0; top: 0; z-index: 50; margin: 0; pointer-events: none; box-shadow: 0 6px 18px rgba(28,30,38,.18); transform-origin: top left; }
+body.dragging-chip, body.dragging-chip * { cursor: grabbing !important; user-select: none; }
 .chip button { all: unset; cursor: pointer; color: var(--muted); font-size: 17px; line-height: 1; padding: 1px 6px 3px; border-radius: 3px; }
 .chip button:hover { color: var(--ink); background: #fff; }
 .chip button:focus-visible { outline: 2px solid var(--accent); }
