@@ -173,17 +173,20 @@ function wireDrag() {
   const end = () => {
     if (!drag) return;
     if (drag.frame) cancelAnimationFrame(drag.frame);
-    drag.ghost?.remove();
-    document.body.classList.remove("dragging-chip");
+    drag.ghost?.remove(); drag.shield?.remove();
     drag.chip.classList.remove("placeholder");
+    box.classList.remove("dragging");
     drag = null;
   };
+  const cancel = () => { end(); renderChips(); };   // puts the chips back in the current order
   box.addEventListener("pointerdown", (e) => {
     const chip = e.target.closest(".chip");
     if (!chip || e.target.closest("button") || (e.pointerType === "mouse" && e.button !== 0)) return;
     e.preventDefault();   // no text selection starts under the drag
     drag = { chip, id: e.pointerId, x0: e.clientX, y0: e.clientY, moved: false, x: e.clientX, y: e.clientY, frame: 0 };
-    chip.setPointerCapture(e.pointerId);
+    // capture on the box, not the chip: Chrome releases a capture when the captured element moves in
+    // the DOM, which the placeholder does on every reorder, and the drag then froze outside the box
+    box.setPointerCapture(e.pointerId);
   });
   // the work for a move happens once per screen frame, however many pointer events arrive
   const step = () => {
@@ -208,22 +211,31 @@ function wireDrag() {
       drag.dx = e.clientX - r.left; drag.dy = e.clientY - r.top;
       drag.ghost = drag.chip.cloneNode(true);
       drag.ghost.className = "chip ghost"; drag.ghost.style.width = `${r.width}px`;
-      document.body.appendChild(drag.ghost);
-      document.body.classList.add("dragging-chip");
+      // the shield covers the page under the ghost: one element that keeps the cursor a grabbing
+      // hand everywhere and stops the plots and tables from reacting to the pointer passing over
+      drag.shield = document.createElement("div"); drag.shield.className = "drag-shield";
+      document.body.append(drag.shield, drag.ghost);
       drag.chip.classList.add("placeholder");
+      box.classList.add("dragging");
     }
     if (!drag.frame) drag.frame = requestAnimationFrame(step);
   });
   const finish = (e) => {
     if (!drag || e.pointerId !== drag.id) return;
     const moved = drag.moved;
+    if (moved && drag.frame) { cancelAnimationFrame(drag.frame); step(); }   // the drop lands where the pointer is, not where the last frame drew
     end();
     if (!moved) return;
     const order = [...box.querySelectorAll(".chip")].map((c) => +c.dataset.i);
     if (order.some((v, k) => v !== selected[k])) setGenes(order); else renderChips();
   };
   box.addEventListener("pointerup", finish);
-  box.addEventListener("pointercancel", (e) => { if (drag && e.pointerId === drag.id) { end(); renderChips(); } });
+  // anything that interrupts the gesture puts the chips back: a cancelled pointer, a lost capture
+  // (the window losing focus), or Escape
+  const interrupted = (e) => { if (drag && e.pointerId === drag.id) cancel(); };
+  box.addEventListener("pointercancel", interrupted);
+  box.addEventListener("lostpointercapture", interrupted);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && drag) cancel(); });
   // keyboard: Alt+arrows move the focused chip, Delete or Backspace removes it
   box.addEventListener("keydown", (e) => {
     const chip = e.target.closest(".chip");
