@@ -35,6 +35,8 @@ The [methods page](https://brandonlukas.github.io/med12-tpm/methods.html) docume
 - `split_tpm.py`: per-dataset TPM tables and an Excel workbook
 - `deseq2.R`: DESeq2 within each dataset
 - `build_site_data.py`: data for the site (`docs/data/`)
+- `illustration/paint.py`: paints the overview's watercolour illustration (NumPy/OpenCV/Pillow) to `docs/img/design.webp`;
+  regenerate with `uv run --with numpy --with opencv-python-headless --with pillow python illustration/paint.py`
 - `tests/site_test.py`: scripted browser checks of the site (Playwright); `tests/screenshots.py` renders pages to PNG
 - `docs/`: the site, served by GitHub Pages: `index.html` + `overview.js` (Overview), `genes.html` + `app.js`
   (Genes), `de.html` + `de.js` (Comparisons), `methods.html`, `common.js`, `style.css`; Plotly 2.35.2 is vendored in `docs/vendor/`

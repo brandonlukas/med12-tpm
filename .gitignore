@@ -7,3 +7,4 @@ null/
 .nextflow.log*
 samplesheet.abs.csv
 __pycache__/
+illustration/paint_check.png
