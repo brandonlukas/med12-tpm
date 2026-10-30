@@ -12,7 +12,7 @@ const COLORS = {
 };
 // higher / lower in a comparison: the RdBu red and blue, so neither hue is a group colour
 const UP = "#B2182B", DOWN = "#2166AC";
-const INK = "#1c1e26", MUTED = "#6b7080", RULE = "#e4e6ec", GRID = "#eff0f4";
+const INK = "#1c1e26", MUTED = "#5c6170", RULE = "#e4e6ec", GRID = "#eff0f4";
 const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 const PLOT_FONT = { family: FONT, size: 13, color: INK };
 const PLOT_CONFIG = { displayModeBar: false, responsive: true, doubleClick: "reset" };
