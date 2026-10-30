@@ -242,8 +242,9 @@ function tableOne(d, g) {
     const [, lfc, padj] = de[c] || [];
     const label = `<a href="de.html#c=${d.id}__${c}&gene=${name}" title="See the whole comparison">${esc(contrastLabel(c))}</a>`;
     if (padj == null) return `<tr><td>${label}</td><td colspan="2" class="dim">not tested</td></tr>`;
-    const sig = padj < 0.05;
-    return `<tr><td>${label}</td><td class="${sig ? `sig ${lfc > 0 ? "up" : "down"}` : ""}">${fmt(lfc)}</td><td class="${sig ? "sig" : ""}">${fmtP(padj)}</td></tr>`;
+    // no direction colour here: on this page vermilion and blue already mean sample groups
+    const cls = padj < 0.05 ? "sig" : "";
+    return `<tr><td>${label}</td><td class="${cls}">${fmt(lfc)}</td><td class="${cls}">${fmtP(padj)}</td></tr>`;
   });
   $(`tab-${d.id}`).innerHTML = `
     <table><caption>Expression by group</caption>
@@ -287,7 +288,7 @@ function plotMulti(d, data) {
 function changesCell(d, de) {
   if (!de || !Object.keys(de).length) return `<span class="dim">not tested</span>`;
   const hits = d.contrasts.filter((c) => de[c] && de[c][2] < 0.05)
-    .map((c) => `${esc(contrastShort(c))} <span class="${de[c][1] > 0 ? "up" : "down"}">${de[c][1] > 0 ? "↑" : "↓"}</span>`);
+    .map((c) => `${esc(contrastShort(c))} ${de[c][1] > 0 ? "↑" : "↓"}`);
   return hits.length ? hits.join(", ") : `<span class="dim">none</span>`;
 }
 
