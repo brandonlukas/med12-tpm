@@ -263,3 +263,11 @@ code { font-family: var(--mono); font-size: .92em; }
 .prose-table th, .prose-table td { text-align: left; white-space: normal; }
 .prose-table th:not(:first-child), .prose-table td:not(:first-child) { padding-left: 12px; }
 .cols { padding-left: 20px; display: grid; gap: 6px; max-width: 72ch; }
+
+/* the PCA panels on Methods */
+.pca { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; max-width: 920px; }
+@media (max-width: 760px) { .pca { grid-template-columns: 1fr; max-width: 360px; } }
+.pca-panel { margin: 0; display: grid; gap: 6px; }
+.pca-panel h3 { font: 400 17px/1.25 var(--serif); }
+.pca-panel svg { width: 100%; height: auto; display: block; font-family: var(--sans); }
+.pca-panel .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }

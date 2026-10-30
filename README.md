@@ -36,6 +36,7 @@ The [methods page](https://brandonlukas.github.io/med12-tpm/methods.html) docume
 - `split_tpm.py`: per-dataset TPM tables and an Excel workbook
 - `deseq2.R`: DESeq2 within each dataset
 - `excel_deseq2.py`: one Excel workbook of all DESeq2 comparisons, with a README sheet
+- `pca.R`, `pca_svg.py`: per-dataset PCA (DESeq2 vst, top 500 variable genes) → `docs/data/pca.json` → the panels on the Methods page
 - `build_site_data.py`: data for the site (`docs/data/`)
 - `illustration/vector.py`: generates the overview's illustration (smooth vector SVG, gradient shading) into `docs/index.html`
 - `stamp.py`: stamps the pages' stylesheet and script links with a content hash; run it before committing a change to `docs/`
@@ -56,6 +57,7 @@ Python with pandas and openpyxl; about 250 GB of free disk.
 python3 split_tpm.py            # deliverables/*_gene_TPM.csv, .xlsx
 Rscript deseq2.R                # deliverables/de/*.csv
 python3 excel_deseq2.py         # deliverables/MED12_RNAseq_DESeq2.xlsx
+Rscript pca.R && python3 pca_svg.py   # docs/data/pca.json and the Methods PCA panels
 python3 build_site_data.py      # docs/data/
 ```
 

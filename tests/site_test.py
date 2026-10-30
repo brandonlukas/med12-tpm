@@ -129,6 +129,11 @@ with sync_playwright() as p:
     pg.wait_for_function("document.querySelector('#gene-name')?.textContent === 'CDK8'")
     check(True, "old explorer links on the overview URL redirect to genes.html")
 
+    # ---- Methods: the PCA panels
+    pg.goto(BASE + "methods.html", wait_until="domcontentloaded")
+    check(pg.locator(".pca svg circle").count() == 40, f"PCA panels show all 40 samples: {pg.locator('.pca svg circle').count()}")
+    check(pg.locator(".pca-panel").count() == 3, "one PCA panel per dataset")
+
     # ---- Downloads page and the nav
     pg.goto(BASE + "downloads.html", wait_until="networkidle")
     check(pg.locator(".dl[href$='.xlsx']").count() == 2, "Downloads page offers the two workbooks")
