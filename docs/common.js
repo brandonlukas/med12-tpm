@@ -169,6 +169,21 @@ function zoomReset(el, btn, redraw) {
   btn.addEventListener("click", () => { btn.hidden = true; redraw(); });
 }
 
+// Legend entries are not buttons here (clicking would hide a series and change what the plot
+// shows), so hovering one lights up its series instead. onGroup(name) highlights, onGroup(null)
+// clears; the caller decides what "highlight" means for its plot.
+function legendHover(el, onGroup) {
+  el.querySelectorAll(".legend .traces").forEach((item) => {
+    const name = item.querySelector(".legendtext")?.textContent;
+    item.addEventListener("mouseenter", () => onGroup(name));
+    item.addEventListener("mouseleave", () => onGroup(null));
+  });
+}
+// dim every trace except the named one (for plots whose traces are the categories)
+function dimOthers(el, name) {
+  Plotly.restyle(el, { opacity: name == null ? 1 : el.data.map((t) => (t.name === name ? 1 : t.showlegend === false ? 1 : 0.15)) });
+}
+
 // Plotly is a 1 MB file; on a poor connection it can fail while the page loads. Try once more,
 // and if it is still missing the pages show their tables without the plots.
 const NO_PLOT = `<p class="noplot">The chart could not be drawn because the plotting library did not load.

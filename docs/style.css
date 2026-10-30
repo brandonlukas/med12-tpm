@@ -153,6 +153,8 @@ body.dragging-chip, body.dragging-chip * { cursor: grabbing !important; user-sel
 .panel h2 { font-size: 18px; }
 .panel .note { color: var(--muted); font-size: 13px; line-height: 1.45; }
 .plot { height: 330px; }
+/* legend entries are hover affordances, not buttons: no hand cursor */
+.js-plotly-plot .plotly .legend .traces, .js-plotly-plot .plotly .legend .traces .legendtoggle { cursor: default !important; }
 .panels.multi .plot { height: 360px; }
 .panels.multi .scroll { max-width: 820px; }
 .panels.multi table { min-width: 560px; }

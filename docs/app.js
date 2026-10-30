@@ -434,6 +434,7 @@ function plotMulti(d, data) {
   }
   hl[d.id] = { mode: "multi", points };
   const top = base * (star.x.length ? 1.08 : 1);
+  const byLabel = Object.fromEntries(d.groups.map((grp) => [groupLabel(grp), grp]));
   Plotly.react(`plot-${d.id}`, traces, {
     ...BASE_LAYOUT, shapes, margin: { l: 56, r: 10, t: 34, b: 44 },
     legend: { orientation: "h", x: 0, y: 1.02, yanchor: "bottom", font: { size: 13 }, itemclick: false, itemdoubleclick: false },
@@ -441,6 +442,7 @@ function plotMulti(d, data) {
       range: [-0.5, selected.length - 0.5], tickangle: "auto", showgrid: false, ticks: "" },
     yaxis: tpmAxis(isLog(), top),
   }, PLOT_CONFIG);
+  legendHover($(`plot-${d.id}`), (name) => highlight(d.id, name ? [byLabel[name]] : null, null));
 }
 
 // which comparisons call the gene significant, as short labels with the direction

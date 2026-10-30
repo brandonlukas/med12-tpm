@@ -57,6 +57,11 @@ with sync_playwright() as p:
     stars_of = lambda ds: pg.evaluate(f"(document.getElementById('plot-{ds}').data.find(t => t.marker && t.marker.symbol === 'asterisk') || {{x: []}}).x.length")
     check(stars_of("NC_2D") >= 1, f"multi view stars significant groups in 2D cells: {stars_of('NC_2D')}")
     check(stars_of("JCI_tissue") >= 1, f"multi view stars tissue groups vs MM: {stars_of('JCI_tissue')}")
+    pg.hover("#plot-NC_2D .legend .traces >> nth=1")   # the legend entry for KO
+    pg.wait_for_function("document.getElementById('plot-NC_2D').data.some(t => Array.isArray(t.marker?.opacity) && t.marker.opacity.includes(0.15))")
+    check(pg.evaluate("getComputedStyle(document.querySelector('#plot-NC_2D .legend .traces .legendtoggle')).cursor") == "default", "legend entries: hover highlights, no hand cursor")
+    pg.hover("#gene-name")
+    pg.wait_for_function("document.getElementById('plot-NC_2D').data.every(t => !Array.isArray(t.marker?.opacity))")
     pg.hover("#tab-NC_2D th[data-hl-groups] >> nth=1")   # the KO column header
     pg.wait_for_function("document.getElementById('plot-NC_2D').data.some(t => Array.isArray(t.marker?.opacity) && t.marker.opacity.includes(0.15))")
     check(True, "hovering a group header in the multi-gene table dims the other groups")
@@ -196,6 +201,11 @@ with sync_playwright() as p:
     check(pg.locator("#volcano-reset").is_visible(), "drag-zoom shows the Reset zoom button")
     pg.click("#volcano-reset"); pg.wait_for_timeout(400)
     check(pg.locator("#volcano-reset").is_hidden(), "Reset zoom hides the button again")
+    pg.hover("#volcano .legend .traces >> nth=0")
+    pg.wait_for_function("document.getElementById('volcano').data.some(t => t.opacity === 0.15)")
+    check(True, "volcano legend hover dims the other categories")
+    pg.hover("#h-table")
+    pg.wait_for_function("document.getElementById('volcano').data.every(t => t.opacity === 1 || t.opacity === undefined)")
     pg.click("#detable th[data-key='lfc']")
     first = pg.locator("#detable tbody tr td:nth-child(4)").all_inner_texts()[:3]
     vals = [float(v.replace("−", "-")) for v in first]
