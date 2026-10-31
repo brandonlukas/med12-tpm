@@ -95,7 +95,7 @@
       "sheet": "Moyo",
       "paper": "Moyo et al., Nat Commun 2020",
       "doi": "10.1038/s41467-020-14701-6",
-      "note": "Leiomyoma (LM) and matched myometrium (MM) from 15 patients; every LM is <i>MED12</i> mutant (10 G44D, 5 G44S); 2 patients had hormone treatment.",
+      "note": "Leiomyoma (LM) and matched myometrium (MM) from 15 patients; every LM is <i>MED12</i> mutant (11 G44D, 3 G44S, 1 G44V); 2 patients had hormone treatment.",
       "paired": true,
       "groups": [
         "MM",
@@ -123,7 +123,7 @@
         "GSE128229"
       ],
       "reads": "paired-end 2×42 bp",
-      "methods": "15 patients, LM and matched MM; every LM <i>MED12</i> mutant (10 G44D, 5 G44S); 2 patients hormone-treated; ribosomal RNA depleted"
+      "methods": "15 patients, LM and matched MM; every LM <i>MED12</i> mutant (11 G44D, 3 G44S, 1 G44V; two differ from the paper, see below); 2 patients hormone-treated; ribosomal RNA depleted"
     },
     {
       "id": "Leistico_tissue",

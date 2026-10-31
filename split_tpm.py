@@ -41,7 +41,7 @@ for dataset in order:
     sheets[dataset] = df
     print(f"{dataset}: {len(cols)} samples, {len(df)} genes")
 
-info = samples[["sample", "dataset", "group", "patient", "genotype", "genotype_as_listed_on_GEO_(incorrect)", "hormone_treatment", "gsm", "srr", "geo_title"]]
+info = samples[["sample", "dataset", "group", "patient", "genotype", "genotype_as_listed_on_GEO_(incorrect)", "genotype_as_listed_in_paper", "hormone_treatment", "gsm", "srr", "geo_title"]]
 info.to_csv(out_dir / "sample_info.csv", index=False)
 
 try:

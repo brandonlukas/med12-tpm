@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MED12 RNA-seq Explorer</title>
-<meta name="description" content="Three public RNA-seq studies of MED12-mutant uterine fibroids, reprocessed together: patient tumors with matched myometrium, and MED12-edited myometrial cells in 2D and 3D culture. Look up any gene.">
+<meta name="description" content="Five public RNA-seq datasets of uterine fibroids, reprocessed together: tumors with matched myometrium from three studies, and MED12-edited myometrial cells in 2D and 3D culture. Look up any gene.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css?v=bd551ad2">
 <script>
@@ -27,9 +27,9 @@
 </header>
 
 <main class="wrap">
-  <p class="lede big">Gene expression across three public RNA-seq datasets of <i>MED12</i>-mutant uterine fibroids: tumors
-    with each patient's own myometrium, and myometrial cells edited at <i>MED12</i> (a codon-44 mutation, or knocked
-    out), grown in 2D and as spheroids.</p>
+  <p class="lede big">Gene expression across five public RNA-seq datasets of uterine fibroids: tumors with each
+    patient's own myometrium from three studies, and myometrial cells edited at <i>MED12</i> (a codon-44 mutation, or
+    knocked out), grown in 2D and as spheroids.</p>
 
   <form class="field search lookup" id="lookup" autocomplete="off">
     <label for="q">Look up a gene</label>
@@ -212,8 +212,8 @@
     </svg>
     <!-- design:end -->
     </div>
-    <figcaption id="design-cap">From each of 10 patients, a leiomyoma and the myometrium next to it; 6 of the tumors
-      carry <i>MED12</i> G44D, 4 are wild-type. The cells are an immortalized myometrial line, not from these patients,
+    <figcaption id="design-cap">From each patient, a leiomyoma and the myometrium next to it: 45 pairs in three
+      studies. 33 of the tumors carry a <i>MED12</i> mutation, 12 do not. The cells are an immortalized myometrial line, not from these patients,
       edited into four lines and grown in 2D; WT, Mut1 and Mut2 also as spheroids. Orange, blue, black and pink are the
       group colors used throughout the site.</figcaption>
   </figure>
@@ -221,19 +221,23 @@
   <section class="prose-block" aria-labeledby="h-why">
     <h2 id="h-why">Why these datasets</h2>
     <p>About 70% of uterine fibroids carry a mutation in <i>MED12</i>, most often at codon 44
-      (<a href="https://doi.org/10.1126/science.1208930">Mäkinen et al., Science 2011</a>). The tissue study
-      (<a href="https://doi.org/10.1172/jci.insight.171305">Zuberi et al., JCI Insight 2023</a>;
-      <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE204969">GSE204969</a>) shows what those tumors
-      look like, mutant and wild-type, against normal myometrium. The cell study
+      (<a href="https://doi.org/10.1126/science.1208930">Mäkinen et al., Science 2011</a>). The three tissue studies
+      show what those tumors look like against each patient's own myometrium: with and without the mutation in
+      <a href="https://doi.org/10.1172/jci.insight.171305">Zuberi et al., JCI Insight 2023</a>
+      (<a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE204969">GSE204969</a>) and
+      <a href="https://doi.org/10.1016/j.celrep.2021.108927">Leistico et al., Cell Rep 2021</a>
+      (<a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE142329">GSE142329</a>), mutant only in
+      <a href="https://doi.org/10.1038/s41467-020-14701-6">Moyo et al., Nat Commun 2020</a>
+      (<a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE128229">GSE128229</a>). The cell study
       (<a href="https://doi.org/10.1038/s41467-023-39684-y">Buyukcelebi et al., Nat Commun 2023</a>;
       <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226014">GSE226014</a>,
       <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE226016">GSE226016</a>) asks the question the
       other way round: put a codon-44 mutation (G44N) into myometrial cells, or remove <i>MED12</i> altogether, and see what
-      changes. Side by side, they show whether a gene's behavior in the tumor is reproduced in the model, and
-      whether that depends on how the cells are grown.</p>
-    <p>All 40 samples went through one pipeline, so values are comparable within each dataset and genes can be compared
-      with each other (the unit is TPM). Between datasets they are not: tissue and cultured cells differ in material
-      and library preparation. Across the studies, compare what changes, not how much is expressed.</p>
+      changes. Side by side, they show whether a gene's change in the tumor holds across patients and studies, is
+      reproduced in the model, and depends on how the cells are grown.</p>
+    <p>All 110 samples went through one pipeline, so values are comparable within each dataset and genes can be compared
+      with each other (the unit is TPM). Between datasets they are not: tissue and cultured cells differ in material,
+      and the studies in library preparation. Across the studies, compare what changes, not how much is expressed.</p>
   </section>
 </main>
 

@@ -52,7 +52,7 @@ def reads(s):
     if s["dataset"] == "JCI_tissue":
         return f"zcat {work}/sra/{s['sample']}.fastq.gz"
     first = sorted(glob.glob(str(here / "fastq" / f"{s['sample']}*_1.fastq.gz")))
-    return f"zcat {' '.join(first)} | head -n {4 * N_READS}"
+    return f"(zcat {' '.join(first)} || true) | head -n {4 * N_READS}"   # head closing early is not an error
 
 bams = []
 for s in samples:
