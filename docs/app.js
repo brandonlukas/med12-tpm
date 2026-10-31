@@ -5,6 +5,8 @@ const GENE_SETS = {
   "Mediator kinase module": ["MED12", "MED12L", "MED13", "MED13L", "CCNC", "CDK8", "CDK19"],
   "Leiomyoma drivers": ["MED12", "HMGA2", "HMGA1", "FH", "COL4A5", "COL4A6", "RAD51B", "PLAG1"],
   "Hormone receptors": ["ESR1", "ESR2", "PGR", "AR", "GPER1"],
+  "STAT family": ["STAT1", "STAT2", "STAT3", "STAT4", "STAT5A", "STAT5B", "STAT6"],
+  "E2F family": ["E2F1", "E2F2", "E2F3", "E2F4", "E2F5", "E2F6", "E2F7", "E2F8"],
   "Housekeeping": ["ACTB", "GAPDH", "B2M", "TBP", "HPRT1", "PPIA"],
 };
 // groups each bracket joins; X_vs_Y names default to [X, Y]. LM_vs_MM pools both

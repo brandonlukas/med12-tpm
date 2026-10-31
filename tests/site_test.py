@@ -105,6 +105,7 @@ with sync_playwright() as p:
     pg.click("#genesets button:has-text('Hormone receptors')")
     pg.wait_for_function("document.querySelector('#gene-name').textContent === '5 genes'")
     check(pg.text_content("#gene-name") == "5 genes", "gene set loads 5 genes")
+    check(pg.locator("#genesets button").all_inner_texts()[3:5] == ["STAT family", "E2F family"], "STAT and E2F family gene sets offered")
     check("not tested" in pg.inner_text("#panels") or True, "page still renders with gene set")
 
     check(pg.locator("#clear").is_visible(), "Clear appears with several genes")
