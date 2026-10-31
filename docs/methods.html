@@ -51,11 +51,16 @@
 <h3>TPM</h3>
 <p>Transcripts per million at the gene level (from Salmon). TPM corrects for sequencing depth and for gene length, so
   it compares genes with each other within a sample, and samples with each other within a dataset. It does not
-  compare across the three datasets: tissue versus cultured cells, different library preparations and read lengths,
-  and an unstranded 2D library.</p>
+  compare across datasets: tissue versus cultured cells, different library preparations and read lengths, and an
+  unstranded 2D library.</p>
+<h3>Counts</h3>
+<p>Salmon's estimated reads per gene, adjusted for each sample's transcript lengths (tximport,
+  <code>lengthScaledTPM</code>) and rounded. These are the counts DESeq2 was given; they are on the Downloads page for
+  anyone who wants to rerun or extend the analysis within a dataset.</p>
 <h3>Expression percentile</h3>
-<p>Where a gene's mean TPM in a group ranks among the 19,350 protein-coding genes with nonzero TPM in at least
-  one sample. The 50th percentile is a typical gene; the 90th is in the top 10%.</p>
+<p>Where a gene's mean TPM in a group ranks among all <!-- ncoding:start -->
+<!-- ncoding:end --> protein-coding genes in the annotation (GENCODE v44), a fixed set, so adding a dataset does not
+  move the others' percentiles. The 50th percentile is a typical gene; the 90th is in the top 10%.</p>
 <h3>log<sub>2</sub>FC and p<sub>adj</sub></h3>
 <p>From DESeq2, fitted separately in each dataset. log<sub>2</sub>FC is the first group relative to the second, so a
   positive value means higher in the first group. The site shows fold changes with noisy estimates from low-count

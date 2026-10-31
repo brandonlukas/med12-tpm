@@ -50,6 +50,8 @@
     <h2 id="h-cols">Columns</h2>
     <ul class="cols">
       <li><b>gene_id, gene_name</b>: Ensembl ID and symbol (GENCODE v44).</li>
+      <li><b>Counts tables</b>: one column per sample; the read counts DESeq2 was given (adjusted for each sample's
+        transcript lengths, rounded). Use them to rerun or extend the analysis within a dataset.</li>
       <li><b>TPM tables</b>: one column per sample, named as in the sample table; values compare genes within a sample and
         samples within a dataset, not across datasets.</li>
       <li><b>baseMean</b>: mean normalized count over all samples in the dataset.</li>

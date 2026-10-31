@@ -17,6 +17,7 @@ import math
 import re
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 CHUNK = 256
@@ -55,11 +56,15 @@ tpm = tpm[tpm[samples["sample"]].sum(axis=1) > 0].reset_index(drop=True)
 tpm["gene_type"] = tpm["gene_id"].map(gene_type)
 index = {g: i for i, g in enumerate(tpm["gene_id"])}
 coding = tpm["gene_type"] == "protein_coding"
+# protein-coding genes with zero TPM in every sample are not in tpm; they count as zeros in the reference
+n_coding_all = sum(t == "protein_coding" for t in gene_type.values())
+undetected = n_coding_all - int(coding.sum())
 
-# Percentile of each gene's group-mean TPM among protein-coding genes' group means:
-# "is this gene expressed well?" judged against the genes people usually target.
+# Percentile of each gene's group-mean TPM among every protein-coding gene in GENCODE v44:
+# "is this gene expressed well?" judged against the genes people usually target. A fixed
+# reference, so adding a dataset (which makes more genes nonzero somewhere) moves nothing.
 pct = {}
-meta = {"chunk": CHUNK, "n_coding": int(coding.sum()), "datasets": []}
+meta = {"chunk": CHUNK, "n_coding": n_coding_all, "datasets": []}
 for ds, cfg in DATASETS.items():
     s = samples[samples["dataset"] == ds].copy()
     s["group"] = pd.Categorical(s["group"], cfg["groups"])
@@ -67,7 +72,7 @@ for ds, cfg in DATASETS.items():
     cfg["samples"] = s["sample"].tolist()
     for g in cfg["groups"]:
         means = tpm[s.loc[s["group"] == g, "sample"]].mean(axis=1)
-        ref = means[coding].sort_values().to_numpy()
+        ref = np.concatenate([np.zeros(undetected), means[coding].sort_values().to_numpy()])
         pct[ds, g] = (ref.searchsorted(means.to_numpy(), side="right") / len(ref) * 100).round().astype(int)
     d = next(d for d in CONFIG if d["id"] == ds)
     meta["datasets"].append({

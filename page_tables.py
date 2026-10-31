@@ -71,10 +71,12 @@ put("methods.html", "design", '<div class="scroll"><table>\n  <tr><th>Dataset</t
 put("methods.html", "mapping", '<div class="scroll"><table>\n  <tr><th>Dataset</th><th>Mapping rate</th><th>Library strandedness (Salmon)</th></tr>\n'
     + "\n".join(f'  <tr><td>{d["name"]}</td><td>{m[0]}</td><td>{m[1]}</td></tr>' for d in DS for m in [mapping(d)]) + "\n</table></div>")
 put("methods.html", "count", f"{n}")
+gtf_coding = json.load(open(here / "docs/data/meta.json"))["n_coding"]
+put("methods.html", "ncoding", f"{gtf_coding:,}")
 
 link = lambda f, text: f'<a href="{URL}/{f}">{text}</a>'
-put("downloads.html", "tables", '<div class="scroll"><table class="prose-table">\n  <tr><th>Dataset</th><th>Gene TPM</th><th>Comparisons, one table each</th></tr>\n' + "\n".join(
-    f'  <tr><td>{d["name"]}</td><td>{link(d["id"] + "_gene_TPM.csv.gz", "CSV")}</td>\n      <td>'
+put("downloads.html", "tables", '<div class="scroll"><table class="prose-table">\n  <tr><th>Dataset</th><th>Gene TPM</th><th>Counts</th><th>Comparisons, one table each</th></tr>\n' + "\n".join(
+    f'  <tr><td>{d["name"]}</td><td>{link(d["id"] + "_gene_TPM.csv.gz", "CSV")}</td><td>{link(d["id"] + "_gene_counts.csv.gz", "CSV")}</td>\n      <td>'
     + " ·\n          ".join(link(f'{d["id"]}__{c["id"]}.csv.gz', c["label"]) for c in d["contrasts"]) + "</td></tr>" for d in DS)
     + f'\n</table></div>\n<p>Sample table with GSM and SRR accessions, mutation and hormone treatment: {link("sample_info.csv", "sample_info.csv")}.</p>')
 n_contrasts = sum(len(d["contrasts"]) for d in DS)

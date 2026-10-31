@@ -2,7 +2,7 @@
 """Split nf-core/rnaseq merged Salmon gene TPM into one table per dataset.
 
 Reads results_merged/salmon.merged.gene_tpm.tsv and samples.tsv, writes
-deliverables/<dataset>_gene_TPM.csv plus one Excel workbook (one sheet per
+deliverables/<dataset>_gene_TPM.csv and <dataset>_gene_counts.csv, plus one Excel workbook of TPM (one sheet per
 dataset + a sample-info sheet) if openpyxl is installed.
 """
 import json
@@ -18,6 +18,8 @@ out_dir.mkdir(exist_ok=True)
 
 samples = pd.read_csv(here / "samples.tsv", sep="\t", dtype=str)
 tpm = pd.read_csv(tpm_path, sep="\t")
+# the counts DESeq2 was given: length-scaled, rounded to whole numbers as deseq2.R does
+counts = pd.read_csv(tpm_path.with_name("salmon.merged.gene_counts_length_scaled.tsv"), sep="\t")
 id_cols = [c for c in ("gene_id", "gene_name") if c in tpm.columns]
 
 missing = set(samples["sample"]) - set(tpm.columns)
@@ -33,6 +35,9 @@ for dataset in order:
     df = tpm[id_cols + cols].copy()
     df[cols] = df[cols].round(3)
     df.to_csv(out_dir / f"{dataset}_gene_TPM.csv", index=False)
+    c = counts[id_cols + cols].copy()
+    c[cols] = c[cols].round().astype(int)
+    c.to_csv(out_dir / f"{dataset}_gene_counts.csv", index=False)
     sheets[dataset] = df
     print(f"{dataset}: {len(cols)} samples, {len(df)} genes")
 
