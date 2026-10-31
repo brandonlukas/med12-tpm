@@ -104,6 +104,8 @@ async function init() {
   if (!noPlots) new ResizeObserver(() => document.querySelectorAll(".plot").forEach((el) => el.data && Plotly.Plots.resize(el))).observe($("panels"));
   for (const d of Data.meta.datasets) {
     const tab = $(`tab-${d.id}`);
+    // on a touch screen a tap counts as a hover that never ends, so highlighting is for mouse users
+    if (!matchMedia("(hover: hover)").matches) continue;
     tab.addEventListener("mouseover", (e) => {
       const t = e.target.closest("[data-hl-groups],[data-hl-gene]");
       if (!t) { highlight(d.id, null, null); return; }
@@ -346,10 +348,10 @@ function brackets(d, de, xi, ymax) {
   const items = [];
   for (const { id: c } of d.contrasts) {
     const pair = contrast(d.id, c).pair;
-    const padj = de[c]?.[2];
+    const [, lfc, padj] = de[c] || [];
     if (!pair || padj == null || !(pair[0] in xi) || !(pair[1] in xi)) continue;
     const [lo, hi] = [xi[pair[0]], xi[pair[1]]].sort((a, b) => a - b);
-    items.push({ c, pair, lo, hi, padj });
+    items.push({ c, pair, lo, hi, lfc, padj });
   }
   items.sort((a, b) => a.hi - a.lo - (b.hi - b.lo) || a.lo - b.lo);
   const levels = [];   // per level, the [lo, hi] spans already placed
@@ -366,10 +368,10 @@ function brackets(d, de, xi, ymax) {
     const [x1, x2] = [it.lo + inset, it.hi - inset];
     shapes.push({ type: "path", xref: "x", yref: "y", path: `M${x1},${yb - tick} L${x1},${yb} L${x2},${yb} L${x2},${yb - tick}`,
       line: { color: MUTED, width: 1 } });
-    const sig = it.padj < 0.05;
-    annotations.push({ x: (it.lo + it.hi) / 2, y: yb, yanchor: "bottom", showarrow: false, text: stars(it.padj),
+    const sig = isChange(it.lfc, it.padj);
+    annotations.push({ x: (it.lo + it.hi) / 2, y: yb, yanchor: "bottom", showarrow: false, text: sig ? stars(it.padj) : "ns",
       font: { size: sig ? 15 : 11, color: sig ? INK : MUTED }, yshift: sig ? -2 : 1,
-      hovertext: `${contrastLabel(d.id, it.c)}<br>p<sub>adj</sub> ${fmtP(it.padj)}` });
+      hovertext: `${contrastLabel(d.id, it.c)}<br>log<sub>2</sub>FC ${fmt(it.lfc)} · p<sub>adj</sub> ${fmtP(it.padj)}` });
   }
   return { shapes, annotations, items, top: ymax * 1.02 + levels.length * step + 0.05 * ymax };
 }
@@ -390,7 +392,7 @@ function tableOne(d, g) {
     const row = `<tr data-hl-groups="${pairFor(d, c).join(",")}">`;
     if (padj == null) return `${row}<td>${label}</td><td colspan="2" class="dim">not tested</td></tr>`;
     // no direction color here: on this page orange and blue already mean sample groups
-    const cls = padj < 0.05 ? "sig" : "";
+    const cls = isChange(lfc, padj) ? "sig" : "";
     return `${row}<td>${label}</td><td class="${cls}">${fmt(lfc)}</td><td class="${cls}">${fmtP(padj)}</td></tr>`;
   });
   $(`tab-${d.id}`).innerHTML = `
@@ -425,20 +427,20 @@ function plotMulti(d, data) {
   });
   const shapes = selected.slice(1).map((_, n) => ({ type: "line", xref: "x", yref: "paper", x0: n + 0.5, x1: n + 0.5,
     y0: 0, y1: 1, line: { color: RULE, width: 1 } }));
-  // one star above a group where it differs from the reference group (padj < 0.05), drawn as a
+  // one star above a group where it changes against the reference group (isChange), drawn as a
   // stroked marker so that it reads as a mark, not a speck. Comparisons that are not against
   // the reference stay in the table below
   const base = yTop(Math.max(0, ...traces.flatMap((t) => t.y.filter((v) => v != null))));
   const ref = d.groups[0], star = { x: [], y: [], text: [], pts: [] };
   data.forEach((g, n) => {
     for (const { id: c } of d.contrasts) {
-      const pair = pairFor(d, c), padj = g.de[d.id][c]?.[2];
-      if (pair.length !== 2 || pair[1] !== ref || !d.groups.includes(pair[0]) || padj == null || padj >= 0.05) continue;
+      const pair = pairFor(d, c), [, lfc, padj] = g.de[d.id][c] || [];
+      if (pair.length !== 2 || pair[1] !== ref || !d.groups.includes(pair[0]) || !isChange(lfc, padj)) continue;
       const gi = d.groups.indexOf(pair[0]);
       const ys = d.samples.map((s, k) => (s.group === pair[0] ? toY(g.tpm[d.id][k]) : null)).filter((v) => v != null);
       star.x.push(n + (gi - (G - 1) / 2) * slot);
       star.y.push(Math.max(...ys) + 0.055 * base);
-      star.text.push(`${esc(Data.genes[selected[n]][1])}, ${contrastLabel(d.id, c)}<br>p<sub>adj</sub> ${fmtP(padj)}`);
+      star.text.push(`${esc(Data.genes[selected[n]][1])}, ${contrastLabel(d.id, c)}<br>log<sub>2</sub>FC ${fmt(lfc)} · p<sub>adj</sub> ${fmtP(padj)}`);
       star.pts.push({ g: pair[0], n });
     }
   });
@@ -461,7 +463,7 @@ function plotMulti(d, data) {
 // which comparisons call the gene significant, as short labels with the direction
 function changesCell(d, de, n) {
   if (!de || !Object.keys(de).length) return `<span class="dim">not tested</span>`;
-  const hits = d.contrasts.map((k) => k.id).filter((c) => de[c] && de[c][2] < 0.05)
+  const hits = d.contrasts.map((k) => k.id).filter((c) => de[c] && isChange(de[c][1], de[c][2]))
     .map((c) => `<a class="hl" href="de.html#c=${d.id}__${c}&gene=${encodeURIComponent(Data.genes[selected[n]][1])}" data-hl-gene="${n}" data-hl-groups="${pairFor(d, c).join(",")}" title="See the whole comparison">${esc(contrastShort(d.id, c))} ${de[c][1] > 0 ? "↑" : "↓"}</a>`);
   return hits.length ? hits.join(", ") : `<span class="dim">none</span>`;
 }
@@ -478,7 +480,7 @@ function tableMulti(d, data) {
     const name = Data.genes[selected[n]][1];
     return `<tr data-hl-gene="${n}"><td><a href="${genesLink([name])}" title="Show only this gene">${esc(name)}</a></td>${cells.join("")}<td class="left">${changesCell(d, g.de[d.id], n)}</td></tr>`;
   });
-  $(`tab-${d.id}`).innerHTML = `<div class="scroll"><table><caption>Mean TPM, with its percentile among protein-coding genes; changes at p<sub>adj</sub> &lt; 0.05</caption>
+  $(`tab-${d.id}`).innerHTML = `<div class="scroll"><table><caption>Mean TPM, with its percentile among protein-coding genes; changes: p<sub>adj</sub> &lt; 0.05 and at least 2-fold</caption>
     <thead>${head}</thead><tbody>${rows.join("")}</tbody></table></div>`;
 }
 

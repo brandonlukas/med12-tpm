@@ -8,7 +8,7 @@ const cache = new Map();
 const state = { c: null, rows: [], sort: { key: "rank", dir: 1 }, page: 0, pick: null };
 let noPlots = false; // the plotting library did not load; the table still works
 
-const DEFAULTS = { alpha: 0.05, lfcmin: 1 };
+const DEFAULTS = { alpha: SIG.padj, lfcmin: SIG.lfc };
 // an empty or unreadable field falls back to its default; any number, including 0, is taken as typed
 const num = (id) => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : DEFAULTS[id]; };
 const alpha = () => num("alpha");

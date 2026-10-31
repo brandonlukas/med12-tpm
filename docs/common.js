@@ -10,6 +10,10 @@ const COLORS = {
   LM_wtMED12: "#0072B2", LM_mutMED12: "#D55E00",
   KO: "#1c1e26", Mut1: "#D55E00", Mut2: "#BF6A9B",
 };
+// What the site calls a change: adjusted p below 0.05 and at least 2-fold (|log2FC| >= 1, on the
+// shrunken estimate). The Comparisons page starts from these and lets the reader change them.
+const SIG = { padj: 0.05, lfc: 1 };
+const isChange = (lfc, padj) => padj != null && lfc != null && padj < SIG.padj && Math.abs(lfc) >= SIG.lfc;
 // higher / lower in a comparison: the RdBu red and blue, so neither hue is a group color
 const UP = "#B2182B", DOWN = "#2166AC";
 const INK = "#1c1e26", MUTED = "#5c6170", RULE = "#e4e6ec", GRID = "#eff0f4";
