@@ -1,0 +1,36 @@
+sample	dataset	genotype_in_paper	reads_spanning	reads_by_codon	reads_say
+leistico_pt01_LM	Leistico_tissue	G44S	3	GGT (wild type) 2, AGT (G44S) 1	too few reads
+leistico_pt02_LM	Leistico_tissue	FH deficient	23	GGT (wild type) 22, GGC (other) 1	wild type at codon 44
+leistico_pt03_LM	Leistico_tissue	G44V	12	GTT (G44V) 12	G44V
+leistico_pt04_LM	Leistico_tissue	L36R	20	GGT (wild type) 20	wild type at codon 44
+leistico_pt05_LM	Leistico_tissue	c.115-134del19	0		too few reads
+leistico_pt06_LM	Leistico_tissue	other	11	GGT (wild type) 11	wild type at codon 44
+leistico_pt07_LM	Leistico_tissue	G44C	12	TGT (G44C) 11, GGT (wild type) 1	G44C
+leistico_pt08_LM	Leistico_tissue	HMGA2 overexpression	10	GGT (wild type) 10	wild type at codon 44
+leistico_pt09_LM	Leistico_tissue	HMGA2 overexpression	4	GGT (wild type) 4	wild type at codon 44
+leistico_pt10_LM	Leistico_tissue	other	2	GGT (wild type) 2	too few reads
+leistico_pt11_LM	Leistico_tissue	G44D	10	GAT (G44D) 9, GGT (wild type) 1	G44D
+leistico_pt12_LM	Leistico_tissue	G44D	11	GAT (G44D) 10, GGT (wild type) 1	G44D
+leistico_pt13_LM	Leistico_tissue	L36R	8	GGT (wild type) 6, GGA (other) 1, CGT (G44R) 1	wild type at codon 44
+leistico_pt14_LM	Leistico_tissue	HMGA2 overexpression	3	GGT (wild type) 3	wild type at codon 44
+leistico_pt15_LM	Leistico_tissue	c.136-154del19	0		too few reads
+leistico_pt17_LM	Leistico_tissue	other	0		too few reads
+leistico_pt18_LM	Leistico_tissue	G44R	3	CGT (G44R) 3	G44R
+leistico_pt19_LM	Leistico_tissue	G44R	1	CGT (G44R) 1	too few reads
+leistico_pt20_LM	Leistico_tissue	FH deficient	4	GGT (wild type) 4	wild type at codon 44
+leistico_pt21_LM	Leistico_tissue	L36R	3	GGT (wild type) 3	wild type at codon 44
+moyo_PT1063_LM	Moyo_tissue	G44D	6	GAT (G44D) 6	G44D
+moyo_PT1113_LM	Moyo_tissue	G44D	6	GAT (G44D) 5, GGT (wild type) 1	G44D
+moyo_PT1119_LM	Moyo_tissue	G44S	7	AGT (G44S) 6, GGT (wild type) 1	G44S
+moyo_PT1123_LM	Moyo_tissue	G44S	11	GAT (G44D) 10, GGT (wild type) 1	G44D
+moyo_PT1151_LM	Moyo_tissue	G44S	7	GTT (G44V) 5, GGT (wild type) 2	G44V
+moyo_PT354_LM	Moyo_tissue	G44D	8	GAT (G44D) 8	G44D
+moyo_PT563_LM	Moyo_tissue	G44S	14	AGT (G44S) 11, GGT (wild type) 3	G44S
+moyo_PT728_LM	Moyo_tissue	G44D	8	GAT (G44D) 6, GGT (wild type) 2	G44D
+moyo_PT758_LM	Moyo_tissue	G44D	4	GAT (G44D) 3, GGT (wild type) 1	G44D
+moyo_PT845_LM	Moyo_tissue	G44D	11	GAT (G44D) 10, GGT (wild type) 1	G44D
+moyo_PT848_LM	Moyo_tissue	G44S	13	AGT (G44S) 11, GGT (wild type) 2	G44S
+moyo_PT886_LM	Moyo_tissue	G44D	7	GAT (G44D) 6, GGT (wild type) 1	G44D
+moyo_PT916_LM	Moyo_tissue	G44D	11	GAT (G44D) 8, GGT (wild type) 3	G44D
+moyo_PT967_LM	Moyo_tissue	G44D	13	GAT (G44D) 12, GGT (wild type) 1	G44D
+moyo_PTC57_LM	Moyo_tissue	G44D	8	GAT (G44D) 8	G44D

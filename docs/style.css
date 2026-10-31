@@ -64,8 +64,8 @@ main.wrap { display: grid; gap: 26px; padding-block: 24px 24px; }
 .lede { color: var(--muted); max-width: 72ch; }
 
 /* controls */
-.controls { display: flex; flex-wrap: wrap; gap: 16px 28px; align-items: flex-end; }
-.field { display: grid; gap: 6px; min-width: 0; }
+.controls { display: flex; flex-wrap: wrap; gap: 16px 28px; align-items: flex-end; min-width: 0; }
+.field { display: grid; grid-template-columns: minmax(0, auto); gap: 6px; min-width: 0; max-width: 100%; }
 .field > label, .field > .label { font-size: 13px; color: var(--muted); }
 .grow { flex: 1 1 360px; max-width: 680px; }
 select, input[type="search"], input[type="number"], input[type="text"] {
@@ -73,6 +73,7 @@ select, input[type="search"], input[type="number"], input[type="text"] {
   border: 1px solid var(--control); border-radius: var(--radius);
   padding: 8px 10px; min-height: 40px;
 }
+select { max-width: 100%; text-overflow: ellipsis; }   /* long comparison names must not widen a phone page */
 select:focus-visible, input:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
 

@@ -123,7 +123,7 @@ with sync_playwright() as p:
         pg.click("#csv")
     name = dl.value.suggested_filename
     body = open(dl.value.path()).read().splitlines()
-    check(name.startswith("TPM_") and body[0] == "dataset,sample,group,patient,gene,gene_id,TPM" and len(body) == 1 + 40 * 5,
+    check(name.startswith("TPM_") and body[0] == "dataset,sample,group,patient,gene,gene_id,TPM" and len(body) == 1 + 110 * 5,
           f"CSV download {name}: {len(body)} lines")
 
     pg.goto(BASE + "genes.html#genes=ESR1", wait_until="networkidle")
@@ -158,8 +158,8 @@ with sync_playwright() as p:
 
     # ---- Methods: the PCA panels
     pg.goto(BASE + "methods.html", wait_until="domcontentloaded")
-    check(pg.locator(".pca svg circle").count() == 40, f"PCA panels show all 40 samples: {pg.locator('.pca svg circle').count()}")
-    check(pg.locator(".pca-panel").count() == 3, "one PCA panel per dataset")
+    check(pg.locator(".pca svg circle").count() == 110, f"PCA panels show all 110 samples: {pg.locator('.pca svg circle').count()}")
+    check(pg.locator(".pca-panel").count() == 5, "one PCA panel per dataset")
     pg.hover(".pca-panel >> nth=0 >> circle >> nth=0")
     pg.wait_for_selector(".tip:not([hidden])")
     check("Patient" in pg.inner_text(".tip") and "PC1" in pg.inner_text(".tip"), f"PCA hover label: {pg.inner_text('.tip').replace(chr(10), ' | ')}")
@@ -182,7 +182,7 @@ with sync_playwright() as p:
     check("16,007 genes tested" in pg.inner_text("#summary"), "summary shows tested count")
     pg.uncheck("#sigonly") if pg.is_checked("#sigonly") else None
     check(pg.inner_text("#count").startswith("16,007 genes"), f"table count matches tested count: {pg.inner_text('#count')}")
-    check("2D cells · KO vs WT" in pg.locator("#contrast option:checked").inner_text(), "closed select names the dataset")
+    check("2D cells · Buyukcelebi 2023 · KO vs WT" in pg.locator("#contrast option:checked").inner_text(), "closed select names the dataset")
     check("higher in KO" in pg.inner_text("#summary"), "summary names the numerator group")
     check(pg.locator("#picked").is_hidden(), "no picked strip before a selection")
     check(pg.evaluate("getComputedStyle(document.querySelector('#volcano .nsewdrag')).cursor") == "crosshair", "volcano: crosshair where dragging zooms")
