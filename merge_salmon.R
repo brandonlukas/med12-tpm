@@ -11,7 +11,7 @@ setwd(dirname(sub("--file=", "", grep("--file=", commandArgs(FALSE), value = TRU
 
 out <- "results_merged"
 samples <- fread("samples.tsv")
-dirs <- unlist(fromJSON("datasets.json")$batches[unique(samples$batch)])
+dirs <- unname(unlist(fromJSON("datasets.json")$batches[unique(samples$batch)]))   # unnamed, or cbind prefixes the column names
 dir.create(out, showWarnings = FALSE)
 
 for (f in c("gene_tpm", "gene_counts", "gene_counts_length_scaled")) {
