@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Which tissue samples come from the same person, from inherited variants in the reads.
 
-Every myometrium (MM) sample of the tissue datasets is aligned (8 million reads) to the
+Every myometrium (MM) sample of the tissue datasets is aligned with bwa mem (8 million reads;
+bwa rather than minimap2 because two studies have 42-base reads) to the
 3,000 most-expressed myometrium transcripts, one per gene; variants are called jointly with
 bcftools, and each pair of samples is scored by how often their genotypes agree at sites
 where both are well covered and at least one carries the variant. Two samples from one
 person agree at nearly every site; two people disagree at a large share. Myometrium is
 used because it carries only inherited variants, not the tumor's.
 
-    uv run --with pandas python checks/same_patient.py   # needs the varcheck conda env (minimap2, bcftools, samtools)
+    uv run --with pandas python checks/same_patient.py   # needs the varcheck conda env (bwa, bcftools, samtools)
 Writes identity/ on wdssd and checks/same_patient.tsv (every pair, sorted by agreement).
 """
 import csv, glob, gzip, itertools, os, subprocess, sys
@@ -44,7 +45,7 @@ if not ref.exists():
             if line.startswith(">"):
                 on = line[1:].split()[0].split("|")[0] in keep
             if on: out.write(line)
-    run(f"{env}/samtools faidx {ref}")
+    run(f"{env}/samtools faidx {ref} && {env}/bwa index {ref} 2>/dev/null")
     print(f"reference: {len(keep)} transcripts")
 
 def reads(s):
@@ -58,7 +59,7 @@ bams = []
 for s in samples:
     bam = work / f"{s['sample']}.bam"
     if not bam.exists():
-        run(f"set -o pipefail; {reads(s)} | {env}/minimap2 -t 16 -ax sr {ref} - 2>/dev/null"
+        run(f"set -o pipefail; {reads(s)} | {env}/bwa mem -t 16 {ref} - 2>/dev/null"
             f" | {env}/samtools sort -@4 -o {bam}.tmp - && mv {bam}.tmp {bam} && {env}/samtools index {bam}")
         print("aligned", s["sample"], flush=True)
     bams.append(str(bam))

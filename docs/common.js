@@ -54,7 +54,9 @@ function sampleLabel(s) {
     const tissue = s.group === "MM" ? "MM" : "LM";
     const gt = s.genotype && !/^(wild type|not tested)$/.test(s.genotype) ? ` (${s.genotype})` : "";
     const hormone = s.hormone && s.hormone !== "none" ? `<br>Hormone treatment: ${s.hormone}` : "";
-    return `Patient ${s.patient.replace(/^pt0*/i, "")}, ${tissue}${gt}${hormone}`;
+    // the same person sampled in another study (identified from inherited variants; Methods)
+    const also = s.also ? `<br>Same person as ${s.also.replace(/patient pt0*/gi, "patient ")}` : "";
+    return `Patient ${s.patient.replace(/^pt0*/i, "")}, ${tissue}${gt}${hormone}${also}`;
   }
   const m = s.sample.match(/^cell[23]D_(\w+?)_rep(\d+)$/);
   return m ? `${m[1]}, replicate ${m[2]}` : s.sample;

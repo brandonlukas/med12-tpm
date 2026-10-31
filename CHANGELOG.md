@@ -20,6 +20,10 @@ Adds two tissue datasets: Moyo et al. 2020 (15 patients, every leiomyoma MED12 m
 - MED12 codon 44 read from every tumor's reads (`checks/med12_codon44.py`): two Moyo tumors
   listed as G44S read G44D (PT1123) and G44V (PT1151); the site uses the reads, and
   `genotype_as_listed_in_paper` keeps the paper's label.
+- Patients in more than one tissue study, from inherited variants in the myometrium reads
+  (`checks/same_patient.py`): Zuberi 1123 = Moyo PT1123 = Leistico pt12, Moyo PT1113 =
+  Leistico pt11, Zuberi 967 = Moyo PT967; 45 pairs from 41 people. Recorded in
+  `same_patient_as`.
 - Expression percentiles now rank against every protein-coding gene in GENCODE v44 (a fixed
   set) rather than those detected in at least one sample, so later datasets cannot move them;
   this shifts v1.0's percentiles once, by about a point at most. Site only; no released file

@@ -30,7 +30,8 @@ def sample_label(name):
     if s["patient"]:
         gt = f" ({s['genotype']})" if s["group"] != "MM" and s["genotype"] not in ("wild type", "not tested") else ""
         hormone = f"; hormone treatment: {s['hormone_treatment']}" if s["hormone_treatment"] not in ("", "none") else ""
-        return f"Patient {re.sub(r'^pt0*', '', s['patient'], flags=re.I)}, {'MM' if s['group'] == 'MM' else 'LM'}{gt}{hormone}"
+        also = f"; same person as {re.sub(r'patient pt0*', 'patient ', s['same_patient_as'], flags=re.I)}" if s["same_patient_as"] else ""
+        return f"Patient {re.sub(r'^pt0*', '', s['patient'], flags=re.I)}, {'MM' if s['group'] == 'MM' else 'LM'}{gt}{hormone}{also}"
     m = re.match(r"cell[23]D_(\w+?)_rep(\d+)$", name)
     return f"{m.group(1)}, replicate {m.group(2)}" if m else name
 

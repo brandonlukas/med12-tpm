@@ -81,7 +81,8 @@ for ds, cfg in DATASETS.items():
         # what the hover label says about each sample; empty fields are left out
         "samples": [{k: v for k, v in {"sample": r.sample, "group": r.group, "patient": r.patient,
                      "genotype": r.genotype if r.group.startswith("LM") else None,
-                     "hormone": r.hormone_treatment if d["paired"] else None}.items() if isinstance(v, str) and v}
+                     "hormone": r.hormone_treatment if d["paired"] else None,
+                     "also": r.same_patient_as}.items() if isinstance(v, str) and v}
                     for r in s.itertuples()],
     })
 dump(meta, out / "meta.json")
