@@ -1,13 +1,20 @@
 // Genes page. One gene: a panel per dataset with every sample, DESeq2 brackets and the
 // stats. Several genes: TPM by gene, so genes can be compared with each other.
 const MAX_GENES = 12;
+// Each set is one source's definition, named on the button and in Methods, so none is a hand-picked list.
 const GENE_SETS = {
-  "Mediator kinase module": ["MED12", "MED12L", "MED13", "MED13L", "CCNC", "CDK8", "CDK19"],
-  "Leiomyoma drivers": ["MED12", "HMGA2", "HMGA1", "FH", "COL4A5", "COL4A6", "RAD51B", "PLAG1"],
-  "Hormone receptors": ["ESR1", "ESR2", "PGR", "AR", "GPER1"],
-  "STAT family": ["STAT1", "STAT2", "STAT3", "STAT4", "STAT5A", "STAT5B", "STAT6"],
-  "E2F and DP": ["E2F1", "E2F2", "E2F3", "E2F4", "E2F5", "E2F6", "E2F7", "E2F8", "TFDP1", "TFDP2"],
-  "Housekeeping": ["ACTB", "GAPDH", "B2M", "TBP", "HPRT1", "PPIA"],
+  "Mediator kinase module": { genes: ["MED12", "MED13", "CCNC", "CDK8", "CDK19"],
+    source: "Gene Ontology GO:1990508, CKM complex: the human genes annotated to it" },
+  "Leiomyoma drivers": { genes: ["MED12", "HMGA2", "FH", "COL4A5", "COL4A6"],
+    source: "Mehine et al., PNAS 2016: the genes of the four leiomyoma driver subtypes" },
+  "Steroid hormone receptors": { genes: ["ESR1", "ESR2", "PGR", "AR", "NR3C1", "NR3C2"],
+    source: "HGNC gene groups: Estrogen receptors; Nuclear receptor subfamily 3 group C" },
+  "STAT family": { genes: ["STAT1", "STAT2", "STAT3", "STAT4", "STAT5A", "STAT5B", "STAT6"],
+    source: "HGNC gene group: Signal transducer and activator of transcription family" },
+  "E2F and DP": { genes: ["E2F1", "E2F2", "E2F3", "E2F4", "E2F5", "E2F6", "E2F7", "E2F8", "TFDP1", "TFDP2", "TFDP3"],
+    source: "HGNC gene groups: E2F transcription factors; Transcription factor Dp family" },
+  "Housekeeping": { genes: ["ACTB", "B2M", "GAPDH", "HMBS", "HPRT1", "RPL13A", "SDHA", "TBP", "UBC", "YWHAZ"],
+    source: "Vandesompele et al., Genome Biology 2002: the ten reference genes tested" },
 };
 // groups each bracket joins; X_vs_Y names default to [X, Y]. LM_vs_MM pools both
 // LM groups, so it has no single bracket and stays in the table only.
@@ -66,8 +73,8 @@ async function init() {
   const [plotly] = await Promise.all([ensurePlotly("vendor/plotly-basic-2.35.2.min.js"), Data.load()]);
   noPlots = !plotly;
 
-  $("genesets").insertAdjacentHTML("beforeend", Object.keys(GENE_SETS).map((p) =>
-    `<button type="button" data-set="${esc(p)}">${esc(p)}</button>`).join(""));
+  $("genesets").insertAdjacentHTML("beforeend", Object.entries(GENE_SETS).map(([p, set]) =>
+    `<button type="button" data-set="${esc(p)}" title="${esc(set.source)}">${esc(p)}</button>`).join(""));
   $("genesets").addEventListener("click", (e) => {
     const p = e.target.closest("[data-set]")?.dataset.set;
     if (p) applySet(p);
@@ -79,7 +86,15 @@ async function init() {
   });
 
   attachSearch($("gene"), $("suggest"), (i) => { $("gene").value = ""; addGene(i); },
-    (q) => status(`No gene called “${q}”. Try its official symbol, for example HMGA2.`));
+    (q) => {
+      const names = splitList(q);
+      if (names.length > 1) addList(names); else status(`No gene called “${q}”. Try its official symbol, for example HMGA2.`);
+    });
+  // a pasted list (from a spreadsheet column, an email, a paper) adds every gene in it at once
+  $("gene").addEventListener("paste", (e) => {
+    const names = splitList(e.clipboardData?.getData("text") ?? "");
+    if (names.length > 1) { e.preventDefault(); addList(names); }
+  });
   $("gene").addEventListener("keydown", (e) => {
     if (e.key === "Backspace" && !$("gene").value && selected.length) setGenes(selected.slice(0, -1));
   });
@@ -128,7 +143,7 @@ function setScale(s, rerender = true) {
 function fromHash() {
   const h = new URLSearchParams(location.hash.slice(1));
   const names = (h.get("genes") || h.get("gene") || "MED12").split(",");
-  const idx = names.map((n) => Data.lookup(n)[0]).filter((i) => i != null);
+  const { idx } = resolve(names);
   setGenes(idx.length ? idx : [Data.lookup("MED12")[0]], false);
 }
 
@@ -138,9 +153,30 @@ function addGene(i) {
   setGenes([...selected, i]);
 }
 
+const splitList = (text) => text.split(/[\s,;]+/).filter(Boolean);
+
+// gene names to gene indices, and the names that match no gene
+function resolve(names) {
+  const idx = [], missing = [];
+  for (const n of names) { const i = Data.lookup(n)[0]; if (i == null) missing.push(n); else idx.push(i); }
+  return { idx, missing };
+}
+
+// Add every recognized gene of a list (setGenes keeps the first MAX_GENES) and say what was left out.
+async function addList(names) {
+  $("gene").value = "";
+  const { idx, missing } = resolve(names);
+  const all = [...new Set([...selected, ...idx])];
+  await setGenes(all);
+  const notes = [];
+  if (missing.length) notes.push(`Not recognized: ${missing.map(esc).join(", ")}.`);
+  if (all.length > MAX_GENES) notes.push(`${MAX_GENES} genes at most; left out: ${all.slice(MAX_GENES).map((i) => esc(Data.genes[i][1])).join(", ")}.`);
+  if (notes.length) status(notes.join(" "), true);
+}
+
 // A gene set replaces the selection; the status line offers to undo that.
 async function applySet(name) {
-  const idx = GENE_SETS[name].map((n) => Data.lookup(n)[0]).filter((i) => i != null);
+  const { idx } = resolve(GENE_SETS[name].genes);
   const before = selected.slice();
   const same = before.length === idx.length && before.every((v, k) => v === idx[k]);
   await setGenes(idx);
@@ -259,7 +295,7 @@ function setGenes(idx, updateHash = true) {
   selected = [...new Set(idx)].slice(0, MAX_GENES);
   $("clear").hidden = selected.length < 2;
   renderChips();
-  $("gene").placeholder = selected.length ? "Add another gene" : "Type a gene symbol, e.g. MED12";
+  $("gene").placeholder = selected.length ? "Add a gene or paste a list" : "Type a gene symbol, e.g. MED12, or paste a list";
   if (updateHash) history.replaceState(null, "", "#genes=" + selected.map((i) => encodeURIComponent(Data.genes[i][1])).join(","));
   return render();
 }

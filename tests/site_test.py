@@ -102,19 +102,30 @@ with sync_playwright() as p:
     check(pg.text_content("#gene-name").startswith("HMGA"), "removing a chip returns to single view")
     check(pg.locator("#plot-JCI_tissue .annotation").count() >= 3, "brackets drawn for HMGA2 in tissue")
 
-    pg.click("#genesets button:has-text('Hormone receptors')")
-    pg.wait_for_function("document.querySelector('#gene-name').textContent === '5 genes'")
-    check(pg.text_content("#gene-name") == "5 genes", "gene set loads 5 genes")
+    pg.click("#genesets button:has-text('Steroid hormone receptors')")
+    pg.wait_for_function("document.querySelector('#gene-name').textContent === '6 genes'")
+    check(pg.text_content("#gene-name") == "6 genes", "gene set loads 6 genes")
+    check(pg.get_attribute("#genesets button:has-text('Steroid hormone receptors')", "title").startswith("HGNC gene groups"), "a gene set names its source")
+    # pasting a list adds every gene in it, and says which names it did not recognize
+    pg.evaluate("""() => { const dt = new DataTransfer(); dt.setData('text/plain', 'CDK8, ccnc\\nNOTAGENE;MED13');
+      document.getElementById('gene').dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); }""")
+    pg.wait_for_function("document.querySelector('#gene-name').textContent === '9 genes'")
+    check("Not recognized: NOTAGENE" in pg.inner_text("#status") and pg.input_value("#gene") == "", f"pasted list adds 3 genes: {pg.inner_text('#status')}")
+    pg.fill("#gene", "STAT1 STAT2 STAT3 STAT4"); pg.keyboard.press("Enter")
+    pg.wait_for_function("document.querySelector('#gene-name').textContent === '12 genes'")
+    check("left out: STAT4" in pg.inner_text("#status"), f"a typed list stops at 12 genes and says so: {pg.inner_text('#status')}")
+    pg.click("#genesets button:has-text('Steroid hormone receptors')")
+    pg.wait_for_function("document.querySelector('#gene-name').textContent === '6 genes'")
     check(pg.locator("#genesets button").all_inner_texts()[3:5] == ["STAT family", "E2F and DP"], "STAT family and E2F and DP gene sets offered")
     check("not tested" in pg.inner_text("#panels") or True, "page still renders with gene set")
 
     check(pg.locator("#clear").is_visible(), "Clear appears with several genes")
     pg.click("#clear")
-    pg.wait_for_function("document.querySelector('#status').textContent.includes('Cleared 5 genes')")
+    pg.wait_for_function("document.querySelector('#status').textContent.includes('Cleared 6 genes')")
     check(pg.locator("#status [data-try]").count() == 1, "the Cleared message also offers a gene to try")
     check(pg.locator("#gene-head").is_hidden() and pg.locator("#clear").is_hidden(), "Clear empties the selection and hides itself")
     pg.click("#status [data-undo]")
-    pg.wait_for_function("document.querySelector('#gene-name')?.textContent === '5 genes'")
+    pg.wait_for_function("document.querySelector('#gene-name')?.textContent === '6 genes'")
     check(True, "Undo after Clear restores the genes")
     pg.fill("#gene", "NOTAGENE"); pg.keyboard.press("Enter")
     pg.wait_for_timeout(200)
@@ -124,7 +135,7 @@ with sync_playwright() as p:
         pg.click("#csv")
     name = dl.value.suggested_filename
     body = open(dl.value.path()).read().splitlines()
-    check(name.startswith("TPM_") and body[0] == "dataset,sample,group,patient,gene,gene_id,TPM" and len(body) == 1 + 110 * 5,
+    check(name.startswith("TPM_") and body[0] == "dataset,sample,group,patient,gene,gene_id,TPM" and len(body) == 1 + 110 * 6,
           f"CSV download {name}: {len(body)} lines")
 
     pg.goto(BASE + "genes.html#genes=ESR1", wait_until="networkidle")
@@ -303,7 +314,7 @@ with sync_playwright() as p:
     pg.goto(BASE + "genes.html#genes=CDK8,MED12", wait_until="networkidle")
     pg.wait_for_function("document.querySelector('#gene-name').textContent === '2 genes'")
     pg.click("#genesets button:has-text('Housekeeping')")
-    pg.wait_for_function("document.querySelector('#gene-name').textContent === '6 genes'")
+    pg.wait_for_function("document.querySelector('#gene-name').textContent === '10 genes'")
     pg.wait_for_selector("#status [data-undo]")
     check("instead of your 2 genes" in pg.inner_text("#status"), f"undo offered: {pg.inner_text('#status')}")
     pg.click("#status [data-undo]")

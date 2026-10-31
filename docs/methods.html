@@ -6,7 +6,7 @@
 <title>Methods · MED12 RNA-seq Explorer</title>
 <meta name="description" content="How the five MED12 RNA-seq datasets were reprocessed: sources, what the values mean, DESeq2 designs, downloads, the nf-core/rnaseq pipeline and how to reproduce everything.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=0900db39">
+<link rel="stylesheet" href="style.css?v=aa71afbd">
 </head>
 <body>
 <header class="site-header">
@@ -144,6 +144,27 @@
   blood-vessel cells than leiomyoma, so the TFs of those cells (NF-κB, STAT1, ETS1 and others) read as less active in
   leiomyoma partly for that reason.</p>
 
+<h2>Gene sets</h2>
+<p>The gene set buttons on the Genes page each follow one source's definition, so a set is complete by that
+  definition and none is a hand-picked list. Hover a button to see its source.</p>
+<ul>
+  <li><b>Mediator kinase module</b>: the human genes annotated to the Gene Ontology term
+    <a href="https://www.ebi.ac.uk/QuickGO/term/GO:1990508">CKM complex (GO:1990508)</a>.</li>
+  <li><b>Leiomyoma drivers</b>: the genes of the four driver subtypes in
+    <a href="https://doi.org/10.1073/pnas.1518752113">Mehine et al., PNAS 2016</a> (<i>MED12</i> mutation,
+    <i>HMGA2</i> rearrangement, <i>FH</i> inactivation, <i>COL4A5</i>–<i>COL4A6</i> deletion).</li>
+  <li><b>Steroid hormone receptors</b>: the HGNC gene groups
+    <a href="https://www.genenames.org/data/genegroup/#!/group/2077">Estrogen receptors</a> and
+    <a href="https://www.genenames.org/data/genegroup/#!/group/2076">Nuclear receptor subfamily 3 group C</a>.</li>
+  <li><b>STAT family</b>: the HGNC gene group
+    <a href="https://www.genenames.org/data/genegroup/#!/group/3828">Signal transducer and activator of transcription family</a>.</li>
+  <li><b>E2F and DP</b>: the HGNC gene groups
+    <a href="https://www.genenames.org/data/genegroup/#!/group/982">E2F transcription factors</a> and
+    <a href="https://www.genenames.org/data/genegroup/#!/group/987">Transcription factor Dp family</a>.</li>
+  <li><b>Housekeeping</b>: the ten reference genes tested in
+    <a href="https://doi.org/10.1186/gb-2002-3-7-research0034">Vandesompele et al., Genome Biology 2002</a>.</li>
+</ul>
+
 <h2>Downloads</h2>
 <p>Every table, as three Excel workbooks or as CSV files, is on the <a href="downloads.html">Downloads page</a>.</p>
 
@@ -213,6 +234,6 @@ python3 build_site_data.py      # data for this site</code></pre>
     <a href="https://github.com/brandonlukas/med12-tpm">Code on GitHub</a>
   </div>
 </footer>
-<script src="methods.js?v=0900db39"></script>
+<script src="methods.js?v=aa71afbd"></script>
 </body>
 </html>
