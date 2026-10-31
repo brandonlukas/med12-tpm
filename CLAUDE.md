@@ -17,12 +17,12 @@ the traps.
   new data version.
 - **One significance rule** for genes: p<sub>adj</sub> < 0.05 and |log2FC| ≥ 1 (`SIG` in `docs/common.js`).
   TFs: p<sub>adj</sub> < 0.05.
-- **decoupleR is pinned at 2.3.1** (in `tf_activity.py`). Do not check for or move to newer versions; upgrade
-  only for a specific reason the user agrees to, and then reinstall the matching skill
-  (`uvx --from decoupler==<version> decoupler-install-skills --dest .claude/skills/decoupler --force`).
-  The project skill in `.claude/skills/decoupler/` (from decoupleR itself, BSD license beside it) holds the
-  library's correct usage; read it before touching TF code. Its examples use PyDESeq2; this repo runs DESeq2 in R,
-  the same analysis.
+- **Versions:** the slow steps stay pinned (nf-core/rnaseq 3.27.0, GENCODE v44, the saved Salmon index). Quick
+  analyses (DESeq2, TF activity) just record their versions in Methods; no pinning machinery until the resource
+  becomes a paper. The CollecTRI file is kept frozen mainly so runs don't re-download it.
+- **decoupleR:** the project skill in `.claude/skills/decoupler/` (from decoupleR itself, BSD license beside it)
+  holds the library's correct usage; read it before touching TF code. Its examples use PyDESeq2; this repo runs
+  DESeq2 in R, the same analysis.
 - **Generated page sections** sit between `<!-- name:start -->` and `<!-- name:end -->` markers
   (`page_tables.py`, `pca_svg.py`, `illustration/vector.py`). Edit the generator, not the page.
 
