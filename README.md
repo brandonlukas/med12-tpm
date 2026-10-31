@@ -48,7 +48,7 @@ The [methods page](https://brandonlukas.github.io/med12-tpm/methods.html) docume
 - `stamp.py`: stamps the pages' stylesheet and script links with a content hash; run it before committing a change to `docs/`
 - `tests/site_test.py`: scripted browser checks of the site (Playwright); `tests/screenshots.py` renders pages to PNG
 - `docs/`: the site, served by GitHub Pages: `index.html` + `overview.js` (Overview), `genes.html` + `app.js`
-  (Genes), `de.html` + `de.js` (Comparisons), `methods.html`, `common.js`, `style.css`; Plotly 2.35.2 is vendored in `docs/vendor/`
+  (Genes), `de.html` + `de.js` (Comparisons), `methods.html`, `checks.html` (evidence for the sample checks, linked from Methods), `common.js`, `style.css`; Plotly 2.35.2 is vendored in `docs/vendor/`
   so the site has no third-party dependency at load time
 
 ## Reproducing (Linux / WSL2)

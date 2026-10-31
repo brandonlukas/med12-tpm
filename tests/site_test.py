@@ -167,6 +167,9 @@ with sync_playwright() as p:
     pg.hover("#h-table") if pg.locator("#h-table").count() else pg.mouse.move(5, 5)
     pg.wait_for_selector(".tip[hidden]", state="attached")
     check(True, "PCA hover label hides on leave")
+    pg.click("a[href='checks.html'] >> nth=0")
+    pg.wait_for_url("**/checks.html")
+    check(pg.locator("main table").count() == 2 and "Data v1.1" in pg.inner_text(".site-footer"), "Methods links to the sample checks page, with its two tables and the footer")
 
     # ---- Downloads page and the nav
     pg.goto(BASE + "downloads.html", wait_until="networkidle")
@@ -283,7 +286,7 @@ with sync_playwright() as p:
     check(pg.text_content("#plot-JCI_tissue .g-ytitle").strip() == "TPM (log scale)", "y title says TPM (log scale)")
 
     # narrow viewport: no horizontal scroll on either page
-    for url in [BASE, BASE + "genes.html#genes=MED12,CDK8", BASE + "de.html#c=NC_2D__KO_vs_WT&gene=MED12", BASE + "methods.html"]:
+    for url in [BASE, BASE + "genes.html#genes=MED12,CDK8", BASE + "de.html#c=NC_2D__KO_vs_WT&gene=MED12", BASE + "methods.html", BASE + "checks.html"]:
         pg.set_viewport_size({"width": 390, "height": 800})
         pg.goto(url, wait_until="networkidle"); pg.wait_for_timeout(800)
         sw = pg.evaluate("document.documentElement.scrollWidth")

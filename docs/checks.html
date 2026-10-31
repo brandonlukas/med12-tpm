@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sample checks · MED12 RNA-seq Explorer</title>
+<meta name="description" content="Evidence from the public reads: three patients who appear in more than one tissue study, and two Moyo tumors whose MED12 genotype differs from the paper.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css?v=09fa997c">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <h1><a href="index.html">MED12 RNA-seq Explorer</a></h1>
+    <nav class="site-nav" aria-label="Site">
+      <a href="index.html">Overview</a>
+      <a href="genes.html">Genes</a>
+      <a href="de.html">Comparisons</a>
+      <a href="downloads.html">Downloads</a>
+      <a href="methods.html" aria-current="page">Methods</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap prose">
+<p class="dim"><a href="methods.html">Methods</a> › Sample checks</p>
+<p class="lede">Reprocessing the Moyo 2020 and Leistico 2021 tissue samples turned up three people who appear in more
+  than one study, and two Moyo tumors whose reads disagree with the <i>MED12</i> genotype listed in the paper. Both
+  can be checked from the public reads. Neither changes any result, because each dataset is analyzed on its own.</p>
+
+<h2>Patients in more than one study</h2>
+<p>The 45 tumor–myometrium pairs in the three tissue studies come from 41 people. Inherited variants in the
+  myometrium reads match for five pairs of samples, which make three people:</p>
+<div class="scroll"><table>
+  <tr><th>Person</th><th>Zuberi 2023</th><th>Moyo 2020</th><th>Leistico 2021</th><th>Variant agreement</th><th>Typical for unrelated pairs</th></tr>
+  <tr><td>A</td><td>1123</td><td>PT1123</td><td>pt12</td><td>0.62, 0.54, 0.66 (each pair)</td><td>0.24–0.26</td></tr>
+  <tr><td>B</td><td>—</td><td>PT1113</td><td>pt11</td><td>0.73</td><td>0.26</td></tr>
+  <tr><td>C</td><td>967</td><td>PT967</td><td>—</td><td>0.57</td><td>0.26</td></tr>
+</table></div>
+<p>These five pairs sit 7 to 11 standard deviations above the other pairs between the same two studies; the next
+  highest of all 990 pairs sits at 3. The patient tables agree where they overlap: Zuberi and Moyo use the same
+  patient numbers (1123, 967), and Moyo PT1113 and Leistico pt11 are both G44D, age 51, untreated.</p>
+<p>One suspicion did not hold: Leistico pt10 and Zuberi 858 have similar tumor expression, but their variants agree
+  no more than any unrelated pair (0.23).</p>
+
+<h2><i>MED12</i> genotypes that differ from the paper</h2>
+<p>Of the 20 tumors with a <i>MED12</i> codon 44 mutation and enough reads to call, 18 match the published genotype.
+  Two Moyo tumors do not:</p>
+<div class="scroll"><table>
+  <tr><th>Tumor</th><th>Moyo et al. 2020 (Suppl. Table 3)</th><th>Reads spanning codon 44</th><th>Other evidence</th></tr>
+  <tr><td>PT1123</td><td>G44S</td><td>10 of 11 read GAT, <b>G44D</b>; none G44S</td><td>The same person is G44D in Zuberi 2023 (1123) and Leistico 2021 (pt12)</td></tr>
+  <tr><td>PT1151</td><td>G44S</td><td>5 of 7 read GTT, <b>G44V</b>; none G44S</td><td>Not in another study</td></tr>
+</table></div>
+<p>For PT1123, three independent sources agree on G44D. PT1151 rests on the reads alone. Both tumors are
+  <i>MED12</i> mutant either way, so no grouping or result changes; only the label does. As controls, Leistico's
+  L36R, FH-deficient and <i>HMGA2</i>-high tumors all read wild-type at codon 44.</p>
+
+<h2>How they were checked</h2>
+<p><b>Same person.</b> For each myometrium sample, 8 million reads were aligned to the 3,000 genes most expressed in
+  myometrium, and inherited variants were called across all 45 samples together. For every pair of samples, the
+  agreement is how often their genotypes match at variant sites both cover well. Myometrium is used because it
+  carries only inherited variants, not the tumor's own mutations.</p>
+<p><b><i>MED12</i> genotype.</b> In every tumor's raw reads, the reads spanning <i>MED12</i> codon 44
+  (chrX:71,119,403–405, GRCh38) were counted and the three bases read directly: GGT is wild-type, GAT G44D, AGT
+  G44S, GTT G44V, TGT G44C, CGT G44R.</p>
+<p>Both checks are scripts in the repository, with their full output:
+  <a href="https://github.com/brandonlukas/med12-tpm/blob/main/checks/same_patient.py">same_patient.py</a> and
+  <a href="https://github.com/brandonlukas/med12-tpm/blob/main/checks/same_patient.tsv">every pair's agreement</a>;
+  <a href="https://github.com/brandonlukas/med12-tpm/blob/main/checks/med12_codon44.py">med12_codon44.py</a> and
+  <a href="https://github.com/brandonlukas/med12-tpm/blob/main/checks/med12_codon44.tsv">every tumor's codon 44 reads</a>.</p>
+
+<h2>On this site</h2>
+<ul>
+  <li>The hover label of each shared patient's samples names the other study the person is in; the sample table
+    records it in <code>same_patient_as</code>.</li>
+  <li>PT1123 is labeled G44D and PT1151 G44V, following the reads; the sample table keeps the paper's label in
+    <code>genotype_as_listed_in_paper</code>.</li>
+</ul>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <!-- footer:start -->
+<span>Data v1.1 (2026-10-31) · GEO GSE204969, GSE128229, GSE142329, GSE226014, GSE226016</span>
+<!-- footer:end -->
+    <a href="https://github.com/brandonlukas/med12-tpm">Code on GitHub</a>
+  </div>
+</footer>
+</body>
+</html>

@@ -51,7 +51,8 @@
   (<a href="https://github.com/brandonlukas/med12-tpm/blob/main/checks/med12_codon44.tsv">table</a>). Every call
   agrees with the papers except two Moyo tumors listed as G44S: in PT1123, 10 of 11 reads spanning the codon read
   G44D; in PT1151, 5 of 7 read G44V. The site labels these two by the reads; the sample table keeps the paper's
-  label in <code>genotype_as_listed_in_paper</code>.</p>
+  label in <code>genotype_as_listed_in_paper</code>. The evidence for both checks below is on its own page,
+  <a href="checks.html">Sample checks</a>.</p>
 <p><b>Patients in more than one study.</b> The three tissue studies come from one hospital, and some patients took
   part in more than one. Inherited variants in each myometrium sample's reads were compared between every pair of
   samples (<a href="https://github.com/brandonlukas/med12-tpm/blob/main/checks/same_patient.py">script</a>,
@@ -60,7 +61,8 @@
   and Leistico pt11; Zuberi 967 and Moyo PT967. The 45 tumor–myometrium pairs therefore come from 41 people. Each
   dataset is analyzed on its own, so no result depends on this, but agreement between tissue studies is slightly
   less independent than it looks. The sample table records it in <code>same_patient_as</code>, and the hover
-  labels say so. The first person also settles PT1123's genotype: the other two studies and the reads all say G44D.</p>
+  labels say so. The first person also settles PT1123's genotype: the other two studies and the reads all say G44D
+  (<a href="checks.html">details</a>).</p>
 <p>Sample table with GSM and SRR accessions: <a href="https://github.com/brandonlukas/med12-tpm/releases/latest/download/sample_info.csv">sample_info.csv</a>
   (also <a href="https://github.com/brandonlukas/med12-tpm/blob/main/samples.tsv">samples.tsv</a> in the repository).</p>
 

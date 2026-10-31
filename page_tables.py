@@ -103,6 +103,6 @@ put("downloads.html", "versions", "<ul class=\"cols\">\n" + "\n".join(
 geo = ", ".join(g for d in DS for g in d["geo"])
 date = versions[0][1]
 footer = f"<span>Data {RELEASE} ({date}) · GEO {geo}</span>"
-for page in ("index.html", "genes.html", "de.html", "methods.html", "downloads.html"):
+for page in ("index.html", "genes.html", "de.html", "methods.html", "downloads.html", "checks.html"):
     put(page, "footer", footer)
 print(f"wrote dataset tables for {len(DS)} datasets, {n} samples, {n_contrasts} comparisons, release {RELEASE}")
