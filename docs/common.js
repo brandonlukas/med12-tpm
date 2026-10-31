@@ -32,8 +32,14 @@ const GROUP_TICK = {};
 
 const $ = (id) => document.getElementById(id);
 const MINUS = "−";
-const fmt = (x, d = 2) => (x == null ? "—" : (Math.abs(x) < 0.5 * 10 ** -d ? 0 : x).toFixed(d).replace("-", MINUS));
-const fmtP = (p) => (p == null ? "—" : p === 0 ? "< 1e-300" : p < 1e-3 ? p.toExponential(1) : p < 0.1 ? p.toFixed(3) : p.toFixed(2));
+// Both cut digits off rather than rounding, like the site's data: rounding would show 0.0499 as 0.050
+// or 0.999 as 1.00, on the other side of a cut-off from the call next to it.
+const fmt = (x) => {
+  if (x == null) return "—";
+  const s = x.toFixed(5), t = s.slice(0, s.indexOf(".") + 3);   // 2 decimals, via 5 to avoid float error
+  return (/^-0\.00$/.test(t) ? "0.00" : t).replace("-", MINUS);
+};
+const fmtP = (p) => (p == null ? "—" : p === 0 ? "< 1e-300" : p < 1e-3 ? p.toExponential(1) : p < 0.1 ? String(+p.toPrecision(3)) : fmt(p));
 const fmtTPM = (v) => (v == null ? "—" : v >= 100 ? Math.round(v).toLocaleString() : v >= 10 ? v.toFixed(1) : v.toFixed(2));
 const ordinal = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th");
 const groupLabel = (g) => GROUP_LABEL[g] || g;

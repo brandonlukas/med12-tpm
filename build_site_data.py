@@ -17,6 +17,7 @@ import gzip
 import json
 import math
 import re
+from decimal import ROUND_DOWN, Decimal
 from pathlib import Path
 
 import numpy as np
@@ -34,11 +35,21 @@ CONFIG = json.load(open(here / "datasets.json"))["datasets"]
 DATASETS = {d["id"]: {"groups": d["groups"], "contrasts": [c["id"] for c in d["contrasts"]]} for d in CONFIG}
 
 
-def sig(x, digits=3):
-    """Round to significant digits; None for NaN so it serializes as null."""
+def sig(x):
+    """Round to 3 significant digits; None for NaN so it serializes as null."""
     if x is None or (isinstance(x, float) and math.isnan(x)):
         return None
-    return float(f"{x:.{digits}g}")
+    return float(f"{x:.3g}")
+
+
+def cut(x):
+    """3 significant digits, rounded toward zero, for p-values and fold changes. Rounding to nearest
+    could carry 0.0497 to 0.05 or 0.9996 to 1 and so change a significance call; toward zero keeps a
+    value on its side of any cut-off with up to 3 significant digits, including the ones a reader types."""
+    if x is None or (isinstance(x, float) and math.isnan(x)):
+        return None
+    d = Decimal(repr(float(x)))
+    return float(d.quantize(Decimal(1).scaleb(d.adjusted() - 2), rounding=ROUND_DOWN))
 
 
 def dump(obj, path):
@@ -90,25 +101,29 @@ for ds, cfg in DATASETS.items():
 dump(meta, out / "meta.json")
 dump(tpm[["gene_id", "gene_name", "gene_type"]].values.tolist(), out / "genes.json")
 
-# per comparison: columns for the DE page, plus a lookup for the chunks
+# per comparison: columns for the DE page, and per gene the same rounded values for the chunks
 de, scored = {}, set()
 for ds, cfg in DATASETS.items():
     for c in cfg["contrasts"]:
         d = pd.read_csv(here / f"deliverables/de/{ds}__{c}.csv")
         d = d[d["gene_id"].isin(index)]
-        de[ds, c] = d.set_index("gene_id")
+        base, lfc, padj, mle = ([f(x) for x in d[col]] for f, col in
+                                ((sig, "baseMean"), (cut, "log2FC_shrunk"), (cut, "padj"), (cut, "log2FoldChange")))
+        site = (np.array(padj, dtype=float) < 0.05) & (np.abs(np.array(lfc, dtype=float)) >= 1)
+        assert (site == ((d["padj"] < 0.05) & (d["log2FC_shrunk"].abs() >= 1)).to_numpy()).all(), f"{ds}__{c}: rounding changed a call"
+        de[ds, c] = dict(zip(d["gene_id"], zip(base, lfc, padj, mle)))
         dump({
             "g": [index[g] for g in d["gene_id"]],
-            "base": [sig(x) for x in d["baseMean"]],
-            "lfc": [sig(x) for x in d["log2FC_shrunk"]],
-            "mle": [sig(x) for x in d["log2FoldChange"]],
-            "p": [sig(x, 2) for x in d["pvalue"]],
-            "padj": [sig(x, 2) for x in d["padj"]],
+            "base": base,
+            "lfc": lfc,
+            "mle": mle,
+            "p": [cut(x) for x in d["pvalue"]],
+            "padj": padj,
             "z": [sig(x) for x in d["stat"]],   # Wald statistic: what TF activity is computed from
         }, out / f"de/{ds}__{c}.json")
         t = pd.read_csv(here / f"deliverables/tf/{ds}__{c}.csv")
-        dump({"tf": t["tf"].tolist(), "act": [sig(x) for x in t["activity"]], "p": [sig(x, 2) for x in t["pvalue"]],
-              "padj": [sig(x, 2) for x in t["padj"]], "n": t["n_targets"].tolist()}, out / f"tf/{ds}__{c}.json")
+        dump({"tf": t["tf"].tolist(), "act": [sig(x) for x in t["activity"]], "p": [cut(x) for x in t["pvalue"]],
+              "padj": [cut(x) for x in t["padj"]], "n": t["n_targets"].tolist()}, out / f"tf/{ds}__{c}.json")
         scored.update(t["tf"])
 
 net = pd.read_csv(here / json.load(open(here / "datasets.json"))["network"])
@@ -126,10 +141,8 @@ for i in range(0, len(tpm), CHUNK):
             entry["pct"][ds] = [int(pct[ds, grp][j]) for grp in cfg["groups"]]
             entry["de"][ds] = {}
             for c in cfg["contrasts"]:
-                d = de[ds, c]
-                if g in d.index:  # absent = removed by the expression filter
-                    r = d.loc[g]
-                    entry["de"][ds][c] = [sig(r.baseMean), sig(r.log2FC_shrunk), sig(r.padj, 2), sig(r.log2FoldChange)]
+                if g in de[ds, c]:  # absent = removed by the expression filter
+                    entry["de"][ds][c] = list(de[ds, c][g])
         chunk[g] = entry
     dump(chunk, out / f"chunks/{i // CHUNK}.json")
 

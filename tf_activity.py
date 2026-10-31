@@ -12,7 +12,7 @@ Writes deliverables/tf/<dataset>__<contrast>.csv: tf, activity, pvalue, padj (BH
 comparison), n_targets (targets measured in that comparison); and the same as one Excel workbook,
 deliverables/MED12_RNAseq_TF_activity.xlsx, sheets named as in MED12_RNAseq_DESeq2.xlsx.
 
-    uv run --with decoupler==2.1.6 --with statsmodels --with openpyxl python tf_activity.py [--fetch]
+    uv run --with decoupler==2.1.6 --with openpyxl python tf_activity.py [--fetch]
 """
 import datetime
 import json
@@ -21,7 +21,7 @@ from pathlib import Path
 
 import decoupler as dc
 import pandas as pd
-from statsmodels.stats.multitest import multipletests
+from scipy import stats
 
 from sheet_names import check, sheet_name
 
@@ -48,11 +48,14 @@ for d in cfg["datasets"]:
         # keep the most expressed, since a network names genes by symbol
         de = de.sort_values("baseMean", ascending=False).drop_duplicates("gene_name")
         mat = de.set_index("gene_name")[["stat"]].T
-        acts, pvals = dc.mt.ulm(data=mat, net=net, tmin=5)
+        # decoupler 2.x returns p-values already adjusted across TFs (Benjamini-Hochberg). The raw
+        # p-value follows from the activity, a t-value on (genes - 2) degrees of freedom.
+        acts, padj = dc.mt.ulm(data=mat, net=net, tmin=5)
+        act = acts.iloc[0].dropna()
+        df = pd.DataFrame({"tf": act.index, "activity": act.values,
+                           "pvalue": 2 * stats.t.sf(act.abs().values, mat.shape[1] - 2), "padj": padj.iloc[0][act.index].values})
+        assert ((stats.false_discovery_control(df["pvalue"]) - df["padj"]).abs() < 1e-6).all(), name
         measured = net[net["target"].isin(mat.columns)].groupby("source").size()
-        df = pd.DataFrame({"tf": acts.columns, "activity": acts.iloc[0].values, "pvalue": pvals.iloc[0].values})
-        df = df.dropna(subset=["pvalue"])
-        df["padj"] = multipletests(df["pvalue"], method="fdr_bh")[1]
         df["n_targets"] = df["tf"].map(measured).astype(int)
         df = df.sort_values("pvalue")
         df.to_csv(out_dir / f"{name}.csv", index=False, float_format="%.6g")

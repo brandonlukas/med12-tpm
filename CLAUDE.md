@@ -51,4 +51,8 @@ MM → LM WT → LM mut. One meaning per color across the site.
 - In Playwright, `goto` to the same page with only a new `#hash` does not reload it; call `reload()`.
 - Test runs against the live site are flaky on this machine's network; rerun a timed-out step on its own before
   suspecting the site.
+- decoupler 2.x returns p-values **already adjusted** (Benjamini–Hochberg across sources); do not adjust again.
+  `tf_activity.py` recovers the raw p-value from the activity (a t-value on genes − 2 degrees of freedom).
+- Values in the site's data are rounded toward the side of the cut-off they are on (`cut()` in
+  `build_site_data.py`), never to nearest, or the site's significance calls drift from the tables.
 - 42-bp reads (Moyo, Leistico) are too short for minimap2; the checks align with bwa mem.
