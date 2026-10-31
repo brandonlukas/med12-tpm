@@ -12,7 +12,7 @@ Writes deliverables/tf/<dataset>__<contrast>.csv: tf, activity, pvalue, padj (BH
 comparison), n_targets (targets measured in that comparison); and the same as one Excel workbook,
 deliverables/MED12_RNAseq_TF_activity.xlsx, sheets named as in MED12_RNAseq_DESeq2.xlsx.
 
-    uv run --with decoupler==2.1.6 --with openpyxl python tf_activity.py [--fetch]
+    uv run --with decoupler==2.3.1 --with openpyxl python tf_activity.py [--fetch]
 """
 import datetime
 import json

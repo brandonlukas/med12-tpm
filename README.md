@@ -41,6 +41,7 @@ The [methods page](https://brandonlukas.github.io/med12-tpm/methods.html) docume
 - `split_tpm.py`: per-dataset TPM tables and an Excel workbook
 - `deseq2.R`: DESeq2 within each dataset
 - `excel_deseq2.py`: one Excel workbook of all DESeq2 comparisons, with a README sheet; `sheet_names.py` names the sheets of both workbooks
+- `.claude/skills/decoupler/`: decoupleR's own guide for coding agents (BSD license in `decoupler.LICENSE`)
 - `tf_activity.py`: TF activity per comparison (decoupleR ULM on the DESeq2 statistic) over a frozen copy of CollecTRI (`networks/`, named in `datasets.json`); CSVs and an Excel workbook
 - `pca.R`, `pca_svg.py`: per-dataset PCA (DESeq2 vst, top 500 variable genes) → `docs/data/pca.json` → the panels on the Methods page
 - `build_site_data.py`: data for the site (`docs/data/`)
@@ -55,7 +56,7 @@ The [methods page](https://brandonlukas.github.io/med12-tpm/methods.html) docume
 ## Reproducing (Linux / WSL2)
 
 Needs Nextflow ≥ 25.10.4, Docker, sra-tools, pigz, R with DESeq2, apeglm, data.table and
-jsonlite, and Python with pandas, openpyxl and decoupler 2.1.6; about 400 GB of free disk.
+jsonlite, and Python with pandas, openpyxl and decoupler 2.3.1; about 400 GB of free disk.
 
 ```bash
 ./fetch_reference.sh            # ~1 GB

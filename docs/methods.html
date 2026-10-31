@@ -128,8 +128,9 @@
 <h2>Transcription factor activity</h2>
 <p>For each comparison, each transcription factor (TF) gets an activity score that summarizes whether its known
   targets move together: positive when its activated targets go up and its repressed targets go down in the first
-  group. The score is decoupleR's univariate linear model (decoupleR 2.1.6) fitted to every tested gene's DESeq2 Wald
-  statistic. TFs and their targets come from CollecTRI
+  group. The score is decoupleR's univariate linear model (decoupleR 2.3.1) fitted to every tested gene's DESeq2 Wald
+  statistic, which decoupleR's documentation advises over fold changes because it also weighs how precisely each
+  gene was measured. TFs and their targets come from CollecTRI
   (<a href="https://doi.org/10.1093/nar/gkad841">Müller-Dott et al., Nucleic Acids Res 2023</a>), a network of
   42,990 TF–target links for 1,185 TFs, each supported by published papers. Its authors tested it, with the same
   scoring method, on 388 experiments that knocked down or knocked out a TF, where it picked out the perturbed TF
