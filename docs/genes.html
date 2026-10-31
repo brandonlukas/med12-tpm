@@ -67,7 +67,8 @@
       <li>log<sub>2</sub>FC and p<sub>adj</sub> are DESeq2 results within each dataset. log<sub>2</sub>FC is the first
         group relative to the second; estimates from genes with few counts are pulled toward zero. A change
         means p<sub>adj</sub> &lt; 0.05 and at least 2-fold (|log<sub>2</sub>FC| ≥ 1), as on the Comparisons page.
-        Brackets mark changes by p<sub>adj</sub>: * &lt; 0.05, ** &lt; 0.01, *** &lt; 0.001; ns otherwise. "Not tested"
+        Brackets mark changes by p<sub>adj</sub>: * &lt; 0.05, ** &lt; 0.01, *** &lt; 0.001; &lt;2× means
+        p<sub>adj</sub> &lt; 0.05 but less than 2-fold, ns not significant. "Not tested"
         means too few counts.</li>
       <li>With several genes, a star above a group marks a change against the reference group (MM or
         WT); hover it for the exact values. Comparisons that are not against the reference are in the table only.</li>

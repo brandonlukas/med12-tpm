@@ -367,7 +367,7 @@ function brackets(d, de, xi, ymax) {
     shapes.push({ type: "path", xref: "x", yref: "y", path: `M${x1},${yb - tick} L${x1},${yb} L${x2},${yb} L${x2},${yb - tick}`,
       line: { color: MUTED, width: 1 } });
     const sig = isChange(it.lfc, it.padj);
-    annotations.push({ x: (it.lo + it.hi) / 2, y: yb, yanchor: "bottom", showarrow: false, text: sig ? stars(it.padj) : "ns",
+    annotations.push({ x: (it.lo + it.hi) / 2, y: yb, yanchor: "bottom", showarrow: false, text: sig ? stars(it.padj) : it.padj < SIG.padj ? "&lt;2×" : "ns",
       font: { size: sig ? 15 : 11, color: sig ? INK : MUTED }, yshift: sig ? -2 : 1,
       hovertext: `${contrastLabel(d.id, it.c)}<br>log<sub>2</sub>FC ${fmt(it.lfc)} · p<sub>adj</sub> ${fmtP(it.padj)}` });
   }
