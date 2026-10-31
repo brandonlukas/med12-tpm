@@ -1,6 +1,7 @@
 {
-  "_about": "The one list of datasets and comparisons. Read by deseq2.R, merge_salmon.R (via samples.tsv's batch), page_tables.py, pca.R, split_tpm.py, excel_deseq2.py, build_site_data.py (which copies it into docs/data/meta.json for the site) and pca_svg.py. Datasets appear on the site in this order. A comparison: num/den are groups, or LM/MM to pool every LM against MM (fitted with ~ patient + tissue); 'pair' is the two groups its bracket joins on the Genes page (null: no bracket); 'subset' restricts the samples it uses.",
-  "release": "v1.1",
+  "_about": "The one list of datasets and comparisons, plus the release and the frozen TF network file. Read by deseq2.R, merge_salmon.R (via samples.tsv's batch), page_tables.py, pca.R, split_tpm.py, excel_deseq2.py, build_site_data.py (which copies it into docs/data/meta.json for the site) and pca_svg.py. Datasets appear on the site in this order. A comparison: num/den are groups, or LM/MM to pool every LM against MM (fitted with ~ patient + tissue); 'pair' is the two groups its bracket joins on the Genes page (null: no bracket); 'subset' restricts the samples it uses.",
+  "release": "v1.2",
+  "network": "networks/collectri_human_2026-10-31.csv.gz",
   "batches": {
     "_about": "Each batch is one nf-core/rnaseq run (same pipeline version, reference and Salmon index) and its output folder; samples.tsv says which batch a sample belongs to. A batch is never re-run when another is added.",
     "v1.0": "results",

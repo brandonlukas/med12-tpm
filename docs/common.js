@@ -113,17 +113,23 @@ const Data = {
   },
 };
 
-// Gene search box with keyboard-navigable suggestions. onPick(i) gets a gene index.
-function attachSearch(input, list, onPick, onMiss) {
+// Search box with keyboard-navigable suggestions. By default it searches genes and onPick(i) gets a
+// gene index; src swaps in another list: suggest(q) -> items, lookup(q) -> item or null, html(item).
+const GENE_SEARCH = {
+  suggest: (q) => Data.suggest(q),
+  lookup: (q) => Data.lookup(q)[0],
+  html(i) {
+    const [id, name, type] = Data.genes[i];
+    return `<span>${esc(name)} <span class="dim small">${esc(type.replace(/_/g, " "))}</span></span><span class="id">${shortId(id)}</span>`;
+  },
+};
+function attachSearch(input, list, onPick, onMiss, src = GENE_SEARCH) {
   let sel = -1, matches = [];
   const render = () => {
-    list.innerHTML = matches.map((i, k) => {
-      const [id, name, type] = Data.genes[i];
-      return `<li role="option" data-i="${i}" aria-selected="${k === sel}"><span>${esc(name)} <span class="dim small">${esc(type.replace(/_/g, " "))}</span></span><span class="id">${shortId(id)}</span></li>`;
-    }).join("");
+    list.innerHTML = matches.map((m, k) => `<li role="option" data-k="${k}" aria-selected="${k === sel}">${src.html(m)}</li>`).join("");
     list.hidden = !matches.length;
   };
-  input.addEventListener("input", () => { matches = Data.suggest(input.value); sel = matches.length ? 0 : -1; render(); });
+  input.addEventListener("input", () => { matches = src.suggest(input.value); sel = matches.length ? 0 : -1; render(); });
   input.addEventListener("keydown", (e) => {
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
@@ -134,14 +140,14 @@ function attachSearch(input, list, onPick, onMiss) {
     } else if (e.key === "Enter") {
       e.preventDefault();
       const q = input.value;
-      const hit = sel >= 0 ? matches[sel] : Data.lookup(q)[0];
+      const hit = sel >= 0 ? matches[sel] : src.lookup(q);
       list.hidden = true; matches = []; sel = -1;
       if (hit != null) onPick(hit); else if (q.trim()) onMiss?.(q.trim());
     } else if (e.key === "Escape") list.hidden = true;
   });
   list.addEventListener("mousedown", (e) => {
     const li = e.target.closest("li");
-    if (li) { e.preventDefault(); list.hidden = true; matches = []; onPick(+li.dataset.i); }
+    if (li) { e.preventDefault(); const hit = matches[+li.dataset.k]; list.hidden = true; matches = []; onPick(hit); }
   });
   input.addEventListener("blur", () => setTimeout(() => (list.hidden = true), 120));
 }

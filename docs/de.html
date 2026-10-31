@@ -6,7 +6,7 @@
 <title>Comparisons · MED12 RNA-seq Explorer</title>
 <meta name="description" content="DESeq2 results for every comparison in five public MED12 RNA-seq datasets: volcano plots, ranked tables and agreement between comparisons.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=09fa997c">
+<link rel="stylesheet" href="style.css?v=f5da8c63">
 <script src="vendor/plotly-gl2d-2.35.2.min.js"></script>
 </head>
 <body>
@@ -24,8 +24,8 @@
 </header>
 
 <main class="wrap">
-  <p class="lede">Which genes differ between groups in each dataset, and where your gene ranks. Click a point or a
-    row to select a gene.</p>
+  <p class="lede">Which genes differ between groups in each dataset, and where your gene ranks; or, with TFs, which
+    transcription factors' targets change together. Click a point or a row to select it.</p>
 
   <section class="controls" aria-label="Choose a comparison">
     <div class="field">
@@ -33,16 +33,23 @@
       <select id="contrast"></select>
     </div>
     <div class="field">
-      <span class="label" id="thr-label">Call a gene significant when</span>
+      <span class="label" id="kind-label">Show</span>
+      <div class="segmented" role="radiogroup" aria-labelledby="kind-label">
+        <button type="button" role="radio" data-kind="gene" aria-checked="true">Genes</button>
+        <button type="button" role="radio" data-kind="tf" aria-checked="false">TFs</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="label" id="thr-label">Call a <span class="noun">gene</span> significant when</span>
       <div class="thresholds" aria-labeledby="thr-label">
         <label for="alpha">p<sub>adj</sub> &lt;</label> <input id="alpha" type="number" value="0.05" min="0" max="1" step="any">
-        <span>and</span>
-        <label for="lfcmin">|log<sub>2</sub>FC| ≥</label> <input id="lfcmin" type="number" value="1" min="0" step="any">
+        <span id="lfc-part"><span>and</span>
+        <label for="lfcmin">|log<sub>2</sub>FC| ≥</label> <input id="lfcmin" type="number" value="1" min="0" step="any"></span>
         <button type="button" class="linklike" id="thr-reset" hidden>Reset</button>
       </div>
     </div>
     <div class="field search" style="flex: 1 1 220px; max-width: 340px">
-      <label for="find">Find a gene</label>
+      <label for="find">Find a <span class="noun">gene</span></label>
       <input id="find" type="search" autocomplete="off" spellcheck="false" placeholder="e.g. HMGA2">
       <ul id="suggest" class="suggest" role="listbox" hidden></ul>
     </div>
@@ -50,15 +57,16 @@
 
   <p id="summary" class="summary" aria-live="polite">Loading…</p>
   <div id="picked" class="picked" hidden></div>
+  <div id="targets" class="targets" hidden></div>
   <div class="plotwrap">
     <div id="volcano" class="volcano"></div>
     <button id="volcano-reset" type="button" class="btn reset" hidden>Reset zoom</button>
   </div>
 
   <section class="stack table-section" aria-labeledby="h-table">
-    <h2 id="h-table">All tested genes</h2>
+    <h2 id="h-table">All tested <span class="noun">gene</span>s</h2>
     <div class="tablebar">
-      <input id="filter" type="search" placeholder="Filter by gene name" spellcheck="false" aria-label="Filter by gene name">
+      <input id="filter" type="search" placeholder="Filter by name" spellcheck="false" aria-label="Filter by name">
       <label class="check"><input id="sigonly" type="checkbox"> Significant only</label>
       <button id="download" type="button" class="btn" title="The genes listed, after the filters above, as CSV">Download this table</button>
       <span id="count" class="count"></span>
@@ -73,8 +81,8 @@
 
   <section class="stack" aria-labeledby="h-agree">
     <h2 id="h-agree">Agreement between two comparisons</h2>
-    <p class="lede">Each gene's fold change in one comparison against its fold change in another, for example whether
-      what changes in <i>MED12</i>-mutant tumors also changes in <i>MED12</i>-mutant cells.</p>
+    <p class="lede">Each gene's fold change (or each TF's activity) in one comparison against another, for example
+      whether what changes in <i>MED12</i>-mutant tumors also changes in <i>MED12</i>-mutant cells.</p>
     <div class="controls">
       <div class="field"><label for="ax">x axis</label><select id="ax"></select></div>
       <div class="field"><label for="ay">y axis</label><select id="ay"></select></div>
@@ -99,6 +107,13 @@
       <li>The volcano's y axis is capped so that a few extreme genes do not squash the rest; triangles along the top are
         genes above the cap. Drag to zoom in; double-click or Reset zoom to come back.</li>
       <li>In the agreement plot, the rank correlation is over every gene tested in both comparisons, significant or not.</li>
+      <li>TF activity summarizes whether a transcription factor's known targets move together: positive when its
+        activated targets go up and its repressed targets go down in the first group. It is computed from every gene's
+        test statistic in the comparison, for each TF with at least 5 targets measured, and its p-values are adjusted
+        across TFs. AP1 and NFKB are complexes, scored from the targets of their members together.</li>
+      <li>In tissue, TF activity also reflects which cells the sample contains. Myometrium has more immune and
+        blood-vessel cells than leiomyoma, so the TFs of those cells (NF-κB, STAT1, ETS1 and others) read as less active
+        in LM partly for that reason. A TF's target list shows which genes drive its score.</li>
       <li>The tissue comparisons by genotype use 6 mutant and 4 wild-type patients; the spheroid wild-type group has 2 replicates.</li>
     </ul>
   </details>
@@ -107,12 +122,12 @@
 <footer class="site-footer">
   <div class="wrap">
     <!-- footer:start -->
-<span>Data v1.1 (2026-10-31) · GEO GSE204969, GSE128229, GSE142329, GSE226014, GSE226016</span>
+<span>Data v1.2 (2026-10-31) · GEO GSE204969, GSE128229, GSE142329, GSE226014, GSE226016</span>
 <!-- footer:end -->
     <a href="https://github.com/brandonlukas/med12-tpm">Code on GitHub</a>
   </div>
 </footer>
-<script src="common.js?v=09fa997c"></script>
-<script src="de.js?v=09fa997c"></script>
+<script src="common.js?v=f5da8c63"></script>
+<script src="de.js?v=f5da8c63"></script>
 </body>
 </html>

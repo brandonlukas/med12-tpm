@@ -5,20 +5,20 @@ explains the columns and the design. Reads deliverables/de/*.csv (from deseq2.R)
     uv run --with pandas --with openpyxl python excel_deseq2.py [out.xlsx]
 """
 import json
-import re
 import sys
 from pathlib import Path
 
 import pandas as pd
 
+from sheet_names import check, sheet_name
+
 here = Path(__file__).resolve().parent
 out = Path(sys.argv[1]) if len(sys.argv) > 1 else here / "deliverables" / "MED12_RNAseq_DESeq2.xlsx"
 
-# one sheet per comparison, in datasets.json order; Excel allows 31 characters per sheet name
+# one sheet per comparison, in datasets.json order
 CONFIG = json.load(open(here / "datasets.json"))["datasets"]
-sheet_name = lambda d, c: f"{d['sheet']} " + re.sub(r", all \d+ pairs", "", c["label"]).replace(", hormone-naive", " naive")
 SHEETS = [(sheet_name(d, c), f"{d['id']}__{c['id']}", f"{d['paper']}: {c['about']}") for d in CONFIG for c in d["contrasts"]]
-assert all(len(name) <= 31 for name, _, _ in SHEETS) and len({n for n, _, _ in SHEETS}) == len(SHEETS)
+check([name for name, _, _ in SHEETS])
 COLUMNS = [
     ("gene_id", "Ensembl gene ID (GENCODE v44)"),
     ("gene_name", "Gene symbol"),

@@ -204,6 +204,11 @@ details.notes p, details.notes pre { margin-top: 10px; }
 .picked { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; background: var(--panel); border-radius: var(--radius); padding: 10px 14px; font-size: 14px; }
 .picked b { font-size: 16px; }
 .picked .end { margin-left: auto; display: flex; gap: 10px; align-items: baseline; }
+.targets { display: grid; gap: 8px; justify-items: start; margin-top: 8px; padding: 10px 14px; border: 1px solid var(--rule); border-radius: var(--radius); font-size: 14px; }
+.targets p { margin: 0; }
+.targets .scroll { justify-self: stretch; }
+.targets table { width: auto; }
+.targets td .linklike { font-weight: 600; }
 .plotwrap { position: relative; }
 .plotwrap .reset { position: absolute; top: 0; right: 0; background: #fff; }
 .volcano { height: 480px; }

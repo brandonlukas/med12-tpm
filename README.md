@@ -6,8 +6,8 @@ interactive site: **https://brandonlukas.github.io/med12-tpm/**
 - **Overview**: a gene search, an illustration of where the samples come from, and why the datasets belong together
 - **Genes**: TPM of any gene (or several side by side) in every sample, with DESeq2 results
 - **Comparisons**: volcano plot, ranked table and gene lookup for every DESeq2 comparison,
-  and agreement between any two comparisons
-- **Downloads**: two Excel workbooks (gene TPM; DESeq2 results, one sheet per comparison) and the individual CSV tables
+  and agreement between any two comparisons; the same for transcription factor (TF) activity
+- **Downloads**: three Excel workbooks (gene TPM; DESeq2 results and TF activity, one sheet per comparison) and the individual CSV tables
 - **Methods**: how everything was processed
 
 | Dataset | Paper | GEO | Samples | Reads |
@@ -40,7 +40,8 @@ The [methods page](https://brandonlukas.github.io/med12-tpm/methods.html) docume
 - `merge_salmon.R`: places the batches' gene tables side by side (`results_merged/`)
 - `split_tpm.py`: per-dataset TPM tables and an Excel workbook
 - `deseq2.R`: DESeq2 within each dataset
-- `excel_deseq2.py`: one Excel workbook of all DESeq2 comparisons, with a README sheet
+- `excel_deseq2.py`: one Excel workbook of all DESeq2 comparisons, with a README sheet; `sheet_names.py` names the sheets of both workbooks
+- `tf_activity.py`: TF activity per comparison (decoupleR ULM on the DESeq2 statistic) over a frozen copy of CollecTRI (`networks/`, named in `datasets.json`); CSVs and an Excel workbook
 - `pca.R`, `pca_svg.py`: per-dataset PCA (DESeq2 vst, top 500 variable genes) → `docs/data/pca.json` → the panels on the Methods page
 - `build_site_data.py`: data for the site (`docs/data/`)
 - `page_tables.py`: the dataset tables on the Methods and Downloads pages, the version list and the footers
@@ -54,7 +55,7 @@ The [methods page](https://brandonlukas.github.io/med12-tpm/methods.html) docume
 ## Reproducing (Linux / WSL2)
 
 Needs Nextflow ≥ 25.10.4, Docker, sra-tools, pigz, R with DESeq2, apeglm, data.table and
-jsonlite, and Python with pandas and openpyxl; about 400 GB of free disk.
+jsonlite, and Python with pandas, openpyxl and decoupler 2.1.6; about 400 GB of free disk.
 
 ```bash
 ./fetch_reference.sh            # ~1 GB
@@ -67,6 +68,7 @@ Rscript merge_salmon.R          # results_merged/
 python3 split_tpm.py            # deliverables/*_gene_TPM.csv, .xlsx
 Rscript deseq2.R                # deliverables/de/*.csv
 python3 excel_deseq2.py         # deliverables/MED12_RNAseq_DESeq2.xlsx
+python3 tf_activity.py          # deliverables/tf/*.csv, MED12_RNAseq_TF_activity.xlsx
 Rscript pca.R && python3 pca_svg.py   # docs/data/pca.json and the Methods PCA panels
 python3 build_site_data.py      # docs/data/
 python3 page_tables.py          # dataset tables, versions and footers in docs/

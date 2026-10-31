@@ -16,7 +16,7 @@ from pathlib import Path
 
 here = Path(__file__).resolve().parent
 cfg = json.load(open(here / "datasets.json"))
-DS, RELEASE = cfg["datasets"], cfg["release"]
+DS, RELEASE, NETWORK = cfg["datasets"], cfg["release"], Path(cfg["network"]).name
 samples = list(csv.DictReader(open(here / "samples.tsv"), delimiter="\t"))
 URL = f"https://github.com/brandonlukas/med12-tpm/releases/download/{RELEASE}"
 FORMAT = {"SR": "reverse (SR)", "ISR": "reverse (ISR)", "SF": "forward (SF)", "ISF": "forward (ISF)", "U": "unstranded (U)", "IU": "unstranded (IU)"}
@@ -75,10 +75,12 @@ gtf_coding = json.load(open(here / "docs/data/meta.json"))["n_coding"]
 put("methods.html", "ncoding", f"{gtf_coding:,}")
 
 link = lambda f, text: f'<a href="{URL}/{f}">{text}</a>'
-put("downloads.html", "tables", '<div class="scroll"><table class="prose-table">\n  <tr><th>Dataset</th><th>Gene TPM</th><th>Counts</th><th>Comparisons, one table each</th></tr>\n' + "\n".join(
+put("downloads.html", "tables", '<div class="scroll"><table class="prose-table">\n  <tr><th>Dataset</th><th>Gene TPM</th><th>Counts</th><th>Comparisons, one table each, and their TF activity</th></tr>\n' + "\n".join(
     f'  <tr><td>{d["name"]}</td><td>{link(d["id"] + "_gene_TPM.csv.gz", "CSV")}</td><td>{link(d["id"] + "_gene_counts.csv.gz", "CSV")}</td>\n      <td>'
-    + " ·\n          ".join(link(f'{d["id"]}__{c["id"]}.csv.gz', c["label"]) for c in d["contrasts"]) + "</td></tr>" for d in DS)
-    + f'\n</table></div>\n<p>Sample table with GSM and SRR accessions, mutation and hormone treatment: {link("sample_info.csv", "sample_info.csv")}.</p>')
+    + " ·\n          ".join(link(f'{d["id"]}__{c["id"]}.csv.gz', c["label"]) + f' ({link(d["id"] + "__" + c["id"] + "_TF_activity.csv.gz", "TFs")})'
+                               for c in d["contrasts"]) + "</td></tr>" for d in DS)
+    + f'\n</table></div>\n<p>Sample table with GSM and SRR accessions, mutation and hormone treatment: {link("sample_info.csv", "sample_info.csv")}.'
+    + f' The TF network used for the activity scores: {link(NETWORK, NETWORK)}.</p>')
 n_contrasts = sum(len(d["contrasts"]) for d in DS)
 put("downloads.html", "workbooks", f'''<div class="dl-grid">
   <a class="dl" href="{URL}/MED12_RNAseq_gene_TPM.xlsx">
@@ -90,6 +92,11 @@ put("downloads.html", "workbooks", f'''<div class="dl-grid">
     <span class="dl-title">Differential expression <span class="dim">Excel</span></span>
     <span>One sheet per comparison ({n_contrasts}), every tested gene sorted by p-value, with a README sheet that explains
       the columns and each comparison's design.</span>
+  </a>
+  <a class="dl" href="{URL}/MED12_RNAseq_TF_activity.xlsx">
+    <span class="dl-title">TF activity <span class="dim">Excel</span></span>
+    <span>One sheet per comparison ({n_contrasts}), every scored transcription factor sorted by p-value, with a README
+      sheet that explains the columns.</span>
   </a>
 </div>''')
 

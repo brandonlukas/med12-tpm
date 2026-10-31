@@ -5,6 +5,17 @@ Data releases (`v1.x`). Each section's first paragraph is shown on the site's Do
 or pipeline version would mean reprocessing everything and a `v2.0`. The website changes
 separately and is tagged by date (`site-YYYY-MM-DD`).
 
+## v1.2 · 2026-10-31
+
+Adds transcription factor activity for every comparison: decoupleR's univariate linear model on each DESeq2 Wald statistic, over a frozen copy of the CollecTRI network. Gene-level numbers are unchanged.
+
+- `tf_activity.py` writes one table per comparison (`<dataset>__<contrast>_TF_activity.csv.gz` in the release) and
+  `MED12_RNAseq_TF_activity.xlsx`.
+- CollecTRI downloaded 2026-10-31 (42,990 links, 1,185 TFs), kept in `networks/` and attached to the release; it is
+  the same under OmniPath's academic and commercial licenses.
+- The Comparisons page gains a Genes / TFs switch: the same plot, table and agreement plot for TF activity, and for a
+  selected TF its targets, those driving the score first.
+
 ## v1.1 · 2026-10-31
 
 Adds two tissue datasets: Moyo et al. 2020 (15 patients, every leiomyoma MED12 mutant) and Leistico et al. 2021 (20 patients, MED12-mutant and other leiomyomas, with a comparison limited to patients without hormone treatment). The v1.0 numbers are unchanged.

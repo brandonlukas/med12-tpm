@@ -169,11 +169,11 @@ with sync_playwright() as p:
     check(True, "PCA hover label hides on leave")
     pg.click("a[href='checks.html'] >> nth=0")
     pg.wait_for_url("**/checks.html")
-    check(pg.locator("main table").count() == 2 and "Data v1.1" in pg.inner_text(".site-footer"), "Methods links to the sample checks page, with its two tables and the footer")
+    check(pg.locator("main table").count() == 2 and "Data v1." in pg.inner_text(".site-footer"), "Methods links to the sample checks page, with its two tables and the footer")
 
     # ---- Downloads page and the nav
     pg.goto(BASE + "downloads.html", wait_until="networkidle")
-    check(pg.locator(".dl[href$='.xlsx']").count() == 2, "Downloads page offers the two workbooks")
+    check(pg.locator(".dl[href$='.xlsx']").count() == 3, "Downloads page offers the three workbooks")
     check(pg.locator(".site-nav a").count() == 5 and pg.locator(".site-nav a[aria-current]").inner_text() == "Downloads", "nav has five entries with Downloads current")
     for url in [BASE, BASE + "genes.html", BASE + "de.html", BASE + "methods.html"]:
         pg.goto(url, wait_until="domcontentloaded")
@@ -203,7 +203,7 @@ with sync_playwright() as p:
     check("gene=MED12" in pg.url, "hash carries the picked gene")
     check(pg.locator("#volcano .annotation").count() >= 1, "volcano has annotations")
 
-    pg.click("#detable tbody tr[data-i]:nth-child(3)")
+    pg.click("#detable tbody tr[data-k]:nth-child(3)")
     pg.wait_for_timeout(300)
     check(pg.locator("tr.picked-row td:nth-child(2)").inner_text() == pg.locator("#picked b").first.inner_text(), "clicking a row selects that gene")
     pg.locator("#volcano").scroll_into_view_if_needed(); pg.wait_for_timeout(200)
@@ -213,11 +213,11 @@ with sync_playwright() as p:
     check(pg.locator("#volcano-reset").is_visible(), "drag-zoom shows the Reset zoom button")
     pg.click("#volcano-reset"); pg.wait_for_timeout(400)
     check(pg.locator("#volcano-reset").is_hidden(), "Reset zoom hides the button again")
-    pg.click("#detable th[data-key='lfc']")
+    pg.click("#detable th[data-key='x']")
     first = pg.locator("#detable tbody tr td:nth-child(4)").all_inner_texts()[:3]
     vals = [float(v.replace("−", "-")) for v in first]
     check(vals == sorted(vals, reverse=True), f"sort by log2FC descending: {first}")
-    pg.click("#detable tbody tr[data-i]:nth-child(3)")
+    pg.click("#detable tbody tr[data-k]:nth-child(3)")
     pg.wait_for_timeout(300)
     check(pg.locator("tr.picked-row td:nth-child(2)").inner_text() == pg.locator("#picked b").first.inner_text(), "clicking a row selects that gene")
     pg.locator("#volcano").scroll_into_view_if_needed(); pg.wait_for_timeout(200)
@@ -227,7 +227,7 @@ with sync_playwright() as p:
     check(pg.locator("#volcano-reset").is_visible(), "drag-zoom shows the Reset zoom button")
     pg.click("#volcano-reset"); pg.wait_for_timeout(400)
     check(pg.locator("#volcano-reset").is_hidden(), "Reset zoom hides the button again")
-    pg.click("#detable th[data-key='lfc']")
+    pg.click("#detable th[data-key='x']")
     first = pg.locator("#detable tbody tr td:nth-child(4)").all_inner_texts()[:3]
     vals = [float(v.replace("−", "-")) for v in first]
     check(vals == sorted(vals), f"second click sorts ascending: {first}")
@@ -270,6 +270,38 @@ with sync_playwright() as p:
     pg.wait_for_timeout(600)
     check("rank correlation" in pg.inner_text("#agree-summary"), f"agreement summary: {pg.inner_text('#agree-summary')[:90]}")
     check(pg.locator("#agree .annotation").count() == 0 or True, "agreement drawn")
+
+    # ---- Comparisons page: TF activity
+    pg.goto(BASE + "de.html#c=Moyo_tissue__LM_vs_MM", wait_until="networkidle")
+    pg.reload(wait_until="networkidle")   # only the hash changed, so the goto alone does not reload
+    pg.wait_for_selector("#detable tbody tr")
+    pg.click("[data-kind=tf]")
+    pg.wait_for_function("document.querySelector('#summary').innerText.includes('TFs scored')")
+    check("668 TFs scored" in pg.inner_text("#summary") and "47 less active in LM" in pg.inner_text("#summary"), f"TF summary: {pg.inner_text('#summary')}")
+    check("view=tf" in pg.url and pg.locator("#lfc-part").is_hidden() and pg.inner_text("#h-table") == "All tested TFs", "TF view: hash, no fold-change cut-off, headings")
+    check(pg.locator("#detable tbody tr td:nth-child(2)").first.inner_text() == "NFKB", "TF table ranks NFKB first")
+    pg.fill("#find", "STAT1"); pg.wait_for_selector("#suggest:not([hidden]) li")
+    pg.keyboard.press("Enter")
+    pg.wait_for_selector("#targets:not([hidden]) tbody tr")
+    check("less active in LM" in pg.inner_text("#picked") and "tf=STAT1" in pg.url, f"TF picked: {pg.inner_text('#picked')[:70]}")
+    check(pg.locator("#targets tbody tr").count() == 10 and "239 of 305 targets" in pg.inner_text("#targets"), "target list: top 10 of the measured targets")
+    pg.click("#targets [data-all]")
+    check(pg.locator("#targets tbody tr").count() == 239, "Show all lists every measured target")
+    first = pg.locator("#targets [data-gene]").first.inner_text()
+    pg.click("#targets [data-gene] >> nth=0")
+    pg.wait_for_function("document.querySelector('#summary').innerText.includes('genes tested')")
+    check(f"gene={first}" in pg.url and pg.locator("#picked b").first.inner_text() == first, f"clicking a target selects it in the gene view ({first})")
+    pg.click("[data-kind=tf]")
+    pg.wait_for_function("document.querySelector('#summary').innerText.includes('TFs scored')")
+    check(f"tf={first}" in pg.url, "switching back keeps the selection when the gene is also a TF")
+    with pg.expect_download() as dl:
+        pg.click("#download")
+    check(dl.value.suggested_filename == "Moyo_tissue__LM_vs_MM_TF_activity.csv" and open(dl.value.path()).readline().startswith("tf,activity"), "TF table downloads as CSV")
+    pg.goto(BASE + "de.html#c=JCI_tissue__LM_vs_MM&tf=ESR1", wait_until="networkidle")
+    pg.reload(wait_until="networkidle")
+    pg.wait_for_selector("#targets:not([hidden])")
+    check(pg.locator("#picked b").first.inner_text() == "ESR1" and pg.is_visible("[data-kind=tf][aria-checked=true]"), "a TF link opens the TF view with the TF selected")
+    check("TFs scored in both" in pg.inner_text("#agree-summary"), "agreement plot compares TF activity in the TF view")
     # gene set replaces the selection and offers Undo
     pg.goto(BASE + "genes.html#genes=CDK8,MED12", wait_until="networkidle")
     pg.wait_for_function("document.querySelector('#gene-name').textContent === '2 genes'")
@@ -286,7 +318,7 @@ with sync_playwright() as p:
     check(pg.text_content("#plot-JCI_tissue .g-ytitle").strip() == "TPM (log scale)", "y title says TPM (log scale)")
 
     # narrow viewport: no horizontal scroll on either page
-    for url in [BASE, BASE + "genes.html#genes=MED12,CDK8", BASE + "de.html#c=NC_2D__KO_vs_WT&gene=MED12", BASE + "methods.html", BASE + "checks.html"]:
+    for url in [BASE, BASE + "genes.html#genes=MED12,CDK8", BASE + "de.html#c=NC_2D__KO_vs_WT&gene=MED12", BASE + "methods.html", BASE + "checks.html", BASE + "de.html#c=Moyo_tissue__LM_vs_MM&tf=STAT1"]:
         pg.set_viewport_size({"width": 390, "height": 800})
         pg.goto(url, wait_until="networkidle"); pg.wait_for_timeout(800)
         sw = pg.evaluate("document.documentElement.scrollWidth")
