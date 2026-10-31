@@ -104,8 +104,6 @@ async function init() {
   if (!noPlots) new ResizeObserver(() => document.querySelectorAll(".plot").forEach((el) => el.data && Plotly.Plots.resize(el))).observe($("panels"));
   for (const d of Data.meta.datasets) {
     const tab = $(`tab-${d.id}`);
-    // on a touch screen a tap counts as a hover that never ends, so highlighting is for mouse users
-    if (!matchMedia("(hover: hover)").matches) continue;
     tab.addEventListener("mouseover", (e) => {
       const t = e.target.closest("[data-hl-groups],[data-hl-gene]");
       if (!t) { highlight(d.id, null, null); return; }
