@@ -17,10 +17,12 @@ the traps.
   new data version.
 - **One significance rule** for genes: p<sub>adj</sub> < 0.05 and |log2FC| ≥ 1 (`SIG` in `docs/common.js`).
   TFs: p<sub>adj</sub> < 0.05.
-- **decoupleR:** the project skill in `.claude/skills/decoupler/` (from decoupleR itself, BSD license beside it)
-  holds the library's correct usage; read it before touching TF code. Keep it on the same version as
-  `tf_activity.py`: after a version bump, `uvx --from decoupler==<version> decoupler-install-skills --dest
-  .claude/skills/decoupler --force`. Its examples use PyDESeq2; this repo runs DESeq2 in R, the same analysis.
+- **decoupleR is pinned at 2.3.1** (in `tf_activity.py`). Do not check for or move to newer versions; upgrade
+  only for a specific reason the user agrees to, and then reinstall the matching skill
+  (`uvx --from decoupler==<version> decoupler-install-skills --dest .claude/skills/decoupler --force`).
+  The project skill in `.claude/skills/decoupler/` (from decoupleR itself, BSD license beside it) holds the
+  library's correct usage; read it before touching TF code. Its examples use PyDESeq2; this repo runs DESeq2 in R,
+  the same analysis.
 - **Generated page sections** sit between `<!-- name:start -->` and `<!-- name:end -->` markers
   (`page_tables.py`, `pca_svg.py`, `illustration/vector.py`). Edit the generator, not the page.
 
