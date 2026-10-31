@@ -209,6 +209,9 @@ details.notes p, details.notes pre { margin-top: 10px; }
 .targets .scroll { justify-self: stretch; }
 .targets table { width: auto; }
 .targets td .linklike { font-weight: 600; }
+.targets .target-volcano { justify-self: stretch; height: 380px; }
+.targets .target-list { display: grid; gap: 8px; justify-items: start; }
+@media (max-width: 600px) { .targets .target-volcano { height: 300px; } }
 .plotwrap { position: relative; }
 .plotwrap .reset { position: absolute; top: 0; right: 0; background: #fff; }
 .volcano { height: 480px; }

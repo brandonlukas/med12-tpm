@@ -14,7 +14,7 @@ Adds transcription factor activity for every comparison: decoupleR's univariate 
 - CollecTRI downloaded 2026-10-31 (42,990 links, 1,185 TFs), kept in `networks/` and attached to the release; it is
   the same under OmniPath's academic and commercial licenses.
 - The Comparisons page gains a Genes / TFs switch: the same plot, table and agreement plot for TF activity, and for a
-  selected TF its targets, those driving the score first.
+  selected TF a volcano of its targets (activated and repressed) and a table of those driving the score.
 - Site fix: p-values and fold changes in the site's data were rounded to the nearest 2 or 3 digits, so a value just
   inside a cut-off (p<sub>adj</sub> 0.0497, log2FC 0.9996) could round onto it and change the call. Across the 15
   comparisons, about 200 genes were shown as not significant (or, through fold changes, significant) against the

@@ -285,6 +285,8 @@ with sync_playwright() as p:
     pg.wait_for_selector("#targets:not([hidden]) tbody tr")
     check("less active in LM" in pg.inner_text("#picked") and "tf=STAT1" in pg.url, f"TF picked: {pg.inner_text('#picked')[:70]}")
     check(pg.locator("#targets tbody tr").count() == 10 and "239 of 305 targets" in pg.inner_text("#targets"), "target list: top 10 of the measured targets")
+    check(pg.evaluate("document.getElementById('target-volcano').data.map(t => t.name).join('|')") == "other genes|repressed by STAT1 (17)|activated by STAT1 (222)",
+          "target volcano: activated and repressed targets over the other genes")
     pg.click("#targets [data-all]")
     check(pg.locator("#targets tbody tr").count() == 239, "Show all lists every measured target")
     first = pg.locator("#targets [data-gene]").first.inner_text()

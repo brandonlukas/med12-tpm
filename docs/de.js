@@ -6,8 +6,9 @@ const NS = "#cfd2db";
 // agreement categories: neither a direction nor a group hue
 const AGREE = { same: "#2b3a8c", opposite: "#009E73", one: "#a3abb9", neither: "#e1e4ea" };
 const PAGE = 25, TOP_TARGETS = 10;
+const ACT = "#1B7837", REP = "#762A83";   // a TF's activated / repressed targets: hues used nowhere else on the site
 const cache = new Map();
-const state = { kind: "gene", c: null, rows: [], sort: { key: "rank", dir: 1 }, page: 0, pick: null, allTargets: false };
+const state = { kind: "gene", c: null, rows: [], sort: { key: "rank", dir: 1 }, page: 0, pick: null, allTargets: false, targets: null };
 let noPlots = false; // the plotting library did not load; the table still works
 let network = null;
 
@@ -113,7 +114,10 @@ async function init() {
 
   $("contrast").addEventListener("change", showContrast);
   document.querySelectorAll("[data-kind]").forEach((b) => b.addEventListener("click", () => setKind(b.dataset.kind)));
-  for (const id of ["alpha", "lfcmin"]) $(id).addEventListener("input", () => { refresh(); drawAgree(); });
+  for (const id of ["alpha", "lfcmin"]) $(id).addEventListener("input", () => {
+    refresh(); drawAgree();
+    if (!$("targets").hidden) { drawTargetVolcano(); drawTargetList(); }
+  });
   $("thr-reset").addEventListener("click", resetThresholds);
   $("filter").addEventListener("input", () => { state.page = 0; drawTable(); });
   $("sigonly").addEventListener("change", () => { state.page = 0; drawTable(); });
@@ -136,7 +140,7 @@ async function init() {
   });
   $("picked").addEventListener("click", (e) => { if (e.target.closest("[data-clear]")) clearPick(); });
   $("targets").addEventListener("click", (e) => {
-    if (e.target.closest("[data-all]")) { state.allTargets = !state.allTargets; drawTargets(); return; }
+    if (e.target.closest("[data-all]")) { state.allTargets = !state.allTargets; drawTargetList(); return; }
     const t = e.target.closest("[data-gene]");
     if (t) setKind("gene", +t.dataset.gene);
   });
@@ -146,7 +150,12 @@ async function init() {
       <span class="end"><button type="button" class="btn quiet" data-clear>Clear</button></span>`;
   }, SEARCH);
   for (const id of ["ax", "ay"]) $(id).addEventListener("change", drawAgree);
-  window.addEventListener("resize", () => { if (state.rows.length) drawVolcano(); });
+  // labels are placed for the plot's width, so redraw once the window settles
+  let resized;
+  window.addEventListener("resize", () => {
+    clearTimeout(resized);
+    resized = setTimeout(() => { if (state.rows.length) drawVolcano(); if (!$("targets").hidden) drawTargetVolcano(); }, 150);
+  });
   showKind();
   await showContrast();
   drawAgree();
@@ -233,21 +242,50 @@ function placeLabels(cands, xr, yr, W, H, m, max = 14) {
   return out;
 }
 
+// A volcano's y axis, -log10 padj, capped at 2.5x the 95th percentile of the significant points
+// (padj < 0.05) so that a few at p ~ 1e-300 do not squash the rest; points above the cap sit on it.
+function yScale(rows, ymin) {
+  const sv = rows.filter((r) => r.padj > 0 && r.padj < 0.05).map((r) => nlog(r.padj)).sort((a, b) => a - b);
+  const vmax = Math.max(ymin, ...rows.filter((r) => r.padj > 0).map((r) => nlog(r.padj)));
+  const cap = sv.length ? Math.min(vmax, Math.max(10, 2.5 * sv[Math.floor(sv.length * 0.95)])) : vmax;
+  const capped = (r) => r.padj === 0 || nlog(r.padj) > cap;
+  return { cap, capped, yOf: (r) => (capped(r) ? cap : nlog(r.padj)) };
+}
+
+const MARGIN = { l: 58, r: 14, t: 36, b: 52 };
+const GUIDE = { color: "#b4b8c4", width: 1, dash: "dot" };
+
+// The axes both volcanos share: x from the largest effect, y from yScale
+function volcanoFrame(rows, ymin) {
+  const scale = yScale(rows, ymin);
+  const xmax = Math.max(1, ...rows.map((r) => Math.abs(r.x))) * 1.06;
+  return { ...scale, xr: [-xmax, xmax], yr: [0, scale.cap * 1.08] };
+}
+
+// dotted lines at the p_adj cut-off and, for genes, the fold-change cut-off
+const guides = (lfc) => [
+  { type: "line", xref: "paper", x0: 0, x1: 1, y0: nlog(alpha()), y1: nlog(alpha()), line: GUIDE },
+  ...(lfc > 0 ? [-lfc, lfc].map((x) => ({ type: "line", yref: "paper", y0: 0, y1: 1, x0: x, x1: x, line: GUIDE })) : []),
+];
+
+const labelNotes = (labels) => labels.map((l) => ({ x: l.x, y: l.y, ax: l.ax, ay: l.ay, xanchor: l.xanchor, text: esc(l.name),
+  showarrow: true, arrowhead: 0, arrowwidth: 1, arrowcolor: "#b4b8c4", font: { size: 11.5, color: INK } }));
+
+function volcanoLayout({ xr, yr, xTitle, lfc, annotations, zoom }) {
+  return {
+    ...BASE_LAYOUT, margin: MARGIN, shapes: guides(lfc), annotations, hovermode: "closest",
+    legend: { orientation: "h", x: 0, y: 1.02, yanchor: "bottom", traceorder: "reversed", itemclick: false, itemdoubleclick: false },
+    xaxis: { ...AXIS, fixedrange: !zoom, range: xr, title: { text: xTitle, standoff: 8 }, zeroline: true, zerolinecolor: RULE },
+    yaxis: { ...AXIS, fixedrange: !zoom, range: yr, title: { text: "−log₁₀ p<sub>adj</sub>", standoff: 8 } },
+  };
+}
+
 function drawVolcano() {
   const el = $("volcano");
   if (noPlots) { el.innerHTML = NO_PLOT; return; }
   const rows = state.rows.filter((r) => r.padj != null && r.x != null);
   const [num, den] = sides(state.c);
-  // Cap the y axis at 2.5x the 95th percentile of the significant points (padj < 0.05) so that a
-  // few genes at p ~ 1e-300 do not squash the rest; points above the cap are drawn as triangles on it.
-  const sv = rows.filter((r) => r.padj > 0 && r.padj < 0.05).map((r) => nlog(r.padj)).sort((a, b) => a - b);
-  const vmax = Math.max(K().ymin, ...rows.filter((r) => r.padj > 0).map((r) => nlog(r.padj)));
-  const cap = sv.length ? Math.min(vmax, Math.max(10, 2.5 * sv[Math.floor(sv.length * 0.95)])) : vmax;
-  const capped = (r) => r.padj === 0 || nlog(r.padj) > cap;
-  const yOf = (r) => (capped(r) ? cap : nlog(r.padj));
-  const xmax = Math.max(1, ...rows.map((r) => Math.abs(r.x))) * 1.06;
-  const xr = [-xmax, xmax], yr = [0, cap * 1.08];
-  const margin = { l: 58, r: 14, t: 36, b: 52 };
+  const { capped, yOf, xr, yr } = volcanoFrame(rows, K().ymin);
   const colorOf = (r) => (isSig(r) ? (r.x > 0 ? UP : DOWN) : NS);
   const size = K().size;
   const trace = (rs, extra) => ({
@@ -273,9 +311,8 @@ function drawVolcano() {
     ...sig.filter((r) => r.x < 0).sort((a, b) => a.x - b.x).slice(0, 3),
     ...sig.filter((r) => !capped(r)).sort((a, b) => a.padj - b.padj).slice(0, 24),
   ]) if (!seen.has(r.key)) { seen.add(r.key); cands.push({ name: r.name, x: r.x, y: yOf(r) }); }
-  const labels = el.clientWidth >= 600 ? placeLabels(cands, xr, yr, el.clientWidth, el.clientHeight, margin) : [];
-  const annotations = labels.map((l) => ({ x: l.x, y: l.y, ax: l.ax, ay: l.ay, xanchor: l.xanchor, text: esc(l.name),
-    showarrow: true, arrowhead: 0, arrowwidth: 1, arrowcolor: "#b4b8c4", font: { size: 11.5, color: INK } }));
+  const labels = el.clientWidth >= 600 ? placeLabels(cands, xr, yr, el.clientWidth, el.clientHeight, MARGIN) : [];
+  const annotations = labelNotes(labels);
 
   const p = state.pick != null && state.rows.byKey.get(state.pick);
   if (p && p.padj != null) {
@@ -284,18 +321,8 @@ function drawVolcano() {
   }
   if (above.length) annotations.push({ xref: "paper", yref: "paper", x: 0, y: 1, xanchor: "left", yanchor: "top", showarrow: false,
     text: "▲ beyond the axis", font: { size: 11.5, color: MUTED } });
-  const t = K().lfcCut ? lfcMin() : 0, a = nlog(alpha());
-  const guide = { color: "#b4b8c4", width: 1, dash: "dot" };
-  const shapes = [
-    { type: "line", xref: "paper", x0: 0, x1: 1, y0: a, y1: a, line: guide },
-    ...(t > 0 ? [-t, t].map((x) => ({ type: "line", yref: "paper", y0: 0, y1: 1, x0: x, x1: x, line: guide })) : []),
-  ];
-  Plotly.react(el, traces, {
-    ...BASE_LAYOUT, margin, shapes, annotations, hovermode: "closest",
-    legend: { orientation: "h", x: 0, y: 1.02, yanchor: "bottom", traceorder: "reversed", itemclick: false, itemdoubleclick: false },
-    xaxis: { ...AXIS, fixedrange: false, range: xr, title: { text: K().axis(esc(num), esc(den)), standoff: 8 }, zeroline: true, zerolinecolor: RULE },
-    yaxis: { ...AXIS, fixedrange: false, range: yr, title: { text: "−log₁₀ p<sub>adj</sub>", standoff: 8 } },
-  }, PLOT_CONFIG);
+  Plotly.react(el, traces, volcanoLayout({ xr, yr, xTitle: K().axis(esc(num), esc(den)),
+    lfc: K().lfcCut ? lfcMin() : 0, annotations, zoom: true }), PLOT_CONFIG);
   el._home = { x: [...xr], y: [...yr] };   // copies: Plotly edits the range arrays it was given when the user zooms
   zoomReset(el, $("volcano-reset"), drawVolcano);
   pointCursor(el);
@@ -397,19 +424,64 @@ async function drawTargets() {
   const all = [...act.map((t) => [t, 1]), ...rep.map((t) => [t, -1])];
   const list = all.map(([t, w]) => ({ g: genes.byName.get(t), w })).filter(({ g }) => g)
     .map(({ g, w }) => ({ g, w, push: w * g.z * sign })).sort((a, b) => b.push - a.push);
-  const shown = state.allTargets ? list : list.slice(0, TOP_TARGETS);
+  state.targets = { tf, genes, list };   // its measured targets, those pushing its score hardest first
+  const [num] = sides(c);
+  if (!noPlots && $("target-volcano")) Plotly.purge($("target-volcano"));   // free its WebGL context before replacing the div
+  $("targets").innerHTML = `<p class="small dim">${list.length} of ${all.length} targets of ${esc(tf)} measured here.
+      ${esc(tf)} scores as more active in ${esc(num)} when the targets it activates (green) lean right and those it
+      represses (purple) lean left. Click a target to see it in the gene view.</p>
+    <div id="target-volcano" class="target-volcano"></div><div id="target-list" class="target-list"></div>`;
+  $("targets").hidden = false;
+  drawTargetVolcano();
+  drawTargetList();
+}
+
+// the picked TF's targets over every gene of the comparison, in grey
+function drawTargetVolcano() {
+  const el = $("target-volcano"), { tf, genes, list } = state.targets;
+  if (noPlots) { el.hidden = true; return; }
+  // the same for every TF of a comparison, so kept with its rows
+  genes.volcano ??= (() => {
+    const rows = genes.filter((g) => g.padj != null && g.x != null), f = volcanoFrame(rows, KINDS.gene.ymin);
+    return { ...f, bgX: rows.map((g) => g.x), bgY: rows.map(f.yOf) };
+  })();
+  const { capped, yOf, xr, yr, bgX, bgY } = genes.volcano;
+  const [num, den] = sides(state.c);
+  // points above the cap last: Plotly draws a trace's legend symbol from its first point
+  const pts = (ts, name, color) => (ts = [...ts.filter((t) => !capped(t.g)), ...ts.filter((t) => capped(t.g))], {
+    type: "scattergl", mode: "markers", name: `${name} (${ts.length})`,
+    x: ts.map((t) => t.g.x), y: ts.map((t) => yOf(t.g)), text: ts.map((t) => t.g.name),
+    customdata: ts.map((t) => [t.g.key, fmt(t.g.x), fmtP(t.g.padj)]),
+    marker: { color, size: 7, symbol: ts.map((t) => (capped(t.g) ? "triangle-up" : "circle")) },
+    hovertemplate: `<b>%{text}</b><br>${name}<br>${KINDS.gene.effect} %{customdata[1]} · p<sub>adj</sub> %{customdata[2]}<extra></extra>`,
+  });
+  const traces = [
+    { type: "scattergl", mode: "markers", name: "other genes", x: bgX, y: bgY, hoverinfo: "skip", marker: { color: "#e6e8ee", size: 3 } },
+    pts(list.filter((t) => t.w < 0), `repressed by ${tf}`, REP),
+    pts(list.filter((t) => t.w > 0), `activated by ${tf}`, ACT),
+  ];
+  const cands = list.slice(0, 12).map((t) => ({ name: t.g.name, x: t.g.x, y: yOf(t.g) }));
+  const labels = el.clientWidth >= 600 ? placeLabels(cands, xr, yr, el.clientWidth, el.clientHeight, MARGIN, 8) : [];
+  Plotly.react(el, traces, volcanoLayout({ xr, yr, xTitle: KINDS.gene.axis(esc(num), esc(den)), lfc: lfcMin(),
+    annotations: labelNotes(labels), zoom: false }), PLOT_CONFIG);
+  pointCursor(el);
+  el.removeAllListeners?.("plotly_click");
+  el.on("plotly_click", (ev) => { const k = ev.points[0]?.customdata?.[0]; if (k != null) setKind("gene", k); });
+}
+
+// the targets as a table, those that push the score most first: the exact numbers, and a way in on a phone
+function drawTargetList() {
+  const { list } = state.targets, shown = state.allTargets ? list : list.slice(0, TOP_TARGETS);
   const rows = shown.map(({ g, w }) => {
     const sig = isSig(g), dir = sig ? (g.x > 0 ? "up" : "down") : "";
     return `<tr><td><button type="button" class="linklike" data-gene="${g.key}" title="Select ${esc(g.name)} in the gene view">${esc(g.name)}</button></td>
-      <td>${w > 0 ? "activates" : "represses"}</td><td class="${dir ? `sig ${dir}` : ""}">${fmt(g.x)}</td><td class="${sig ? "sig" : ""}">${fmtP(g.padj)}</td></tr>`;
+      <td><span class="swatch" style="background:${w > 0 ? ACT : REP}"></span>${w > 0 ? "activates" : "represses"}</td>
+      <td class="${dir ? `sig ${dir}` : ""}">${fmt(g.x)}</td><td class="${sig ? "sig" : ""}">${fmtP(g.padj)}</td></tr>`;
   }).join("");
   const more = list.length > TOP_TARGETS
     ? `<button type="button" class="btn quiet" data-all>${state.allTargets ? `Show the top ${TOP_TARGETS}` : `Show all ${list.length}`}</button>` : "";
-  $("targets").innerHTML = `<p class="small dim">${list.length} of ${all.length} targets of ${esc(tf)} measured in this
-      comparison; those that push its score most come first. Click one to see it in the gene view.</p>
-    <div class="scroll"><table><thead><tr><th>Target</th><th>Effect</th><th>log₂FC</th><th>p<sub>adj</sub></th></tr></thead>
+  $("target-list").innerHTML = `<div class="scroll"><table><thead><tr><th>Target</th><th>Effect</th><th>log₂FC</th><th>p<sub>adj</sub></th></tr></thead>
     <tbody>${rows}</tbody></table></div>${more}`;
-  $("targets").hidden = false;
 }
 
 function clearPick() {
