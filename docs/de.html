@@ -6,7 +6,7 @@
 <title>Comparisons · MED12 RNA-seq Explorer</title>
 <meta name="description" content="DESeq2 results for every comparison in five public MED12 RNA-seq datasets: volcano plots, ranked tables and agreement between comparisons.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=ac7c30c4">
+<link rel="stylesheet" href="style.css?v=47d06e18">
 <script src="vendor/plotly-gl2d-2.35.2.min.js"></script>
 </head>
 <body>
@@ -57,7 +57,6 @@
 
   <p id="summary" class="summary" aria-live="polite">Loading…</p>
   <div id="picked" class="picked" hidden></div>
-  <div id="targets" class="targets" hidden></div>
   <div class="plotwrap">
     <div id="volcano" class="volcano"></div>
     <button id="volcano-reset" type="button" class="btn reset" hidden>Reset zoom</button>
@@ -113,7 +112,7 @@
         across TFs. AP1 and NFKB are complexes, scored from the targets of their members together.</li>
       <li>In tissue, TF activity also reflects which cells the sample contains. Myometrium has more immune and
         blood-vessel cells than leiomyoma, so the TFs of those cells (NF-κB, STAT1, ETS1 and others) read as less active
-        in LM partly for that reason. Selecting a TF plots its targets on a volcano and lists them, so you can see which genes drive its score.</li>
+        in LM partly for that reason.</li>
       <li>The tissue comparisons by genotype use 6 mutant and 4 wild-type patients; the spheroid wild-type group has 2 replicates.</li>
     </ul>
   </details>
@@ -127,7 +126,7 @@
     <a href="https://github.com/brandonlukas/med12-tpm">Code on GitHub</a>
   </div>
 </footer>
-<script src="common.js?v=ac7c30c4"></script>
-<script src="de.js?v=ac7c30c4"></script>
+<script src="common.js?v=47d06e18"></script>
+<script src="de.js?v=47d06e18"></script>
 </body>
 </html>

@@ -1,16 +1,14 @@
 // Comparisons page: volcano, ranked table and agreement between two comparisons, for genes or
 // for transcription-factor (TF) activity.
 // Data: data/de/<dataset>__<contrast>.json (genes) and data/tf/<dataset>__<contrast>.json (TFs),
-// one comparison as columns; data/tf/network.json, each TF's targets.
+// one comparison as columns.
 const NS = "#cfd2db";
 // agreement categories: neither a direction nor a group hue
 const AGREE = { same: "#2b3a8c", opposite: "#009E73", one: "#a3abb9", neither: "#e1e4ea" };
-const PAGE = 25, TOP_TARGETS = 10;
-const ACT = "#1B7837", REP = "#762A83";   // a TF's activated / repressed targets: hues used nowhere else on the site
+const PAGE = 25;
 const cache = new Map();
-const state = { kind: "gene", c: null, rows: [], sort: { key: "rank", dir: 1 }, page: 0, pick: null, allTargets: false, targets: null };
+const state = { kind: "gene", c: null, rows: [], sort: { key: "rank", dir: 1 }, page: 0, pick: null };
 let noPlots = false; // the plotting library did not load; the table still works
-let network = null;
 
 const DEFAULTS = { alpha: SIG.padj, lfcmin: SIG.lfc };
 // an empty or unreadable field falls back to its default; any number, including 0, is taken as typed
@@ -30,7 +28,6 @@ const sides = (c) => contrastSides(dsOf(c), conOf(c));
 const nlog = (p) => -Math.log10(p);
 // the gene with exactly this symbol (Data.lookup ignores case)
 const geneByName = (name) => Data.lookup(name).find((i) => Data.genes[i][1] === name) ?? null;
-const hidePick = () => { $("picked").hidden = true; $("targets").hidden = true; };
 
 // Rows of one comparison. A gene row's key is its gene index, a TF row's its name.
 async function load(c, kind = state.kind) {
@@ -39,7 +36,7 @@ async function load(c, kind = state.kind) {
     cache.set(id, fetch(`data/${kind === "tf" ? "tf" : "de"}/${c}.json`).then((r) => r.json()).then((d) => {
       const rows = kind === "tf"
         ? d.tf.map((t, k) => ({ tf: true, key: t, name: t, x: d.act[k], n: d.n[k], p: d.p[k], padj: d.padj[k] }))
-        : d.g.map((g, k) => ({ key: g, name: Data.genes[g][1], base: d.base[k], x: d.lfc[k], mle: d.mle[k], z: d.z[k], p: d.p[k], padj: d.padj[k] }));
+        : d.g.map((g, k) => ({ key: g, name: Data.genes[g][1], base: d.base[k], x: d.lfc[k], mle: d.mle[k], p: d.p[k], padj: d.padj[k] }));
       const ranked = rows.filter((r) => r.p != null).sort((a, b) => a.p - b.p);
       ranked.forEach((r, k) => (r.rank = k + 1));
       rows.nTested = ranked.length;
@@ -116,7 +113,6 @@ async function init() {
   document.querySelectorAll("[data-kind]").forEach((b) => b.addEventListener("click", () => setKind(b.dataset.kind)));
   for (const id of ["alpha", "lfcmin"]) $(id).addEventListener("input", () => {
     refresh(); drawAgree();
-    if (!$("targets").hidden) { drawTargetVolcano(); drawTargetList(); }
   });
   $("thr-reset").addEventListener("click", resetThresholds);
   $("filter").addEventListener("input", () => { state.page = 0; drawTable(); });
@@ -139,13 +135,8 @@ async function init() {
     if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); pick(K().keyAttr(tr.dataset.k), false); }
   });
   $("picked").addEventListener("click", (e) => { if (e.target.closest("[data-clear]")) clearPick(); });
-  $("targets").addEventListener("click", (e) => {
-    if (e.target.closest("[data-all]")) { state.allTargets = !state.allTargets; drawTargetList(); return; }
-    const t = e.target.closest("[data-gene]");
-    if (t) setKind("gene", +t.dataset.gene);
-  });
   attachSearch($("find"), $("suggest"), (key) => { $("find").value = ""; pick(key, true); }, (q) => {
-    $("picked").hidden = false; $("targets").hidden = true;
+    $("picked").hidden = false;
     $("picked").innerHTML = `<span>No ${K().noun} called “${esc(q)}”. ${K().miss}</span>
       <span class="end"><button type="button" class="btn quiet" data-clear>Clear</button></span>`;
   }, SEARCH);
@@ -154,7 +145,7 @@ async function init() {
   let resized;
   window.addEventListener("resize", () => {
     clearTimeout(resized);
-    resized = setTimeout(() => { if (state.rows.length) drawVolcano(); if (!$("targets").hidden) drawTargetVolcano(); }, 150);
+    resized = setTimeout(() => { if (state.rows.length) drawVolcano(); }, 150);
   });
   showKind();
   await showContrast();
@@ -162,16 +153,16 @@ async function init() {
 }
 
 // Switch between genes and TFs. A selection carries over when the other view has the same name
-// (ESR1 the gene and ESR1 the TF); `then` selects a given key in the new view instead.
-async function setKind(kind, then) {
-  if (kind === state.kind && then == null) return;
+// (ESR1 the gene and ESR1 the TF).
+async function setKind(kind) {
+  if (kind === state.kind) return;
   const name = state.pick != null ? K().nameOf(state.pick) : null;
   state.kind = kind;
-  state.sort = { key: "rank", dir: 1 }; state.page = 0; state.allTargets = false;
+  state.sort = { key: "rank", dir: 1 }; state.page = 0;
   $("filter").value = "";
   showKind();
   state.rows = await load(state.c);
-  state.pick = then ?? (name == null ? null : K().keyOf(name));
+  state.pick = name == null ? null : K().keyOf(name);
   setHash();
   redraw();
 }
@@ -195,7 +186,7 @@ async function showContrast() {
 function redraw(agree = true) {
   summary();
   if (state.pick != null) { pick(state.pick, true); return; }
-  hidePick(); drawVolcano(); drawTable();
+  $("picked").hidden = true; drawVolcano(); drawTable();
   if (agree) drawAgree();
 }
 
@@ -373,7 +364,7 @@ function drawTable() {
   $("next").disabled = state.page >= pages - 1;
 }
 
-// select a gene or TF: say where it ranks, ring it on the plots, mark its row, and for a TF list its targets
+// select a gene or TF: say where it ranks, ring it on the plots, mark its row
 function pick(key, jumpTable) {
   state.pick = key;
   setHash();
@@ -385,7 +376,6 @@ function pick(key, jumpTable) {
   if (!r || r.p == null) {
     $("picked").innerHTML = `<b>${esc(name)}</b> <span>${K().untested}</span>
       <span class="end">${link} ${clear}</span>`;
-    $("targets").hidden = true;
   } else {
     const pct = Math.max(1, Math.ceil((r.rank / state.rows.nTested) * 100));
     const call = r.padj == null ? `<span class="dim">no p<sub>adj</sub></span>`
@@ -400,93 +390,15 @@ function pick(key, jumpTable) {
       state.sort = { key: "rank", dir: 1 };
       state.page = Math.floor((r.rank - 1) / PAGE);   // the table is now every row, by rank
     }
-    if (isTF()) drawTargets(); else $("targets").hidden = true;
   }
   drawVolcano();
   drawTable();
   drawAgree();
 }
 
-// The picked TF's targets in this comparison, those pushing its score hardest first: a target's
-// push is its test statistic, sign-flipped for a repressed target, in the direction of the activity.
-async function drawTargets() {
-  const tf = state.pick, c = state.c;
-  network ??= fetch("data/tf/network.json").then((r) => r.json());
-  const [net, genes] = await Promise.all([network, load(c, "gene")]);
-  if (state.pick !== tf || state.c !== c || !isTF()) return;
-  // a name shared by several genes counts once, the most expressed, as in the TF scores
-  if (!genes.byName) {
-    genes.byName = new Map();
-    for (const g of genes) if (g.z != null && !(genes.byName.get(g.name)?.base > g.base)) genes.byName.set(g.name, g);
-  }
-  const [act, rep] = net[tf] ?? [[], []];
-  const sign = Math.sign(state.rows.byKey.get(tf).x) || 1;
-  const all = [...act.map((t) => [t, 1]), ...rep.map((t) => [t, -1])];
-  const list = all.map(([t, w]) => ({ g: genes.byName.get(t), w })).filter(({ g }) => g)
-    .map(({ g, w }) => ({ g, w, push: w * g.z * sign })).sort((a, b) => b.push - a.push);
-  state.targets = { tf, genes, list };   // its measured targets, those pushing its score hardest first
-  const [num] = sides(c);
-  if (!noPlots && $("target-volcano")) Plotly.purge($("target-volcano"));   // free its WebGL context before replacing the div
-  $("targets").innerHTML = `<p class="small dim">${list.length} of ${all.length} targets of ${esc(tf)} measured here.
-      ${esc(tf)} scores as more active in ${esc(num)} when the targets it activates (green) lean right and those it
-      represses (purple) lean left. Click a target to see it in the gene view.</p>
-    <div id="target-volcano" class="target-volcano"></div><div id="target-list" class="target-list"></div>`;
-  $("targets").hidden = false;
-  drawTargetVolcano();
-  drawTargetList();
-}
-
-// the picked TF's targets over every gene of the comparison, in grey
-function drawTargetVolcano() {
-  const el = $("target-volcano"), { tf, genes, list } = state.targets;
-  if (noPlots) { el.hidden = true; return; }
-  // the same for every TF of a comparison, so kept with its rows
-  genes.volcano ??= (() => {
-    const rows = genes.filter((g) => g.padj != null && g.x != null), f = volcanoFrame(rows, KINDS.gene.ymin);
-    return { ...f, bgX: rows.map((g) => g.x), bgY: rows.map(f.yOf) };
-  })();
-  const { capped, yOf, xr, yr, bgX, bgY } = genes.volcano;
-  const [num, den] = sides(state.c);
-  // points above the cap last: Plotly draws a trace's legend symbol from its first point
-  const pts = (ts, name, color) => (ts = [...ts.filter((t) => !capped(t.g)), ...ts.filter((t) => capped(t.g))], {
-    type: "scattergl", mode: "markers", name: `${name} (${ts.length})`,
-    x: ts.map((t) => t.g.x), y: ts.map((t) => yOf(t.g)), text: ts.map((t) => t.g.name),
-    customdata: ts.map((t) => [t.g.key, fmt(t.g.x), fmtP(t.g.padj)]),
-    marker: { color, size: 7, symbol: ts.map((t) => (capped(t.g) ? "triangle-up" : "circle")) },
-    hovertemplate: `<b>%{text}</b><br>${name}<br>${KINDS.gene.effect} %{customdata[1]} · p<sub>adj</sub> %{customdata[2]}<extra></extra>`,
-  });
-  const traces = [
-    { type: "scattergl", mode: "markers", name: "other genes", x: bgX, y: bgY, hoverinfo: "skip", marker: { color: "#e6e8ee", size: 3 } },
-    pts(list.filter((t) => t.w < 0), `repressed by ${tf}`, REP),
-    pts(list.filter((t) => t.w > 0), `activated by ${tf}`, ACT),
-  ];
-  const cands = list.slice(0, 12).map((t) => ({ name: t.g.name, x: t.g.x, y: yOf(t.g) }));
-  const labels = el.clientWidth >= 600 ? placeLabels(cands, xr, yr, el.clientWidth, el.clientHeight, MARGIN, 8) : [];
-  Plotly.react(el, traces, volcanoLayout({ xr, yr, xTitle: KINDS.gene.axis(esc(num), esc(den)), lfc: lfcMin(),
-    annotations: labelNotes(labels), zoom: false }), PLOT_CONFIG);
-  pointCursor(el);
-  el.removeAllListeners?.("plotly_click");
-  el.on("plotly_click", (ev) => { const k = ev.points[0]?.customdata?.[0]; if (k != null) setKind("gene", k); });
-}
-
-// the targets as a table, those that push the score most first: the exact numbers, and a way in on a phone
-function drawTargetList() {
-  const { list } = state.targets, shown = state.allTargets ? list : list.slice(0, TOP_TARGETS);
-  const rows = shown.map(({ g, w }) => {
-    const sig = isSig(g), dir = sig ? (g.x > 0 ? "up" : "down") : "";
-    return `<tr><td><button type="button" class="linklike" data-gene="${g.key}" title="Select ${esc(g.name)} in the gene view">${esc(g.name)}</button></td>
-      <td><span class="swatch" style="background:${w > 0 ? ACT : REP}"></span>${w > 0 ? "activates" : "represses"}</td>
-      <td class="${dir ? `sig ${dir}` : ""}">${fmt(g.x)}</td><td class="${sig ? "sig" : ""}">${fmtP(g.padj)}</td></tr>`;
-  }).join("");
-  const more = list.length > TOP_TARGETS
-    ? `<button type="button" class="btn quiet" data-all>${state.allTargets ? `Show the top ${TOP_TARGETS}` : `Show all ${list.length}`}</button>` : "";
-  $("target-list").innerHTML = `<div class="scroll"><table><thead><tr><th>Target</th><th>Effect</th><th>log₂FC</th><th>p<sub>adj</sub></th></tr></thead>
-    <tbody>${rows}</tbody></table></div>${more}`;
-}
-
 function clearPick() {
   state.pick = null;
-  hidePick();
+  $("picked").hidden = true;
   setHash();
   drawVolcano();
   drawTable();

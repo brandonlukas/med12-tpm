@@ -8,7 +8,6 @@
   fetches ~100 kB per gene instead of everything
 - de/<dataset>__<contrast>.json: one comparison as columns, for the DE results page
 - tf/<dataset>__<contrast>.json: TF activity in one comparison (tf_activity.py), as columns
-- tf/network.json: each scored TF's targets, [activated, repressed], for the target lists
 
 Run after the pipeline and deseq2.R:
     uv run --with pandas python build_site_data.py
@@ -102,7 +101,7 @@ dump(meta, out / "meta.json")
 dump(tpm[["gene_id", "gene_name", "gene_type"]].values.tolist(), out / "genes.json")
 
 # per comparison: columns for the DE page, and per gene the same rounded values for the chunks
-de, scored = {}, set()
+de = {}
 for ds, cfg in DATASETS.items():
     for c in cfg["contrasts"]:
         d = pd.read_csv(here / f"deliverables/de/{ds}__{c}.csv")
@@ -119,17 +118,10 @@ for ds, cfg in DATASETS.items():
             "mle": mle,
             "p": [cut(x) for x in d["pvalue"]],
             "padj": padj,
-            "z": [sig(x) for x in d["stat"]],   # Wald statistic: what TF activity is computed from
         }, out / f"de/{ds}__{c}.json")
         t = pd.read_csv(here / f"deliverables/tf/{ds}__{c}.csv")
         dump({"tf": t["tf"].tolist(), "act": [sig(x) for x in t["activity"]], "p": [cut(x) for x in t["pvalue"]],
               "padj": [cut(x) for x in t["padj"]], "n": t["n_targets"].tolist()}, out / f"tf/{ds}__{c}.json")
-        scored.update(t["tf"])
-
-net = pd.read_csv(here / json.load(open(here / "datasets.json"))["network"])
-net = net[net["source"].isin(scored)]
-dump({tf: [sorted(g.loc[g["weight"] > 0, "target"]), sorted(g.loc[g["weight"] < 0, "target"])]
-      for tf, g in net.groupby("source")}, out / "tf/network.json")
 
 for i in range(0, len(tpm), CHUNK):
     chunk = {}
